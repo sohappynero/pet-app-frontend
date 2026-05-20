@@ -1,0 +1,440 @@
+/* ═══════════════════════════════════════════
+   美容毛发分析详情页 - BeautyAnalysis
+   ═══════════════════════════════════════════ */
+
+.beauty-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #fdf2f8 0%, #faf5ff 100%);
+  padding-bottom: 20px;
+}
+
+/* ── 渐变头部 ─────────────────────────────── */
+.beauty-header {
+  background: linear-gradient(135deg, #f9a8d4 0%, #f472b6 25%, #c084fc 50%, #a78bfa 75%, #818cf8 100%);
+  padding: 48px 18px 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.beauty-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+  pointer-events: none;
+}
+
+.beauty-header-bg {
+  position: relative;
+  z-index: 2;
+}
+
+.beauty-back-btn {
+  position: absolute;
+  top: 14px;
+  left: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.beauty-back-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
+}
+.beauty-back-btn:active {
+  transform: scale(0.95);
+}
+
+.beauty-header-title {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 6px;
+  letter-spacing: 2px;
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.beauty-header-sub {
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  position: relative;
+  z-index: 2;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* ── 综合评分卡片 ───────────────────────────── */
+.beauty-hero-score-card {
+  margin-top: 18px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 20px;
+  padding: 18px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.beauty-hero-score-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.beauty-hero-score-icon {
+  font-size: 18px;
+  animation: sparkle 2s ease-in-out infinite;
+}
+@keyframes sparkle {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  50% { transform: scale(1.2) rotate(10deg); opacity: 0.8; }
+}
+.beauty-hero-score-label {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 0.5px;
+}
+.beauty-hero-score-badge {
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2));
+  padding: 4px 14px;
+  border-radius: 999px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.beauty-hero-bar-track {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.beauty-hero-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fef08a, #fde68a, #fbcfe8, #f9a8d4);
+  border-radius: 999px;
+  transition: width 1.2s ease;
+  box-shadow: 0 0 10px rgba(249, 168, 212, 0.5);
+}
+
+.beauty-hero-hint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+  text-align: center;
+}
+
+/* ── Section ───────────────────────────────── */
+.beauty-section {
+  padding: 18px 16px 0;
+}
+
+.beauty-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #581c87;
+  margin: 0 0 14px;
+  letter-spacing: 0.5px;
+}
+.beauty-section-title span {
+  font-size: 16px;
+}
+
+/* ── 护理记录网格 ───────────────────────────── */
+.beauty-care-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.beauty-care-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px 6px 12px;
+  box-shadow: 0 2px 12px rgba(168, 85, 247, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.beauty-care-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.15);
+}
+
+.beauty-care-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c026d3;
+  background: linear-gradient(135deg, #fdf4ff, #fae8ff);
+  box-shadow: 0 2px 8px rgba(192, 38, 211, 0.15);
+}
+
+.beauty-care-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #581c87;
+}
+
+.beauty-care-time {
+  font-size: 11px;
+  color: #a855f7;
+  font-weight: 500;
+}
+
+/* ── 分析卡片 ───────────────────────────────── */
+.beauty-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 16px rgba(168, 85, 247, 0.08);
+  border: 1px solid rgba(192, 38, 211, 0.08);
+  transition: transform 0.2s ease;
+}
+.beauty-card:hover {
+  transform: translateY(-1px);
+}
+
+.beauty-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed rgba(192, 38, 211, 0.15);
+}
+
+.beauty-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.beauty-card-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #db2777;
+  background: linear-gradient(135deg, #fdf2f8, #fce7f3);
+  box-shadow: 0 2px 8px rgba(219, 39, 119, 0.15);
+}
+
+.beauty-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #581c87;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.beauty-card-score-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.beauty-score-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.beauty-status-good {
+  color: #059669;
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+}
+.beauty-status-warn {
+  color: #d97706;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+}
+.beauty-status-bad {
+  color: #dc2626;
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+}
+
+.beauty-score-num {
+  font-size: 18px;
+  font-weight: 800;
+  color: #db2777;
+  text-shadow: 0 1px 2px rgba(219, 39, 119, 0.1);
+}
+
+/* ── 详情行 ────────────────────────────────── */
+.beauty-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.beauty-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f5f0fa;
+}
+.beauty-detail-row:last-child {
+  border-bottom: none;
+}
+
+.beauty-detail-label {
+  font-size: 14px;
+  color: #7c3aed;
+  font-weight: 500;
+}
+
+.beauty-detail-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.beauty-detail-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #581c87;
+}
+
+.beauty-icon-good { color: #10b981; }
+.beauty-icon-warn { color: #f59e0b; }
+.beauty-icon-danger { color: #ef4444; }
+
+/* ── 分割线 + 建议 ─────────────────────────── */
+.beauty-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 0 12px;
+  color: #db2777;
+  font-size: 14px;
+  font-weight: 700;
+  border-bottom: 1px dashed rgba(219, 39, 119, 0.2);
+  margin-bottom: 12px;
+}
+.beauty-divider span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.beauty-suggest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.beauty-suggest-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  color: #6b21a8;
+  line-height: 1.5;
+}
+
+.beauty-suggest-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f9a8d4, #ec4899);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(236, 72, 153, 0.3);
+}
+
+.beauty-suggest-text {
+  flex: 1;
+  padding-top: 2px;
+  font-weight: 500;
+}
+
+/* ── 美容护理小贴士 ────────────────────────── */
+.beauty-tips-section {
+  padding-bottom: 4px;
+}
+
+.beauty-tips-card {
+  background: linear-gradient(135deg, #fdf4ff 0%, #faf5ff 100%);
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid rgba(168, 85, 247, 0.12);
+  box-shadow: 0 2px 12px rgba(168, 85, 247, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.beauty-tip-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #581c87;
+  line-height: 1.5;
+  padding: 10px 12px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(168, 85, 247, 0.06);
+  transition: transform 0.2s ease;
+}
+.beauty-tip-item:hover {
+  transform: translateX(4px);
+}
+
+.beauty-tip-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.beauty-tip-text {
+  flex: 1;
+  font-weight: 500;
+}
