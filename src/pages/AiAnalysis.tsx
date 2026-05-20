@@ -198,6 +198,7 @@ export default function AiAnalysis() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<AnalysisTab>("all");
   const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const currentPet = useMemo(
     () => selectedPet || pets[0] || null,
@@ -325,6 +326,26 @@ export default function AiAnalysis() {
   const isCardVisible = (category: string) =>
     activeTab === "all" || category === activeTab;
 
+  // 搜索过滤逻辑
+  const isCardVisibleBySearch = (category: string) => {
+    if (!searchTerm.trim()) return true;
+    
+    const term = searchTerm.toLowerCase();
+    
+    // 根据类别定义搜索内容
+    const searchContents: Record<string, string[]> = {
+      "health": ["综合健康评分", "健康", "体重", "食欲", "精神", "毛发", "优化建议", "继续保持", "记录体重", "观察排便"],
+      "trend": ["体重趋势分析", "体重", "趋势", "正常范围", "理想体重", "月增长", "趋势判断", "散步", "零食", "日粮"],
+      "diet": ["饮食建议", "营养", "蛋白质", "纤维素", "日粮", "鸡胸肉", "鸡蛋", "蔬菜", "胡萝卜", "南瓜", "饮水"],
+      "exercise": ["运动建议", "运动", "散步", "达标", "中大型犬", "互动游戏", "捡球", "飞盘"],
+      "vaccine": ["疫苗提醒", "狂犬疫苗", "联苗", "体检", "驱虫", "接种", "预约", "季度"],
+      "beauty": ["美容毛发分析", "毛发", "光泽", "打结", "梳理", "鱼油", "洗澡", "修剪", "清洁"]
+    };
+    
+    const content = searchContents[category] || [];
+    return content.some(text => text.toLowerCase().includes(term));
+  };
+
   return (
     <main className="ai-page">
       {/* ═══ Hero 区域 ═══ */}
@@ -370,7 +391,13 @@ export default function AiAnalysis() {
         </div>
 
         <div className="ai-hero-search-bar">
-          <input type="text" placeholder="搜索分析结果..." className="ai-search-input" readOnly />
+          <input 
+            type="text" 
+            placeholder="搜索分析结果..." 
+            className="ai-search-input"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
       </section>
 
@@ -399,7 +426,14 @@ export default function AiAnalysis() {
               key={item.label}
               className="ai-quick-btn"
               style={{ background: item.bg, boxShadow: item.shadow }}
-                onClick={() => item.tab === "beauty" ? navigate("/app/beauty-analysis") : setActiveTab(item.tab)}
+                onClick={() => {
+                  if (item.tab === "beauty") { navigate("/app/beauty-analysis"); }
+                  else if (item.tab === "trend") { navigate("/app/weight-trend-analysis"); }
+                  else if (item.tab === "health") { navigate("/app/health-report-analysis"); }
+                  else if (item.tab === "diet") { navigate("/app/diet-analysis"); }
+                  else if (item.tab === "exercise") { navigate("/app/exercise-analysis"); }
+                  else { setActiveTab(item.tab); }
+                }}
             >
               <span className="ai-quick-icon" style={{ color: item.color }}>{item.icon}</span>
               <span className="ai-quick-label">{item.label}</span>
@@ -412,7 +446,7 @@ export default function AiAnalysis() {
       <section className="ai-cards-section">
 
         {/* 卡片1：综合健康评分 - health */}
-        {isCardVisible("health") && (
+        {isCardVisible("health") && isCardVisibleBySearch("health") && (
           <AnalysisCard category="health">
             <CardHeader
               icon={<Heart size={20} />}
@@ -442,7 +476,7 @@ export default function AiAnalysis() {
         )}
 
         {/* 卡片2：体重趋势分析 - trend */}
-        {isCardVisible("trend") && (
+        {isCardVisible("trend") && isCardVisibleBySearch("trend") && (
           <AnalysisCard category="trend">
             <CardHeader
               icon={<TrendingUp size={20} />}
@@ -476,7 +510,7 @@ export default function AiAnalysis() {
         )}
 
         {/* 卡片3：饮食建议 - diet */}
-        {isCardVisible("diet") && (
+        {isCardVisible("diet") && isCardVisibleBySearch("diet") && (
           <AnalysisCard category="diet">
             <CardHeader
               icon={<UtensilsCrossed size={20} />}
@@ -506,7 +540,7 @@ export default function AiAnalysis() {
         )}
 
         {/* 卡片4：运动建议 - exercise */}
-        {isCardVisible("exercise") && (
+        {isCardVisible("exercise") && isCardVisibleBySearch("exercise") && (
           <AnalysisCard category="exercise">
             <CardHeader
               icon={<Dumbbell size={20} />}
@@ -536,7 +570,7 @@ export default function AiAnalysis() {
         )}
 
         {/* 卡片5：疫苗提醒 - vaccine */}
-        {isCardVisible("vaccine") && (
+        {isCardVisible("vaccine") && isCardVisibleBySearch("vaccine") && (
           <AnalysisCard category="vaccine">
             <CardHeader
               icon={<Syringe size={20} />}
@@ -566,7 +600,7 @@ export default function AiAnalysis() {
         )}
 
         {/* 卡片6：美容毛发分析 - beauty */}
-        {isCardVisible("beauty") && (
+        {isCardVisible("beauty") && isCardVisibleBySearch("beauty") && (
           <AnalysisCard category="beauty">
             <CardHeader
               icon={<Scissors size={20} />}

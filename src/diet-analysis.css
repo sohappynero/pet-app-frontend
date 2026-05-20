@@ -1,0 +1,546 @@
+/* ═══════════════════════════════════════════
+   饮食营养分析 - DietAnalysis
+   ═══════════════════════════════════════════ */
+
+.diet-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 40%, #fff7ed 80%, #ffedd5 100%);
+  padding-bottom: 20px;
+}
+
+/* ── 渐变头部（橙黄色调）──────────────────────── */
+.diet-header {
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 30%, #fb923c 60%, #fbbf24 85%, #fcd34d 100%);
+  padding: 48px 18px 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.diet-header::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -15%;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.diet-header::after {
+  content: '';
+  position: absolute;
+  bottom: -25%;
+  left: -10%;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(245,158,11,0.25) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.diet-header-bg { position: relative; z-index: 2; }
+
+.diet-back-btn {
+  position: absolute;
+  top: 14px;
+  left: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: all 0.25s ease;
+}
+.diet-back-btn:hover {
+  background: rgba(255,255,255,0.38);
+  transform: scale(1.06) translateY(-1px);
+}
+.diet-back-btn:active { transform: scale(0.94); }
+
+.diet-header-title {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 6px;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 8px rgba(180,83,9,0.3);
+}
+
+.diet-header-sub {
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255,255,255,0.88);
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ── 热量概览卡片 ────────────────────────────── */
+.diet-calorie-card {
+  margin-top: 18px;
+  background: rgba(255,255,255,0.22);
+  backdrop-filter: blur(20px);
+  border-radius: 22px;
+  padding: 18px 20px;
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow: 0 8px 32px rgba(245,158,11,0.18), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.diet-cal-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.diet-cal-icon { filter: drop-shadow(0 1px 3px rgba(0,0,0,0.1)); }
+
+.diet-cal-info { flex: 1; }
+.diet-cal-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 3px;
+}
+.diet-cal-values {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.diet-cal-values strong {
+  font-size: 28px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(180,83,9,0.3);
+}
+.diet-cal-values span {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+}
+
+.diet-cal-percent {
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.2));
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.diet-cal-bar {
+  height: 12px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 999px;
+  position: relative;
+  overflow: visible;
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.08);
+}
+.diet-cal-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #34d399, #fcd34d, #f59e0b);
+  border-radius: 999px;
+  transition: width 1s ease;
+  position: relative;
+  max-width: 100% !important;
+}
+.diet-cal-overfill {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  min-width: 0;
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  border-radius: 0 999px 999px 0;
+  transition: all 1s ease;
+}
+
+/* ── 综合评分区域 ────────────────────────────── */
+.diet-score-section {
+  padding: 22px 16px 0;
+}
+
+.diet-overall-score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 2px 16px rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.06);
+}
+
+.diet-score-circle {
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+.score-high { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #b45309; }
+.score-mid { background: linear-gradient(135deg, #fed7aa, #fdba74); color: #c2410c; }
+.score-low { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #dc2626; }
+
+.diet-score-num {
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1;
+}
+.diet-score-text {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.diet-score-info { text-align: left; }
+.diet-score-title {
+  font-size: 17px;
+  font-weight: 750;
+  color: #78350f;
+  margin: 0 0 4px;
+}
+.diet-score-desc {
+  font-size: 13px;
+  color: #92400e;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ── Section通用 ─────────────────────────────── */
+.diet-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #78350f;
+  margin: 0 0 14px;
+  letter-spacing: 0.3px;
+}
+
+.diet-nutrients-section,
+.diet-categories-section,
+.diet-water-section,
+.diet-advice-section {
+  padding: 18px 16px 0;
+}
+
+/* ── 营养素环形图网格 ────────────────────────── */
+.diet-nutrients-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px 12px;
+  box-shadow: 0 2px 12px rgba(245,158,11,0.06);
+  border: 1px solid rgba(245,158,11,0.05);
+}
+
+.diet-ring-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.diet-ring-chart {
+  position: relative;
+  width: 54px;
+  height: 54px;
+}
+.diet-ring-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.diet-ring-progress { transition: stroke-dashoffset 1s ease-out; }
+
+.diet-ring-percent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.diet-ring-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+.diet-ring-values {
+  font-size: 10.5px;
+  font-weight: 550;
+  color: #9ca3af;
+}
+
+/* ── 食物分类卡片 ────────────────────────────── */
+.diet-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.diet-food-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(245,158,11,0.06);
+  border: 1px solid rgba(245,158,11,0.05);
+  transition: transform 0.2s ease;
+}
+.diet-food-card:hover { transform: translateY(-1px); }
+
+.diet-food-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #fef3c7;
+}
+.diet-food-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.diet-food-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d97706;
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+}
+.diet-food-category {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #78350f;
+  margin: 0;
+}
+.diet-food-score {
+  font-size: 14px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.score-good { color: #059669; background: #d1fae5; }
+.score-mid { color: #d97706; background: #fef3c7; }
+.score-bad { color: #dc2626; background: #fee2e2; }
+
+.diet-food-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.diet-food-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+.diet-item-good { background: #f0fdf4; }
+.diet-item-warn { background: #fffbeb; }
+.diet-item-bad { background: #fef2f2; }
+
+.diet-item-name { font-weight: 600; color: #374151; }
+.diet-item-amount {
+  font-weight: 550;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.diet-food-recommendation {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #fffbeb, #fefce8);
+  border-radius: 10px;
+  font-size: 12.5px;
+  color: #92400e;
+  line-height: 1.5;
+  font-weight: 500;
+}
+.diet-food-recommendation svg { flex-shrink: 0; color: #d97706; margin-top: 1px; }
+
+/* ── 饮水量 & 时间表 ─────────────────────────── */
+.diet-water-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 12px rgba(245,158,11,0.06);
+  border: 1px solid rgba(245,158,11,0.05);
+}
+
+.diet-water-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.diet-water-icon {
+  color: #0ea5e9;
+  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.diet-water-body { flex: 1; }
+.diet-water-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 3px;
+}
+.diet-water-values {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.diet-water-values strong { font-size: 22px; font-weight: 800; color: #0369a1; }
+.diet-water-values span { font-size: 13px; color: #6b7280; }
+
+.diet-water-status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.diet-water-status.ok { color: #059669; background: #d1fae5; }
+.diet-water-status.low { color: #dc2626; background: #fee2e2; }
+
+.diet-water-bar-track {
+  height: 8px;
+  background: #f0f9ff;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.diet-water-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+  border-radius: 999px;
+  transition: width 0.8s ease;
+}
+
+/* 时间表 */
+.diet-schedule-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(245,158,11,0.06);
+  border: 1px solid rgba(245,158,11,0.05);
+}
+.diet-schedule-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #78350f;
+  margin: 0 0 12px;
+}
+
+.diet-schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.diet-schedule-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #fffbeb, #fff7ed);
+  border-radius: 12px;
+  font-size: 13px;
+}
+.diet-schedule-time {
+  font-weight: 800;
+  color: #d97706;
+  min-width: 48px;
+  font-family: 'SF Mono', monospace;
+}
+.diet-schedule-meal {
+  font-weight: 650;
+  color: #374151;
+  min-width: 52px;
+}
+.diet-schedule-amount {
+  color: #6b7280;
+  font-size: 12px;
+  flex: 1;
+  text-align: right;
+}
+
+/* ── 专业建议 ────────────────────────────────── */
+.diet-advice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: linear-gradient(180deg, #ffffff, #fffbeb);
+  border-radius: 20px;
+  padding: 18px;
+  border: 1px solid rgba(245,158,11,0.1);
+  box-shadow: 0 2px 12px rgba(245,158,11,0.06);
+}
+
+.diet-advice-item {
+  display: flex;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 4px rgba(245,158,11,0.04);
+  transition: transform 0.2s ease;
+}
+.diet-advice-item.highlight {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border: 1px solid rgba(245,158,11,0.2);
+}
+.diet-advice-item:hover { transform: translateX(4px); }
+
+.diet-advice-emoji {
+  font-size: 26px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));
+}
+
+.diet-advice-content h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #78350f;
+  margin: 0 0 6px;
+}
+.diet-advice-content p {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.58;
+  margin: 0;
+  font-weight: 500;
+}

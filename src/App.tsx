@@ -19,6 +19,10 @@ import PrivacySettings from "./pages/PrivacySettings";
 import TokenRefreshTest from "./pages/TokenRefreshTest";
 import TestNewFeatures from "./pages/TestNewFeatures";
 import PetChat from "./pages/PetChat";
+import WeightTrendAnalysis from "./pages/WeightTrendAnalysis";
+import HealthReportAnalysis from "./pages/HealthReportAnalysis";
+import DietAnalysis from "./pages/DietAnalysis";
+import ExerciseAnalysis from "./pages/ExerciseAnalysis";
 
 function RequireAuth() {
   const user = getSessionUser();
@@ -45,6 +49,10 @@ export default function App() {
             <Route path="reminders" element={<Reminders />} />
             <Route path="ai-analysis" element={<AiAnalysis />} />
             <Route path="beauty-analysis" element={<BeautyAnalysis />} />
+            <Route path="weight-trend-analysis" element={<WeightTrendAnalysis />} />
+            <Route path="health-report-analysis" element={<HealthReportAnalysis />} />
+            <Route path="diet-analysis" element={<DietAnalysis />} />
+            <Route path="exercise-analysis" element={<ExerciseAnalysis />} />
             <Route path="reminder-settings" element={<ReminderSettings />} />
             <Route path="feedback" element={<FeedbackCenter />} />
             <Route path="help" element={<HelpCenter />} />

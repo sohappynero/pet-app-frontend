@@ -125,7 +125,7 @@ export default function BeautyAnalysis() {
           <div className="beauty-hero-bar-track">
             <div className="beauty-hero-bar-fill" style={{ width: "75%" }} />
           </div>
-          <p className="beauty-hero-hint">毛发状况尚可，仍有提升空间~</p>
+          <p className="beauty-hero-hint">毛发评分：75分（中等水平）</p>
         </div>
       </header>
 
@@ -172,14 +172,14 @@ export default function BeautyAnalysis() {
           status="good"
         >
           <DetailRow label="光泽度" value="光泽柔顺" status="good" />
-          <DetailRow label="柔顺度" value="较为顺滑" status="good" />
+          <DetailRow label="柔顺度" value="轻度顺滑" status="good" />
           <DetailRow label="毛质密度" value="正常" status="good" />
-          <DetailRow label="断裂情况" value="少量断毛" status="warning" />
+          <DetailRow label="断裂情况" value="断毛率5-10%" status="warning" />
 
           <div className="beauty-divider"><span><Sparkles size={14}/> 优化建议</span></div>
           <div className="beauty-suggest-list">
-            <SuggestionItem index={1} text="适当补充卵磷脂和鱼油，提升毛发光泽" />
-            <SuggestionItem index={2} text="使用宠物护毛素，减少毛发断裂" />
+            <SuggestionItem index={1} text="补充卵磷脂和鱼油，每周2-3次" />
+            <SuggestionItem index={2} text="使用宠物护毛素，每次洗澡后使用" />
           </div>
         </BeautyCard>
 
@@ -190,16 +190,16 @@ export default function BeautyAnalysis() {
           score={70}
           status="warning"
         >
-          <DetailRow label="皮肤干燥度" value="轻微干燥" status="warning" />
-          <DetailRow label="皮屑情况" value="少量皮屑" status="warning" />
+          <DetailRow label="皮肤干燥度" value="干燥度2级（轻度）" status="warning" />
+          <DetailRow label="皮屑情况" value="皮屑覆盖率<10%" status="warning" />
           <DetailRow label="红肿发炎" value="无" status="good" />
           <DetailRow label="油脂分泌" value="正常" status="good" />
 
           <div className="beauty-divider"><span><Sparkles size={14}/> 优化建议</span></div>
           <div className="beauty-suggest-list">
-            <SuggestionItem index={1} text="秋冬季节注意皮肤保湿，可使用宠物润肤乳" />
-            <SuggestionItem index={2} text="增加饮水量，改善皮肤干燥" />
-            <SuggestionItem index={3} text="如皮屑持续增多，建议就医检查" />
+            <SuggestionItem index={1} text="秋冬季节使用宠物润肤乳，每日1-2次" />
+            <SuggestionItem index={2} text="每日饮水量>1000ml" />
+            <SuggestionItem index={3} text="皮屑覆盖率>30%时，建议就医检查" />
           </div>
         </BeautyCard>
 
@@ -210,16 +210,16 @@ export default function BeautyAnalysis() {
           score={65}
           status="warning"
         >
-          <DetailRow label="脱毛程度" value="换季脱毛中" status="warning" />
+          <DetailRow label="脱毛程度" value="每日掉毛量>50根" status="warning" />
           <DetailRow label="脱毛类型" value="均匀脱毛" status="good" />
           <DetailRow label="局部秃毛" value="无" status="good" />
           <DetailRow label="毛根状态" value="健康" status="good" />
 
           <div className="beauty-divider"><span><Sparkles size={14}/> 优化建议</span></div>
           <div className="beauty-suggest-list">
-            <SuggestionItem index={1} text="换季期间每天梳理2次，帮助去除浮毛" />
-            <SuggestionItem index={2} text="如脱毛持续超过2个月，建议就医排查" />
-            <SuggestionItem index={3} text="补充维生素B族，促进毛发生长" />
+            <SuggestionItem index={1} text="每日梳理2次，每次15分钟" />
+            <SuggestionItem index={2} text="脱毛持续>60天，建议就医排查" />
+            <SuggestionItem index={3} text="补充维生素B族，每日1粒" />
           </div>
         </BeautyCard>
 
@@ -233,13 +233,13 @@ export default function BeautyAnalysis() {
           <DetailRow label="洗澡频率" value="2-3周/次" status="good" />
           <DetailRow label="沐浴产品" value="宠物专用" status="good" />
           <DetailRow label="吹干程度" value="完全吹干" status="good" />
-          <DetailRow label="护毛素" value="偶尔使用" status="warning" />
+          <DetailRow label="护毛素" value="使用频率<50%" status="warning" />
 
           <div className="beauty-divider"><span><Sparkles size={14}/> 优化建议</span></div>
           <div className="beauty-suggest-list">
-            <SuggestionItem index={1} text="每次洗澡后使用护毛素，保护毛鳞片" />
-            <SuggestionItem index={2} text="确保彻底吹干，避免皮肤病" />
-            <SuggestionItem index={3} text="避免使用人用洗发水，会破坏皮肤酸碱平衡" />
+            <SuggestionItem index={1} text="每次洗澡后使用护毛素，涂抹全身" />
+            <SuggestionItem index={2} text="吹干至毛发蓬松，温度<40°C" />
+            <SuggestionItem index={3} text="使用宠物专用洗发水，pH值5.5-6.5" />
           </div>
         </BeautyCard>
 
@@ -250,16 +250,16 @@ export default function BeautyAnalysis() {
           score={72}
           status="warning"
         >
-          <DetailRow label="室内湿度" value="偏低" status="warning" />
+          <DetailRow label="室内湿度" value="湿度<40%" status="warning" />
           <DetailRow label="温度适应" value="良好" status="good" />
           <DetailRow label="日照时长" value="充足" status="good" />
-          <DetailRow label="过敏源" value="未检测" status="warning" />
+          <DetailRow label="过敏源" value="检测覆盖率<80%" status="warning" />
 
           <div className="beauty-divider"><span><Sparkles size={14}/> 优化建议</span></div>
           <div className="beauty-suggest-list">
-            <SuggestionItem index={1} text="冬季室内使用加湿器，保持40-60%湿度" />
-            <SuggestionItem index={2} text="建议做一次过敏源检测" />
-            <SuggestionItem index={3} text="保持生活区域清洁，定期除螨" />
+            <SuggestionItem index={1} text="室内湿度保持在40-60%，每日监测" />
+            <SuggestionItem index={2} text="每6个月进行一次过敏源检测" />
+            <SuggestionItem index={3} text="每周清洁生活区域，除螨频率2次/月" />
           </div>
         </BeautyCard>
       </section>
@@ -272,23 +272,23 @@ export default function BeautyAnalysis() {
         <div className="beauty-tips-card">
           <div className="beauty-tip-item">
             <span className="beauty-tip-icon">🪮</span>
-            <span className="beauty-tip-text">金毛建议每天梳毛1-2次，使用针梳+排梳组合</span>
+            <span className="beauty-tip-text">金毛每日梳毛1-2次，每次15-20分钟</span>
           </div>
           <div className="beauty-tip-item">
             <span className="beauty-tip-icon">🛁</span>
-            <span className="beauty-tip-text">洗澡水温保持在37-39°C，避免过热刺激皮肤</span>
+            <span className="beauty-tip-text">洗澡水温37-39°C，使用温度计测量</span>
           </div>
           <div className="beauty-tip-item">
             <span className="beauty-tip-icon">✂️</span>
-            <span className="beauty-tip-text">定期修剪脚底毛和耳毛，预防打滑和耳道感染</span>
+            <span className="beauty-tip-text">每2周修剪脚底毛和耳毛1次</span>
           </div>
           <div className="beauty-tip-item">
             <span className="beauty-tip-icon">💊</span>
-            <span className="beauty-tip-text">换季期间补充鱼油和卵磷脂，帮助毛发健康生长</span>
+            <span className="beauty-tip-text">换季期间每日补充鱼油和卵磷脂各1粒</span>
           </div>
           <div className="beauty-tip-item">
             <span className="beauty-tip-icon">☀️</span>
-            <span className="beauty-tip-text">适当晒太阳促进维生素D合成，但避免暴晒</span>
+            <span className="beauty-tip-text">每日晒太阳15-30分钟，避开正午时段</span>
           </div>
         </div>
       </section>
