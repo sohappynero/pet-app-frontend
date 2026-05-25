@@ -165,21 +165,23 @@ body::before {
 
 .pet-input {
   width: 100%;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  background: rgba(255, 255, 255, 0.95);
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(200,180,160,0.35);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(10px);
   font-size: 15px;
-  color: var(--text);
+  color: #2d1f14;
   outline: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }
 
 .pet-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), 0 0 0 6px rgba(99, 102, 241, 0.05);
+  border-color: #e8907a;
+  box-shadow:
+    0 4px 12px rgba(232,144,122,0.12),
+    0 0 0 4px rgba(232,144,122,0.06);
   background: rgba(255, 255, 255, 1);
   transform: translateY(-1px);
 }
@@ -302,9 +304,10 @@ body::before {
 .pet-label {
   display: block;
   font-size: 13px;
-  font-weight: 600;
-  color: #8b7594;
-  margin-bottom: 6px;
+  font-weight: 700;
+  color: #6a5a4a;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
 }
 
 .pet-link {
@@ -557,14 +560,20 @@ body::before {
 }
 
 .mine-avatar-container {
-  width: 72px;
-  height: 72px;
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  min-height: 80px;
+  max-width: 80px;
+  max-height: 80px;
   border-radius: 50%;
   background: linear-gradient(135deg, #FAF7F5 0%, #F0EBE6 100%);
   border: 2px solid #E8E2DE;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
+  overflow: hidden;                    /* ← 关键！裁切溢出 */
   box-shadow: inset 0 2px 8px rgba(139, 115, 85, 0.06);
 }
 
@@ -573,10 +582,16 @@ body::before {
 }
 
 .mine-user-avatar-img {
-  width: 100%;
-  height: 100%;
+  width: 80px !important;              /* ← 强制固定宽度 */
+  height: 80px !important;             /* ← 强制固定高度 */
+  min-width: 80px;
+  min-height: 80px;
+  max-width: 80px;
+  max-height: 80px;
   border-radius: 50%;
   object-fit: cover;
+  display: block;
+  flex-shrink: 0;                     /* ← 不被flex压缩 */
 }
 
 .mine-star-deco {
@@ -1937,24 +1952,37 @@ body::before {
   gap: 12px 10px;
 }
 
+/* ═══ Premium Look Chips (ph3d Style) ═══ */
 .pet-look-chip {
-  border: 1px solid #f0dce8;
+  border: 1.5px solid rgba(200,180,160,0.35);
   background: #fff;
   border-radius: 999px;
-  color: #4a3757;
+  color: #5a4a3a;
   font-size: 14px;
   line-height: 1;
-  font-weight: 800;
-  padding: 9px 14px;
+  font-weight: 700;
+  padding: 10px 18px;
   cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.pet-look-chip:hover {
+  border-color: rgba(200,180,160,0.55);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(139,90,43,0.08);
 }
 
 .pet-look-chip.active {
-  border-color: #ff77b8;
-  color: #cf4d8e;
-  background: #fff1f8;
+  border-color: #e8907a;
+  color: #c85a42;
+  background: linear-gradient(135deg, #fff5f2, #ffede8);
+  box-shadow:
+    0 2px 8px rgba(232,144,122,0.15),
+    inset 0 1px 2px rgba(255,255,255,0.5);
 }
 
+/* ═══ Premium Size Cards (ph3d Glass Style) ═══ */
 .pet-size-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1962,9 +1990,10 @@ body::before {
 }
 
 .pet-size-card {
-  border: 1px solid #efd9e7;
-  background: #fff;
-  border-radius: 16px;
+  border: 1.5px solid rgba(200,180,160,0.3);
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 18px;
   min-height: 126px;
   display: grid;
   place-items: center;
@@ -1972,30 +2001,69 @@ body::before {
   gap: 8px;
   cursor: pointer;
   padding: 8px 6px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 2px 8px rgba(139,90,43,0.05),
+    inset 0 1px 2px rgba(255,255,255,0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 顶部渐变装饰条 */
+.pet-size-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 3px;
+  background: linear-gradient(90deg, #e8907a, #f9ca24);
+  opacity: 0;
+  border-radius: 0 0 4px 4px;
+  transition: opacity 0.25s ease;
+}
+
+.pet-size-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(200,180,160,0.5);
+  box-shadow:
+    0 8px 20px rgba(139,90,43,0.1),
+    inset 0 1px 2px rgba(255,255,255,0.7);
 }
 
 .pet-size-card.active {
-  border-color: #ff77b8;
-  background: #fff2f9;
+  border-color: #e8907a;
+  background: linear-gradient(135deg, rgba(255,250,247,0.95), rgba(255,243,235,0.92));
+  box-shadow:
+    0 6px 16px rgba(232,144,122,0.15),
+    inset 0 -1px 4px rgba(232,144,122,0.08);
+}
+
+.pet-size-card.active::before {
+  opacity: 1;
 }
 
 .pet-size-title {
   font-size: 40px;
-  color: #1f2d46;
+  color: #3d2e1f;
   font-weight: 900;
   line-height: 1.1;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.06);
 }
 
 .pet-size-hint {
   font-size: 30px;
-  color: #7c6a85;
+  color: #8a7a6a;
   font-weight: 700;
   line-height: 1.1;
 }
 
 .pet-size-check {
   font-size: 20px;
-  color: #ff5fa2;
+  background: linear-gradient(135deg, #e8907a, #f0932b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-weight: 900;
   line-height: 1;
 }
@@ -2005,15 +2073,25 @@ body::before {
   grid-template-columns: 30px 1fr auto;
   align-items: center;
   gap: 10px;
-  border: 1px solid #f0dce8;
-  border-radius: 14px;
-  background: #fff;
+  border: 1.5px solid rgba(200,180,160,0.35);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(10px);
   min-height: 66px;
   padding: 0 14px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pet-weight-input-wrap:focus-within {
+  border-color: #e8907a;
+  background: #fff;
+  box-shadow:
+    0 4px 12px rgba(232,144,122,0.12),
+    0 0 0 4px rgba(232,144,122,0.06);
 }
 
 .pet-weight-icon {
-  color: #b39ab4;
+  color: #e8907a;
   font-size: 20px;
   text-align: center;
 }
@@ -2024,6 +2102,7 @@ body::before {
   background: transparent;
   padding-left: 0;
   font-size: 15px;
+  color: #2d1f14;
 }
 
 .pet-weight-input:focus {
@@ -2032,40 +2111,63 @@ body::before {
 }
 
 .pet-weight-unit {
-  color: #5e4b69;
+  color: #8a7a6a;
   font-size: 15px;
   font-weight: 800;
 }
 
+/* ═══ Premium Tip Card (ph3d Warm Style) ═══ */
 .pet-look-tip {
-  border: 1px solid #ffd89a;
-  border-radius: 12px;
-  background: #fff8ec;
-  color: #cc7c11;
+  border: 1.5px solid rgba(200,180,160,0.3);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(255,250,245,0.9) 0%, rgba(255,243,230,0.85) 100%);
+  color: #8a7a6a;
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 12px 12px;
-  font-size: 14px;
-  line-height: 1.35;
-  font-weight: 700;
+  gap: 12px;
+  padding: 16px 18px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  box-shadow:
+    0 1px 6px rgba(139,90,43,0.06),
+    inset 0 1px 2px rgba(255,255,255,0.7);
+  position: relative;
+  overflow: hidden;
+}
+
+.pet-look-tip::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #f9ca24, #f0932b);
+  opacity: 0.7;
 }
 
 .pet-look-tip span {
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  border: 1px solid #f6b651;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-md, 10px);
+  background: linear-gradient(145deg, #fef3c7, #fcd34d);
   display: grid;
   place-items: center;
   line-height: 1;
   margin-top: 1px;
+  color: #b78300;
+  font-size: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(251,191,36,0.25);
 }
 
 .pet-look-tip p {
   margin: 0;
 }
 
+/* ═══ Premium Health Step (ph3d Style) ═══ */
 .pet-health-step {
   display: grid;
   gap: 16px;
@@ -2074,25 +2176,51 @@ body::before {
 .pet-health-step .pet-add-label {
   font-size: 17px;
   font-weight: 800;
+  color: #3d2e1f;
   margin-bottom: 10px;
+  letter-spacing: 0.3px;
 }
 
 .pet-health-card {
-  border: 1px solid #f0dce8;
-  border-radius: 16px;
-  background: #fff;
+  border: 1.5px solid rgba(200,180,160,0.3);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(10px);
   min-height: 96px;
-  padding: 16px 14px;
+  padding: 16px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 2px 8px rgba(139,90,43,0.05),
+    inset 0 1px 2px rgba(255,255,255,0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 顶部渐变条 */
+.pet-health-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 16%;
+  right: 64%;
+  height: 3px;
+  background: linear-gradient(90deg, #ff6b81, #ff4757);
+  border-radius: 0 0 4px 4px;
 }
 
 .pet-health-card-allergy {
   flex-direction: column;
   align-items: stretch;
   min-height: unset;
+}
+
+.pet-health-card-allergy::before {
+  background: linear-gradient(90deg, #a29bfe, #6c5ce7);
+  right: 16%;
 }
 
 .pet-health-card-row {
@@ -2103,67 +2231,75 @@ body::before {
 }
 
 .pet-health-icon-alert {
-  background: #fff1f1 !important;
-  border-color: #ffd0d0 !important;
-  color: #e53e3e !important;
+  background: linear-gradient(135deg, #fff0f0, #ffe4e8) !important;
+  border-color: rgba(255,71,87,0.3) !important;
+  color: #ff4757 !important;
 }
 
 .pet-health-allergy-textarea {
   margin-top: 12px;
   width: 100%;
   min-height: 96px;
-  border-radius: 12px;
-  border: 1px solid #f0dce8;
-  background: #fffbfe;
-  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(200,180,160,0.3);
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,250,245,0.92));
+  padding: 14px 16px;
   font-size: 15px;
   line-height: 1.5;
-  color: #cf4d8e;
+  color: #2d1f14;
   resize: none;
   box-sizing: border-box;
   outline: none;
-  transition: border-color 0.18s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pet-health-allergy-textarea::placeholder {
-  color: #e8a0c6;
+  color: #b8a99a;
 }
 
 .pet-health-allergy-textarea:focus {
-  border-color: #ffaad6;
+  border-color: #ff6b81;
+  background: #fff;
+  box-shadow:
+    0 4px 12px rgba(255,107,129,0.12),
+    0 0 0 4px rgba(255,107,129,0.06);
 }
 
 .pet-health-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .pet-health-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid #f2deeb;
-  background: #fff7fb;
-  color: #b59fb5;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(145deg, #fff0f0, #ffe4e8);
+  color: #ff4757;
   display: grid;
   place-items: center;
   flex: none;
+  box-shadow:
+    0 2px 8px rgba(255,71,87,0.15),
+    inset 0 1px 2px rgba(255,255,255,0.5);
 }
 
 .pet-health-left h4 {
-  color: #1f2d46;
+  color: #3d2e1f;
   font-size: 16px;
   line-height: 1.2;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .pet-health-left p {
-  margin-top: 4px;
-  color: #4b5d78;
+  margin-top: 3px;
+  color: #8a7a6a;
   font-size: 13px;
   line-height: 1.35;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .pet-health-switch {
@@ -2171,82 +2307,136 @@ body::before {
   height: 30px;
   border: 0;
   border-radius: 999px;
-  background: #e9edf2;
-  padding: 2px;
+  background: linear-gradient(145deg, #e8e4df, #ddd9d4);
+  padding: 3px;
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex: none;
+  box-shadow:
+    inset 0 2px 4px rgba(139,90,43,0.08),
+    0 1px 2px rgba(255,255,255,0.6);
 }
 
 .pet-health-switch span {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 999px;
   background: #fff;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
+  box-shadow:
+    0 2px 6px rgba(15,23,42,0.18),
+    inset 0 -1px 2px rgba(0,0,0,0.05);
   transform: translateX(0);
-  transition: transform 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pet-health-switch.on {
-  background: #ff9cc9;
+  background: linear-gradient(135deg, #ff6b81, #ff4757);
+  box-shadow:
+    inset 0 2px 4px rgba(200,50,70,0.2),
+    0 1px 2px rgba(255,255,255,0.4);
 }
 
 .pet-health-switch.on span {
   transform: translateX(24px);
+  box-shadow: 0 2px 8px rgba(200,50,70,0.25);
 }
 
+/* ═══ Premium Textarea (ph3d Style) ═══ */
 .pet-health-textarea {
   min-height: 142px;
-  border-radius: 14px;
-  border-color: #f0dce8;
-  padding-top: 12px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(200,180,160,0.35);
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,250,245,0.92));
+  padding: 16px 20px;
   font-size: 15px;
-  line-height: 1.45;
+  line-height: 1.55;
+  color: #2d1f14;
   resize: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.pet-health-textarea:focus {
+  border-color: #e8907a;
+  background: #fff;
+  box-shadow:
+    0 4px 12px rgba(232,144,122,0.12),
+    0 0 0 4px rgba(232,144,122,0.06);
+}
+
+/* ═══ Premium Health Tip (Warm Info) ═══ */
 .pet-health-tip {
-  border: 1px solid #cbe1ff;
-  border-radius: 12px;
-  background: #f7fbff;
-  color: #1e56b0;
+  border: 1.5px solid rgba(102,126,234,0.25);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(238,240,255,0.9) 0%, rgba(232,236,254,0.85) 100%);
+  color: #4a4a7a;
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 13px 12px;
-  font-size: 13px;
-  line-height: 1.35;
-  font-weight: 700;
+  gap: 12px;
+  padding: 16px 18px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  box-shadow:
+    0 1px 6px rgba(102,126,234,0.06),
+    inset 0 1px 2px rgba(255,255,255,0.7);
+  position: relative;
+  overflow: hidden;
+}
+
+.pet-health-tip::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  opacity: 0.65;
 }
 
 .pet-health-tip span {
-  width: 24px;
-  height: 24px;
-  border-radius: 999px;
-  border: 1px solid #93c5fd;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md, 10px);
+  border: none;
+  background: linear-gradient(145deg, #eef0ff, #e8ecfe);
   display: grid;
   place-items: center;
-  color: #3b82f6;
+  color: #667eea;
   flex: none;
   margin-top: 1px;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(102,126,234,0.2);
 }
 
 .pet-health-tip p {
   margin: 0;
 }
 
+/* ═══ Premium Date Input (ph3d Glass) ═══ */
 .pet-date-wrap {
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1px solid #f0dce8;
-  border-radius: 14px;
+  border: 1.5px solid rgba(200,180,160,0.35);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(10px);
+  padding: 14px 16px;
+  color: #8a7a6a;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pet-date-wrap:focus-within {
+  border-color: #e8907a;
   background: #fff;
-  padding: 0 12px;
-  color: #b29eb2;
+  box-shadow:
+    0 4px 12px rgba(232,144,122,0.12),
+    0 0 0 4px rgba(232,144,122,0.06);
 }
 
 .pet-date-input {
@@ -2262,23 +2452,25 @@ body::before {
 }
 
 .pet-add-footer {
-  border-top: 1px solid #f3e2ec;
-  padding: 10px 14px 14px;
-  background: #fff;
+  border-top: 1.5px solid rgba(200,180,160,0.25);
+  padding: 12px 16px 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(250,247,244,0.92));
+  backdrop-filter: blur(8px);
 }
 
 .pet-add-footer-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
 }
 
 .pet-add-prev-btn {
   width: 100%;
-  border: 1px solid #f0dce8;
-  border-radius: 10px;
-  background: #fff;
-  color: #6a5577;
+  border: 1.5px solid rgba(200,180,160,0.35);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(6px);
+  color: #6a5a4a;
   min-height: 52px;
   font-size: 22px;
   font-weight: 800;
@@ -2287,13 +2479,25 @@ body::before {
   justify-content: center;
   gap: 8px;
   cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 2px 6px rgba(139,90,43,0.05),
+    inset 0 1px 2px rgba(255,255,255,0.5);
 }
 
+.pet-add-prev-btn:hover {
+  background: #fff;
+  border-color: rgba(200,180,160,0.55);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139,90,43,0.08);
+}
+
+/* ═══ Premium Next Button (Coral Gradient) ═══ */
 .pet-add-next-btn {
   width: 100%;
   border: 0;
-  border-radius: 10px;
-  background: linear-gradient(90deg, #ff63ad, #ff89c2);
+  border-radius: 14px;
+  background: linear-gradient(135deg, #e8907a 0%, #ff6b81 50%, #ff4757 100%);
   color: #fff;
   min-height: 52px;
   font-size: 18px;
@@ -2303,6 +2507,41 @@ body::before {
   justify-content: center;
   gap: 8px;
   cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 4px 15px rgba(232,144,122,0.35),
+    0 2px 6px rgba(200,70,90,0.2),
+    inset 0 1px 2px rgba(255,255,255,0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 光泽扫过效果 */
+.pet-add-next-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.25),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.pet-add-next-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 24px rgba(232,144,122,0.45),
+    0 4px 10px rgba(200,70,90,0.28);
+}
+
+.pet-add-next-btn:hover::before {
+  left: 150%;
 }
 
 .pet-add-next-btn:disabled,
@@ -8061,20 +8300,26 @@ body::before {
   color: #fff;
   cursor: pointer;
 }
+/* ═══ Premium Date Input (ph3d Glass) ═══ */
 .pet-date-wrap {
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1.5px solid #E8E0D8;
-  border-radius: 12px;
-  padding: 12px 14px;
-  background: #FDFAF8;
-  color: #A69076;
+  border: 1.5px solid rgba(200,180,160,0.35);
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(10px);
+  color: #8a7a6a;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .pet-date-wrap:focus-within {
-  border-color: #D4A574;
+  border-color: #e8907a;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.15);
+  box-shadow:
+    0 4px 12px rgba(232,144,122,0.12),
+    0 0 0 4px rgba(232,144,122,0.06);
 }
 .pet-date-input {
   flex: 1;
@@ -8084,176 +8329,265 @@ body::before {
   color: #5C4A32;
   outline: none;
 }
+/* ═══ Premium Weight Input (ph3d Glass) ═══ */
 .pet-weight-wrap {
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1.5px solid #E8E0D8;
-  border-radius: 12px;
-  padding: 12px 14px;
-  background: #FDFAF8;
+  border: 1.5px solid rgba(200,180,160,0.35);
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(10px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .pet-weight-wrap:focus-within {
-  border-color: #D4A574;
+  border-color: #e8907a;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.15);
+  box-shadow:
+    0 4px 12px rgba(232,144,122,0.12),
+    0 0 0 4px rgba(232,144,122,0.06);
 }
+
 .pet-weight-icon {
   font-size: 18px;
-  color: #A69076;
+  color: #e8907a;
 }
+
 .pet-weight-input {
   flex: 1;
   border: none;
   background: transparent;
   font-size: 15px;
-  color: #5C4A32;
+  color: #2d1f14;
   outline: none;
 }
+
 .pet-weight-unit {
   font-size: 14px;
-  color: #A69076;
-  font-weight: 600;
+  color: #8a7a6a;
+  font-weight: 700;
 }
+
+/* ═══ Premium Tip Card (ph3d Warm) ═══ */
 .pet-tip-card {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 14px;
-  background: linear-gradient(135deg, rgba(212,165,116,0.08), rgba(212,165,116,0.03));
-  border-radius: 14px;
-  border: 1px solid rgba(212,165,116,0.15);
-  margin-top: 12px;
+  gap: 12px;
+  padding: 16px 18px;
+  background:
+    linear-gradient(135deg, rgba(255,250,245,0.92) 0%, rgba(255,243,230,0.88) 100%);
+  border-radius: 16px;
+  border: 1.5px solid rgba(200,180,160,0.3);
+  margin-top: 14px;
+  box-shadow:
+    0 2px 8px rgba(139,90,43,0.06),
+    inset 0 1px 2px rgba(255,255,255,0.6);
+  position: relative;
+  overflow: hidden;
 }
+
+/* 顶部装饰条 */
+.pet-tip-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18%;
+  right: 60%;
+  height: 3px;
+  background: linear-gradient(90deg, #f9ca24, #f0932b);
+  border-radius: 0 0 4px 4px;
+  opacity: 0.7;
+}
+
 .pet-tip-card span:first-child {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #D4A574, #8B7355);
-  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md, 10px);
+  background: linear-gradient(145deg, #fef3c7, #fcd34d);
+  color: #b78300;
   display: grid;
   place-items: center;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 800;
   flex-shrink: 0;
+  box-shadow:
+    0 2px 8px rgba(251,191,36,0.25),
+    inset 0 1px 2px rgba(255,255,255,0.5);
 }
+
 .pet-tip-card p {
-  font-size: 13px;
-  color: #8B7355;
+  font-size: 13.5px;
+  color: #6a5a4a;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.55;
+  font-weight: 500;
 }
+
+/* ═══ Premium Tip Card Alt (Green Accent) ═══ */
 .pet-tip-card-alt {
-  background: linear-gradient(135deg, rgba(100,180,130,0.08), rgba(100,180,130,0.03));
-  border-color: rgba(100,180,130,0.15);
+  background:
+    linear-gradient(135deg, rgba(245,253,245,0.92) 0%, rgba(235,247,235,0.88) 100%) !important;
+  border-color: rgba(100,180,130,0.28) !important;
 }
+
+.pet-tip-card-alt::before {
+  background: linear-gradient(90deg, #00b894, #00cec9) !important;
+}
+
 .pet-tip-card-alt span:first-child {
-  background: linear-gradient(135deg, #64B482, #4A9A6A);
+  background: linear-gradient(145deg, #d4fce4, #a8e6cf) !important;
+  color: #00a86b !important;
+  box-shadow: 0 2px 8px rgba(0,184,148,0.2) !important;
 }
 .pet-health-card-alt {
   margin-top: 12px;
 }
+/* ═══ Premium Allergy Textarea (ph3d Glass) ═══ */
 .pet-allergy-textarea {
   width: 100%;
-  min-height: 80px;
-  border: 1.5px solid #E8E0D8;
-  border-radius: 12px;
-  padding: 12px 14px;
-  font-size: 14px;
-  color: #5C4A32;
-  background: #FDFAF8;
+  min-height: 90px;
+  border: 1.5px solid rgba(200,180,160,0.35);
+  border-radius: 16px;
+  padding: 14px 16px;
+  font-size: 14.5px;
+  color: #2d1f14;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,250,245,0.92));
   outline: none;
   resize: none;
   font-family: inherit;
   margin-top: 10px;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .pet-allergy-textarea:focus {
-  border-color: #D4A574;
+  border-color: #e8907a;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.15);
+  box-shadow:
+    0 4px 12px rgba(232,144,122,0.12),
+    0 0 0 4px rgba(232,144,122,0.06);
 }
+
 .pet-allergy-textarea::placeholder {
-  color: #C4B5A5;
+  color: #b8a99a;
 }
+
+/* ═══ Premium Special Textarea (ph3d Glass) ═══ */
 .pet-special-textarea {
   width: 100%;
-  min-height: 100px;
-  border: 1.5px solid #E8E0D8;
-  border-radius: 12px;
-  padding: 12px 14px;
-  font-size: 14px;
-  color: #5C4A32;
-  background: #FDFAF8;
+  min-height: 110px;
+  border: 1.5px solid rgba(200,180,160,0.35);
+  border-radius: 16px;
+  padding: 14px 18px;
+  font-size: 15px;
+  color: #2d1f14;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,250,245,0.92));
   outline: none;
   resize: vertical;
   font-family: inherit;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .pet-special-textarea:focus {
-  border-color: #D4A574;
+  border-color: #e8907a;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.15);
+  box-shadow:
+    0 4px 12px rgba(232,144,122,0.12),
+    0 0 0 4px rgba(232,144,122,0.06);
 }
+
 .pet-special-textarea::placeholder {
-  color: #C4B5A5;
+  color: #b8a99a;
 }
+/* ═══ Premium Preview Card (ph3d Glass) ═══ */
 .pet-preview-card {
-  background: #fff;
-  border-radius: 20px;
-  padding: 18px;
-  border: 1px solid rgba(212,165,116,0.15);
-  box-shadow: 0 2px 12px rgba(139,115,85,0.06);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(250,247,244,0.9) 100%);
+  border-radius: 22px;
+  padding: 22px;
+  border: 1.5px solid rgba(200,180,160,0.28);
+  box-shadow:
+    0 4px 16px rgba(139,90,43,0.08),
+    inset 0 1px 2px rgba(255,255,255,0.6);
+  backdrop-filter: blur(10px);
 }
+
 .pet-preview-header {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 16px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(212,165,116,0.1);
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1.5px solid rgba(200,180,160,0.2);
 }
+
 .pet-preview-avatar {
-  width: 52px;
-  height: 52px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #F5F0ED, #EDE6DF);
+  background:
+    linear-gradient(145deg, #f5f0eb, #e8e4df);
   display: grid;
   place-items: center;
+  box-shadow:
+    0 3px 12px rgba(139,90,43,0.12),
+    inset 0 -2px 6px rgba(139,90,43,0.05),
+    inset 0 2px 4px rgba(255,255,255,0.5);
 }
+
 .pet-preview-header h4 {
-  font-size: 18px;
-  font-weight: 700;
-  color: #5C4A32;
+  font-size: 19px;
+  font-weight: 800;
+  color: #3d2e1f;
   margin: 0 0 4px;
+  letter-spacing: 0.3px;
 }
+
 .pet-preview-header p {
   font-size: 13px;
-  color: #8B7355;
+  color: #8a7a6a;
   margin: 0;
 }
+
 .pet-preview-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
+
+/* ═══ Premium Preview Grid Items ═══ */
 .pet-preview-grid > div {
-  background: #FDFAF8;
-  border-radius: 12px;
-  padding: 12px;
+  background: rgba(255,255,255,0.75);
+  border-radius: 16px;
+  padding: 14px;
+  border: 1.5px solid rgba(200,180,160,0.2);
+  transition: all 0.25s ease;
 }
+
+.pet-preview-grid > div:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139,90,43,0.07);
+  border-color: rgba(200,180,160,0.38);
+}
+
 .pet-preview-grid span {
   display: block;
   font-size: 11px;
-  color: #A69076;
+  color: #b8a99a;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
-  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+  font-weight: 600;
 }
+
 .pet-preview-grid strong {
   display: block;
-  font-size: 14px;
-  font-weight: 700;
-  color: #5C4A32;
+  font-size: 15px;
+  font-weight: 800;
+  color: #3d2e1f;
 }
 .dash-logout-section {
   padding: 16px;
@@ -8265,19 +8599,24 @@ body::before {
   gap: 8px;
   width: 100%;
   padding: 14px;
-  border-radius: 14px;
-  background: #fff;
-  border: 1.5px solid rgba(212,165,116,0.15);
-  color: #A69076;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.85);
+  border: 1.5px solid rgba(200,180,160,0.3);
+  color: #8a7a6a;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 2px 6px rgba(139,90,43,0.05),
+    inset 0 1px 2px rgba(255,255,255,0.5);
 }
+
 .dash-logout-btn:hover {
-  background: #FDF9F6;
-  border-color: rgba(212,165,116,0.25);
-  color: #8B7355;
+  border-color: rgba(200,180,160,0.55);
+  color: #5a4a3a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139,90,43,0.08);
 }
 .dash-logout-icon-wrap {
   display: grid;
@@ -8537,6 +8876,28 @@ body::before {
   justify-content: center;
 }
 
+/* 首页Hero区域 - PetPhotoAvatar 圆形大头像（与健康记录/提醒页面一致） */
+.ph3d-hero-visual .ppa-scene {
+  width: 160px !important;
+  height: 160px !important;
+}
+.ph3d-hero-visual .ppa-scene-default,
+.ph3d-hero-visual .ppa-scene-small,
+.ph3d-hero-visual .ppa-scene-large {
+  width: 160px !important;
+  height: 160px !important;
+}
+.ph3d-hero-visual .ppa-figure {
+  width: 100% !important;
+  height: 100% !important;
+}
+.ph3d-hero-visual .ppa-ground-shadow {
+  display: none !important;
+}
+.ph3d-hero-visual .ppa-particles {
+  display: none !important;
+}
+
 /* 宠物大图 - 完美填充圆形 */
 .ph3d-pet-hero-img {
   width: 160px;
@@ -8569,6 +8930,11 @@ body::before {
   display: grid;
   place-items: center;
   filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+}
+/* 让 SVG 图标填满容器 */
+.ph3d-float-deco > svg {
+  width: 72% !important;
+  height: 72% !important;
 }
 .ph3d-float-heart {
   top: 5%;
@@ -9381,10 +9747,18 @@ body::before {
   height: 42px;
   border-radius: 50%;
   background: linear-gradient(135deg, #f0edfc, #e8e4f8);
-  display: grid;
-  place-items: center;
-  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  overflow: hidden; /* 裁切图片超出部分 */
+}
+
+/* 模板图/上传图填满容器 */
+.ph3d-modal-avatar > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .ph3d-modal-info {
@@ -10007,24 +10381,32 @@ body::before {
   z-index: 2;
 }
 
-/* 空状态环绕的浮动元素 */
+/* 健康记录空状态环绕的浮动元素 - 白色图标 + 彩色圆底（与 Reminders 统一风格） */
 .h3d-float-ele {
   position: absolute;
-  font-size: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
   z-index: 1;
   animation: h3dFeFloat 3s ease-in-out infinite;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
 }
-.h3d-fe-1 { top: 5px; left: 2px; font-size: 22px; animation-delay: 0s; }
-.h3d-fe-2 { top: 15px; right: 4px; font-size: 18px; animation-delay: 0.6s; }
-.h3d-fe-3 { bottom: 35px; left: -2px; font-size: 16px; animation-delay: 1.2s; }
-.h3d-fe-4 { bottom: 45px; right: 0; font-size: 17px; animation-delay: 1.8s; }
-.h3d-fe-5 { top: 30px; left: 50%; margin-left: -10px; font-size: 14px; animation-delay: 2.4s; }
+.h3d-fe-1 { top: -4px; left: -2px; width: 34px; height: 34px; background: #667eea; animation-delay: 0s; }
+.h3d-fe-2 { top: 8px; right: 0; width: 32px; height: 32px; background: #00b894; animation-delay: 0.6s; }
+.h3d-fe-3 { bottom: 30px; left: -6px; width: 30px; height: 30px; background: #f5576c; animation-delay: 1.2s; }
+.h3d-fe-4 { bottom: 38px; right: -4px; width: 30px; height: 30px; background: #fd79a8; animation-delay: 1.8s; }
+.h3d-fe-5 { top: 24px; left: 50%; transform: translateX(-50%); width: 28px; height: 28px; background: #6c5ce7; animation-delay: 2.4s; }
+
+/* 让 SVG 图标填满容器并显示为白色 */
+.h3d-float-ele > svg {
+  width: 55% !important;
+  height: 55% !important;
+}
 
 @keyframes h3dFeFloat {
-  0%, 100% { opacity: 0.7; transform: translateY(0) rotate(0deg); }
+  0%, 100% { opacity: 0.85; transform: translateY(0) rotate(0deg); }
   25% { opacity: 1; transform: translateY(-8px) rotate(8deg); }
-  50% { opacity: 0.85; transform: translateY(-3px) rotate(-5deg); }
+  50% { opacity: 0.92; transform: translateY(-3px) rotate(-5deg); }
   75% { opacity: 1; transform: translateY(-10px) rotate(5deg); }
 }
 
@@ -10058,17 +10440,24 @@ body::before {
   50% { transform: scale(1.08); opacity: 0.6; }
 }
 
+/* 健康记录中心图标 - 紫色渐变背景 + 白色/紫色 Lucide 图标 */
 .h3d-empty-emoji {
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(162,155,254,0.15), rgba(108,92,231,0.12));
+  /* 鲜明紫色背景让图标清晰可见 */
+  background: linear-gradient(135deg, #667eea, #8b5cf6);
   display: grid;
   place-items: center;
-  font-size: 22px;
   z-index: 1;
   animation: h3dEmojiBounce 2.5s ease-in-out infinite;
-  box-shadow: 0 4px 20px rgba(108,92,231,0.12), inset 0 -2px 8px rgba(108,92,231,0.06);
+  box-shadow: 0 4px 20px rgba(102,126,234,0.35), inset 0 -2px 8px rgba(0,0,0,0.1);
+}
+/* 让 SVG 图标清晰可见 */
+.h3d-empty-emoji > svg {
+  width: 28px !important;
+  height: 28px !important;
+  color: #fff !important;
 }
 
 @keyframes h3dEmojiBounce {
@@ -10661,24 +11050,32 @@ body::before {
   z-index: 2;
 }
 
-/* 空状态环绕的浮动元素 */
+/* 空状态环绕的浮动元素 - 白色图标 + 彩色圆底（增大尺寸） */
 .rm3d-float-ele {
   position: absolute;
-  font-size: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
   z-index: 1;
   animation: rm3dFeFloat 3s ease-in-out infinite;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
 }
-.rm3d-fe-1 { top: 5px; left: 2px; font-size: 22px; animation-delay: 0s; }
-.rm3d-fe-2 { top: 15px; right: 4px; font-size: 18px; animation-delay: 0.6s; }
-.rm3d-fe-3 { bottom: 35px; left: -2px; font-size: 16px; animation-delay: 1.2s; }
-.rm3d-fe-4 { bottom: 45px; right: 0; font-size: 17px; animation-delay: 1.8s; }
-.rm3d-fe-5 { top: 30px; left: 50%; margin-left: -10px; font-size: 14px; animation-delay: 2.4s; }
+.rm3d-fe-1 { top: -4px; left: -2px; width: 34px; height: 34px; background: #f5576c; animation-delay: 0s; }
+.rm3d-fe-2 { top: 8px; right: 0; width: 32px; height: 32px; background: #667eea; animation-delay: 0.6s; }
+.rm3d-fe-3 { bottom: 30px; left: -6px; width: 30px; height: 30px; background: #00b894; animation-delay: 1.2s; }
+.rm3d-fe-4 { bottom: 38px; right: -4px; width: 30px; height: 30px; background: #fd79a8; animation-delay: 1.8s; }
+.rm3d-fe-5 { top: 24px; left: 50%; transform: translateX(-50%); width: 28px; height: 28px; background: #f0932b; animation-delay: 2.4s; }
+
+/* 让 SVG 图标填满容器并显示为白色 */
+.rm3d-float-ele > svg {
+  width: 55% !important;
+  height: 55% !important;
+}
 
 @keyframes rm3dFeFloat {
-  0%, 100% { opacity: 0.7; transform: translateY(0) rotate(0deg); }
+  0%, 100% { opacity: 0.85; transform: translateY(0) rotate(0deg); }
   25% { opacity: 1; transform: translateY(-8px) rotate(8deg); }
-  50% { opacity: 0.85; transform: translateY(-3px) rotate(-5deg); }
+  50% { opacity: 0.92; transform: translateY(-3px) rotate(-5deg); }
   75% { opacity: 1; transform: translateY(-10px) rotate(5deg); }
 }
 
@@ -10766,12 +11163,14 @@ body::before {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(102,126,234,0.08), rgba(118,75,162,0.08));
+  /* 紫色渐变背景，让白色图标清晰可见 */
+  background: linear-gradient(135deg, #667eea, #8b5cf6);
   display: grid;
   place-items: center;
-  color: #667eea;
+  color: #fff;
   margin-bottom: 18px;
   position: relative;
+  box-shadow: 0 4px 20px rgba(102,126,234,0.35), inset 0 -2px 8px rgba(0,0,0,0.1);
 }
 .rm3d-empty-icon::before {
   content: '';
@@ -10780,19 +11179,18 @@ body::before {
   border-radius: 50%;
   background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.6), transparent);
 }
-.rm3d-empty-icon::after {
-  content: '📭';
-  font-size: 32px;
-  position: absolute;
-  animation: emptyBounce 2s ease-in-out infinite;
-}
+/* 移除 ::after emoji，改用 JSX 内联的 <Bell> 图标 */
 @keyframes emptyBounce {
   0%, 100% { transform: translateY(0) rotate(0); }
-  25% { transform: translateY(-8px) rotate(-5deg); }
+  25% { transform: translateY(-6px) rotate(-5deg); }
   75% { transform: translateY(-4px) rotate(5deg); }
 }
+/* 让中心图标可见且有动画 */
 .rm3d-empty-icon > svg {
-  opacity: 0;
+  width: 36px !important;
+  height: 36px !important;
+  opacity: 1 !important;
+  animation: emptyBounce 2s ease-in-out infinite;
 }
 .rm3d-empty-icon-soft {
   background: linear-gradient(135deg, rgba(162,155,254,0.1), rgba(108,92,231,0.08));
@@ -12610,6 +13008,30 @@ body::before {
 .ppa-scene-small .ppa-placeholder-label { font-size: 9px; }
 .ppa-scene-xl .ppa-placeholder-emoji { font-size: 56px; }
 .ppa-scene-xl .ppa-placeholder-label { font-size: 13px; }
+
+/* ── 名字圆形头像（后端返回 __name_circle__ 或无头像时使用） ── */
+.pet-name-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0;
+  user-select: none;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* 图片加载失败时动态插入的降级名字圆，需撑满容器 */
+.mine-fallback-name-circle {
+  position: absolute !important;
+  top: 0; left: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
 
 /* ── 浮动装饰粒子 ── */
 .ppa-particles {

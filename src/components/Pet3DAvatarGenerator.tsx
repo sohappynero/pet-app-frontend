@@ -17,6 +17,7 @@ import {
   Share2,
 } from "lucide-react";
 import { generate3DAvatar, saveGeneratedAvatar, getLocal3DAvatar } from "../lib/pet3d.api";
+import { saveLocalAvatar } from "../lib/pet-avatar";
 
 interface Pet3DAvatarGeneratorProps {
   /** 宠物信息 */
@@ -130,15 +131,11 @@ export default function Pet3DAvatarGenerator({
   // 保存为头像
   const handleSaveAsAvatar = () => {
     if (!generatedImage) return;
-    
-    // 保存到 localStorage 作为宠物头像
-    try {
-      localStorage.setItem(`pet_avatar_${pet.id}`, generatedImage);
-      onSuccess?.(generatedImage);
-      onClose?.();
-    } catch (e) {
-      console.error("保存失败:", e);
-    }
+
+    // 通过统一模块保存（含容量校验和自动清理）
+    saved = saveLocalAvatar(pet.id, generatedImage);
+    onSuccess?.(generatedImage);
+    onClose?.();
   };
 
   // 尺寸配置

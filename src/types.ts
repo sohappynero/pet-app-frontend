@@ -1,6 +1,6 @@
 export type Species = "dog" | "cat" | "other";
 export type Gender = "male" | "female" | "unknown";
-export type RecordType = "vaccine" | "deworm" | "checkup" | "visit" | "observation";
+export type RecordType = "vaccine" | "deworm" | "checkup" | "visit" | "beauty" | "observation";
 export type ReminderStatus = "pending" | "done" | "cancelled";
 export type ReminderRepeat = "once" | "daily" | "weekly" | "monthly";
 
@@ -127,8 +127,12 @@ export interface Pet {
   weight_kg: number | null;
   neutered: boolean;
   notes: string;
-  /** 宠物照片 URL（用户上传的真实宠物图片） */
+  /** 宠物照片 URL（用户上传的真实宠物图片，前端历史字段） */
   image_url?: string | null;
+  /** 后端原始头像 URL（来自 pets.avatar_url） */
+  avatar_url?: string | null;
+  /** 后端解析后的最终头像 URL（含默认品种头像回退） */
+  _resolved_avatar_url?: string | null;
   created_at: string;
 }
 

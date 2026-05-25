@@ -1,28 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  Activity,
   Bell,
   Camera,
   Check,
   ChevronDown,
   ChevronRight,
-  Droplet,
   FileText,
   Heart,
   PawPrint,
   Scale,
   Sparkles,
-  Utensils,
-  X,
-  Activity,
   TrendingUp,
+  X,
 } from "lucide-react";
 import { useShell } from "../hooks/useShell";
-import { createRecord, fetchReminders, updatePet } from "../lib/api";
+import { fetchReminders } from "../lib/api";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
 import { Generate3DButton } from "../components/Pet3DAvatarGenerator";
-
-type QuickType = "weight" | "vaccine" | "deworm" | "checkup" | "diet" | "beauty" | null;
+import { handleAvatarUpload as unifiedHandleUpload, getLocalAvatar, handleAvatarFileUpload, clearLocalAvatar } from "../lib/pet-avatar";
 
 function petEmoji(species?: string) {
   if (species === "cat") return "🐱";
@@ -30,392 +27,32 @@ function petEmoji(species?: string) {
   return "🐕";
 }
 
-/** localStorage key 前缀：按 pet id 存储本地头像 */
-const AVATAR_LS_KEY = (petId: number) => `pet_avatar_${petId}`;
-
-/** 读取本地存储的头像 */
-function getLocalAvatar(petId: number): string | null {
-  try { return localStorage.getItem(AVATAR_LS_KEY(petId)); } catch { return null; }
+/**
+ * 判断是否为"名字圆形头像"标记（后端返回的 __name_circle__）
+ */
+function isNameCircleMarker(url?: string | null): boolean {
+  return url === "__name_circle__";
 }
 
-/** 保存本地头像 */
-function saveLocalAvatar(petId: number, url: string) {
-  try { localStorage.setItem(AVATAR_LS_KEY(petId), url); } catch {}
-}
-
-/** 处理宠物头像上传：读取文件 → 乐观更新 UI → 持久化 localStorage → 异步保存服务端 */
-function handlePetAvatarUpload(
-  e: React.ChangeEvent<HTMLInputElement>,
-  pet: Pet,
-  phone: string,
-  onSuccess: (newImageUrl: string) => void,
-) {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  if (!file.type.startsWith("image/")) {
-    alert("请选择图片文件");
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = async (ev) => {
-    const image_url = ev.target?.result as string;
-    // 1. 乐观更新 UI
-    onSuccess(image_url);
-    // 2. 持久化到 localStorage（不依赖后端）
-    saveLocalAvatar(pet.id, image_url);
-    // 3. 尝试同步到后端（后端可能不保存，不影响前端展示）
-    try { await updatePet(pet.id, { image_url }, phone); } catch {
-      /* 后端失败不影响已保存的本地头像 */
-    }
-  };
-  reader.readAsDataURL(file);
-}
-
-// ── 体重记录弹窗 ─────────────────────────────────────────────────────────────
-function WeightModal({ petName, onClose, onSave }: { petName: string; onClose: () => void; onSave: (d: any) => Promise<void> }) {
-  const [weight, setWeight] = useState("");
-  const [date, setDate] = useState("");
-  const [note, setNote] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  const submit = async () => {
-    if (!weight) return;
-    setSaving(true);
-    await onSave({ record_type: "observation", title: `体重记录 ${weight}kg`, weight_kg: Number(weight), record_date: date.slice(0, 10), note });
-    setSaving(false);
-  };
-
+/**
+ * 渲染名字圆形头像组件
+ * 当后端返回 __name_circle__ 标记时使用
+ */
+function PetNameCircle({ name, size = 44 }: { name: string; size?: number }) {
+  const char = (name || "宠").charAt(0).toUpperCase();
   return (
-    <div className="qm-overlay" onClick={onClose}>
-      <div className="qm-sheet" onClick={e => e.stopPropagation()}>
-        <div className="qm-header">
-          <div className="qm-icon qm-icon-weight">
-            <Scale size={20} />
-          </div>
-          <div className="qm-header-text">
-            <h3 className="qm-title">添加体重记录</h3>
-            <p className="qm-sub">为 {petName} 记录健康数据</p>
-          </div>
-          <button className="qm-close" onClick={onClose}><X size={18} /></button>
-        </div>
-        <div className="qm-body">
-          <div className="qm-field">
-            <label className="qm-label">体重数值 (kg)</label>
-            <div className="qm-input-wrapper">
-              <input className="qm-input qm-input-main" type="number" step="0.1" placeholder="请输入体重" value={weight} onChange={e => setWeight(e.target.value)} />
-              <span className="qm-unit">kg</span>
-            </div>
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">记录时间</label>
-            <input className="qm-input" type="datetime-local" value={date} onChange={e => setDate(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">备注 (选填)</label>
-            <textarea className="qm-input qm-textarea" placeholder="添加备注..." value={note} onChange={e => setNote(e.target.value)} />
-          </div>
-        </div>
-        <div className="qm-footer">
-          <button className="qm-btn-cancel" onClick={onClose}>取消</button>
-          <button className="qm-btn-primary qm-btn-weight" disabled={saving || !weight} onClick={submit}>
-            {saving ? "保存中..." : "保存记录"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── 疫苗记录弹窗 ─────────────────────────────────────────────────────────────
-function VaccineModal({ petName, onClose, onSave }: { petName: string; onClose: () => void; onSave: (d: any) => Promise<void> }) {
-  const [name, setName] = useState("");
-  const [date, setDate] = useState("");
-  const [batch, setBatch] = useState("");
-  const [note, setNote] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  const submit = async () => {
-    if (!name) return;
-    setSaving(true);
-    await onSave({ record_type: "vaccine", title: name, record_date: date.slice(0, 10), note: [batch ? `批次号：${batch}` : "", note].filter(Boolean).join("\n") });
-    setSaving(false);
-  };
-
-  return (
-    <div className="qm-overlay" onClick={onClose}>
-      <div className="qm-sheet" onClick={e => e.stopPropagation()}>
-        <div className="qm-header">
-          <div className="qm-icon qm-icon-vaccine">
-            <FileText size={20} />
-          </div>
-          <div className="qm-header-text">
-            <h3 className="qm-title">添加疫苗记录</h3>
-            <p className="qm-sub">为 {petName} 记录健康数据</p>
-          </div>
-          <button className="qm-close" onClick={onClose}><X size={18} /></button>
-        </div>
-        <div className="qm-body">
-          <div className="qm-field">
-            <label className="qm-label">疫苗名称</label>
-            <input className="qm-input" placeholder="如：狂犬疫苗、犬瘟热疫苗" value={name} onChange={e => setName(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">接种时间</label>
-            <input className="qm-input" type="datetime-local" value={date} onChange={e => setDate(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">疫苗批次号 (选填)</label>
-            <input className="qm-input" placeholder="请输入批次号" value={batch} onChange={e => setBatch(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">备注 (选填)</label>
-            <textarea className="qm-input qm-textarea" placeholder="添加备注..." value={note} onChange={e => setNote(e.target.value)} />
-          </div>
-        </div>
-        <div className="qm-footer">
-          <button className="qm-btn-cancel" onClick={onClose}>取消</button>
-          <button className="qm-btn-primary qm-btn-vaccine" disabled={saving || !name} onClick={submit}>
-            {saving ? "保存中..." : "保存记录"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── 驱虫记录弹窗 ─────────────────────────────────────────────────────────────
-function DewormModal({ petName, onClose, onSave }: { petName: string; onClose: () => void; onSave: (d: any) => Promise<void> }) {
-  const [drug, setDrug] = useState("");
-  const [date, setDate] = useState("");
-  const [dewormType, setDewormType] = useState<"体内驱虫" | "体外驱虫">("体内驱虫");
-  const [note, setNote] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  const submit = async () => {
-    if (!drug) return;
-    setSaving(true);
-    await onSave({ record_type: "deworm", title: drug, record_date: date.slice(0, 10), note: [dewormType, note].filter(Boolean).join("\n") });
-    setSaving(false);
-  };
-
-  return (
-    <div className="qm-overlay" onClick={onClose}>
-      <div className="qm-sheet" onClick={e => e.stopPropagation()}>
-        <div className="qm-header">
-          <div className="qm-icon qm-icon-deworm">
-            <Bell size={20} />
-          </div>
-          <div className="qm-header-text">
-            <h3 className="qm-title">添加驱虫记录</h3>
-            <p className="qm-sub">为 {petName} 记录健康数据</p>
-          </div>
-          <button className="qm-close" onClick={onClose}><X size={18} /></button>
-        </div>
-        <div className="qm-body">
-          <div className="qm-field">
-            <label className="qm-label">驱虫药品名称</label>
-            <input className="qm-input" placeholder="请输入驱虫药品名称" value={drug} onChange={e => setDrug(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">驱虫时间</label>
-            <input className="qm-input" type="datetime-local" value={date} onChange={e => setDate(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">驱虫类型</label>
-            <div className="qm-toggle-row">
-              <button className={`qm-toggle ${dewormType === "体内驱虫" ? "active" : ""}`} onClick={() => setDewormType("体内驱虫")}>体内驱虫</button>
-              <button className={`qm-toggle ${dewormType === "体外驱虫" ? "active" : ""}`} onClick={() => setDewormType("体外驱虫")}>体外驱虫</button>
-            </div>
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">备注 (选填)</label>
-            <textarea className="qm-input qm-textarea" placeholder="添加备注..." value={note} onChange={e => setNote(e.target.value)} />
-          </div>
-        </div>
-        <div className="qm-footer">
-          <button className="qm-btn-cancel" onClick={onClose}>取消</button>
-          <button className="qm-btn-primary qm-btn-deworm" disabled={saving || !drug} onClick={submit}>
-            {saving ? "保存中..." : "保存记录"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── 体检记录弹窗 ─────────────────────────────────────────────────────────────
-function CheckupModal({ petName, onClose, onSave }: { petName: string; onClose: () => void; onSave: (d: any) => Promise<void> }) {
-  const [project, setProject] = useState("");
-  const [hospital, setHospital] = useState("");
-  const [date, setDate] = useState("");
-  const [result, setResult] = useState("");
-  const [note, setNote] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  const submit = async () => {
-    if (!project) return;
-    setSaving(true);
-    await onSave({ record_type: "checkup", title: project, hospital, record_date: date.slice(0, 10), note: [result ? `体检结果：${result}` : "", note].filter(Boolean).join("\n") });
-    setSaving(false);
-  };
-
-  return (
-    <div className="qm-overlay" onClick={onClose}>
-      <div className="qm-sheet" onClick={e => e.stopPropagation()}>
-        <div className="qm-header">
-          <div className="qm-icon qm-icon-checkup">
-            <Activity size={20} />
-          </div>
-          <div className="qm-header-text">
-            <h3 className="qm-title">添加体检记录</h3>
-            <p className="qm-sub">为 {petName} 记录健康数据</p>
-          </div>
-          <button className="qm-close" onClick={onClose}><X size={18} /></button>
-        </div>
-        <div className="qm-body">
-          <div className="qm-field">
-            <label className="qm-label qm-label-required">体检项目</label>
-            <input className="qm-input" placeholder="如：全面体检、血液检查、X光检查" value={project} onChange={e => setProject(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label qm-label-required">医院/机构</label>
-            <input className="qm-input" placeholder="请输入医院或体检机构名称" value={hospital} onChange={e => setHospital(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label qm-label-required">体检时间</label>
-            <input className="qm-input" type="datetime-local" value={date} onChange={e => setDate(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">体检结果 (选填)</label>
-            <input className="qm-input" placeholder="请输入体检结果" value={result} onChange={e => setResult(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">备注 (选填)</label>
-            <textarea className="qm-input qm-textarea" placeholder="添加备注..." value={note} onChange={e => setNote(e.target.value)} />
-          </div>
-        </div>
-        <div className="qm-footer">
-          <button className="qm-btn-cancel" onClick={onClose}>取消</button>
-          <button className="qm-btn-primary qm-btn-checkup" disabled={saving || !project} onClick={submit}>
-            {saving ? "保存中..." : "保存记录"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── 饮食记录弹窗 ─────────────────────────────────────────────────────────────
-function DietModal({ petName, onClose, onSave }: { petName: string; onClose: () => void; onSave: (d: any) => Promise<void> }) {
-  const [food, setFood] = useState("");
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState("");
-  const [note, setNote] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  const submit = async () => {
-    if (!food) return;
-    setSaving(true);
-    await onSave({ record_type: "observation", title: `饮食记录：${food}`, appetite: amount, record_date: date.slice(0, 10), note });
-    setSaving(false);
-  };
-
-  return (
-    <div className="qm-overlay" onClick={onClose}>
-      <div className="qm-sheet" onClick={e => e.stopPropagation()}>
-        <div className="qm-header">
-          <div className="qm-icon qm-icon-diet">
-            <Heart size={20} />
-          </div>
-          <div className="qm-header-text">
-            <h3 className="qm-title">添加饮食记录</h3>
-            <p className="qm-sub">为 {petName} 记录健康数据</p>
-          </div>
-          <button className="qm-close" onClick={onClose}><X size={18} /></button>
-        </div>
-        <div className="qm-body">
-          <div className="qm-field">
-            <label className="qm-label">食物名称</label>
-            <input className="qm-input" placeholder="如：狗粮、鸡胸肉、罐头" value={food} onChange={e => setFood(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">食量</label>
-            <input className="qm-input" placeholder="如：100g、半杯、一碗" value={amount} onChange={e => setAmount(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">喂食时间</label>
-            <input className="qm-input" type="datetime-local" value={date} onChange={e => setDate(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">备注 (选填)</label>
-            <textarea className="qm-input qm-textarea" placeholder="添加备注..." value={note} onChange={e => setNote(e.target.value)} />
-          </div>
-        </div>
-        <div className="qm-footer">
-          <button className="qm-btn-cancel" onClick={onClose}>取消</button>
-          <button className="qm-btn-primary qm-btn-diet" disabled={saving || !food} onClick={submit}>
-            {saving ? "保存中..." : "保存记录"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── 美容医护弹窗 ─────────────────────────────────────────────────────────────
-function BeautyModal({ petName, onClose, onSave }: { petName: string; onClose: () => void; onSave: (d: any) => Promise<void> }) {
-  const [project, setProject] = useState("");
-  const [shop, setShop] = useState("");
-  const [date, setDate] = useState("");
-  const [note, setNote] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  const submit = async () => {
-    if (!project) return;
-    setSaving(true);
-    await onSave({ record_type: "visit", title: project, hospital: shop, record_date: date.slice(0, 10), note });
-    setSaving(false);
-  };
-
-  return (
-    <div className="qm-overlay" onClick={onClose}>
-      <div className="qm-sheet" onClick={e => e.stopPropagation()}>
-        <div className="qm-header">
-          <div className="qm-icon qm-icon-beauty">
-            <Droplet size={20} />
-          </div>
-          <div className="qm-header-text">
-            <h3 className="qm-title">添加美容医护</h3>
-            <p className="qm-sub">为 {petName} 记录健康数据</p>
-          </div>
-          <button className="qm-close" onClick={onClose}><X size={18} /></button>
-        </div>
-        <div className="qm-body">
-          <div className="qm-field">
-            <label className="qm-label">护理项目</label>
-            <input className="qm-input" placeholder="如：洗澡、剪毛、指甲修剪、牙齿清洁" value={project} onChange={e => setProject(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">美容机构/美容师</label>
-            <input className="qm-input" placeholder="请输入美容机构或美容师名称" value={shop} onChange={e => setShop(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">护理时间</label>
-            <input className="qm-input" type="datetime-local" value={date} onChange={e => setDate(e.target.value)} />
-          </div>
-          <div className="qm-field">
-            <label className="qm-label">备注 (选填)</label>
-            <textarea className="qm-input qm-textarea" placeholder="添加备注..." value={note} onChange={e => setNote(e.target.value)} />
-          </div>
-        </div>
-        <div className="qm-footer">
-          <button className="qm-btn-cancel" onClick={onClose}>取消</button>
-          <button className="qm-btn-primary qm-btn-beauty" disabled={saving || !project} onClick={submit}>
-            {saving ? "保存中..." : "保存记录"}
-          </button>
-        </div>
-      </div>
-    </div>
+    <span
+      className="pet-name-circle"
+      style={{
+        width: size,
+        height: size,
+        fontSize: Math.round(size * 0.42),
+        lineHeight: `${size}px`,
+      }}
+      title={name}
+    >
+      {char}
+    </span>
   );
 }
 
@@ -424,7 +61,6 @@ export default function Pets() {
   const navigate = useNavigate();
   const { phone, pets, selectedPet, selectedPetId, setPetId, refreshPets } = useShell();
   const [switchOpen, setSwitchOpen] = useState(false);
-  const [quickOpen, setQuickOpen] = useState<QuickType>(null);
   const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const [pendingCount, setPendingCount] = useState(0);
@@ -437,14 +73,19 @@ export default function Pets() {
       const saved = getLocalAvatar(currentPet.id);
       if (saved) setLocalAvatarUrl(saved);
     }
-  }, [currentPet?.id]);
+  }, [currentPet?.id, pets]);
 
-  // 合并本地存储的 avatar URL（优先级：localStorage > 服务端数据）
+  // 合并头像 URL（优先级：localStorage > 后端resolved_url > 服务端原始数据）
   const displayPet = useMemo(() => {
     if (!currentPet) return null;
+    // 1. 本地缓存（用户刚上传的，最高优先级）
     const local = localAvatarUrl || getLocalAvatar(currentPet.id);
-    return local ? { ...currentPet, image_url: local } : currentPet;
-  }, [currentPet, localAvatarUrl]);
+    if (local) return { ...currentPet, image_url: local };
+    // 2. 后端解析后的默认头像 URL（含品种默认图回退）
+    if (currentPet._resolved_avatar_url) return { ...currentPet, image_url: currentPet._resolved_avatar_url };
+    // 3. 原始数据
+    return currentPet;
+  }, [currentPet, localAvatarUrl, pets]);
 
   const activePetId = selectedPetId ?? pets[0]?.id;
   const extraPetCount = Math.max(0, pets.length - 1);
@@ -466,30 +107,6 @@ export default function Pets() {
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(""), 2000);
-  };
-
-  const handleSave = async (extra: any) => {
-    if (!currentPet) return;
-    await createRecord({
-      phone,
-      pet_id: currentPet.id,
-      record_type: extra.record_type,
-      title: extra.title || "",
-      record_date: extra.record_date || new Date().toISOString().slice(0, 10),
-      hospital: extra.hospital || "",
-      doctor: "",
-      symptom: "",
-      treatment: "",
-      cost: 0,
-      weight_kg: extra.weight_kg ?? null,
-      mood: "",
-      appetite: extra.appetite || "",
-      note: extra.note || "",
-      images: [],
-      next_due_date: null,
-    });
-    setQuickOpen(null);
-    showToast("记录保存成功 ✓");
   };
 
   if (!currentPet) {
@@ -537,13 +154,34 @@ export default function Pets() {
             <div className="ph3d-pet-card">
               <label htmlFor="pets-page-avatar-input" className="ph3d-pet-avatar-wrap" style={{ cursor: "pointer", position: "relative" }}>
                 {displayPet?.image_url ? (
-                  <img
-                    src={displayPet.image_url}
-                    alt={`${currentPet?.name} 头像`}
-                    style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }}
-                  />
+                  isNameCircleMarker(displayPet.image_url) ? (
+                    <PetNameCircle name={currentPet?.name || '宠物'} size={44} />
+                  ) : (
+                    <img
+                      src={displayPet.image_url}
+                      alt={`${currentPet?.name} avatar`}
+                      style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }}
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const parent = e.currentTarget.parentElement;
+                        if (parent && !parent.querySelector('.pet-name-circle')) {
+                          const fb = document.createElement('span');
+                          fb.className = 'pet-name-circle';
+                          fb.style.cssText = 'width:44px;height:44px;font-size:18px;line-height:44px;';
+                          fb.textContent = (currentPet?.name || '宠').charAt(0).toUpperCase();
+                          parent.insertBefore(fb, e.currentTarget);
+                        }
+                      }}
+                    />
+                  )
                 ) : (
-                  <span className="ph3d-pet-emoji">{petEmoji(currentPet.species)}</span>
+                  currentPet?._resolved_avatar_url && !isNameCircleMarker(currentPet._resolved_avatar_url) ? (
+                    <img src={currentPet._resolved_avatar_url} alt={`${currentPet?.name} default`}
+                      style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                  ) : (
+                    <PetNameCircle name={currentPet?.name || '宠物'} size={44} />
+                  )
                 )}
                 <span className="ph3d-pet-online" />
               </label>
@@ -552,7 +190,26 @@ export default function Pets() {
                 accept="image/*"
                 id="pets-page-avatar-input"
                 style={{ display: "none" }}
-                onChange={(e) => handlePetAvatarUpload(e, currentPet, phone, (url) => { setLocalAvatarUrl(url); refreshPets(); })}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file || !currentPet) return;
+                  // 使用新的文件上传方式（multipart → 后端新 API）
+                  const result = await handleAvatarFileUpload(file, currentPet.id, (url) => {
+                    // 乐观更新：立即显示压缩后的预览图（毫秒级响应）
+                    setLocalAvatarUrl(url);
+                    // 注意：不在此处调用 refreshPets()！
+                    // 原因：此时 API 请求还在飞行中，DB 还是旧值
+                    // refreshPets 移到下面的 upload 完成后统一调用
+                  });
+                  // 上传完成后：用后端返回的最终URL同步state（确保与localStorage一致）
+                  if (result.serverSynced && result.finalUrl && result.finalUrl !== localAvatarUrl) {
+                    setLocalAvatarUrl(result.finalUrl);
+                    refreshPets();
+                  }
+                  if (result.error) showToast(result.error);
+                  // 重置 file input，允许重复选择同一文件
+                  e.target.value = '';
+                }}
               />
               <div className="ph3d-pet-detail">
                 <strong className="ph3d-pet-name">{currentPet?.name || '我的宠物'}</strong>
@@ -565,16 +222,12 @@ export default function Pets() {
             </div>
           </div>
 
-          {/* 右侧宠物照片 - 圆形头像，照片完全填充 */}
+          {/* 右侧宠物照片 - 使用 PetPhotoAvatar 组件（支持模板图/名字圆形自动降级） */}
           <div className="ph3d-hero-visual">
             <div className="ph3d-char-stage">
-              {currentPet && (displayPet?.image_url || currentPet.image_url) ? (
-                <img
-                  src={(displayPet || currentPet).image_url}
-                  alt={`${currentPet.name} 的照片`}
-                  className="ph3d-pet-hero-img"
-                />
-              ) : null}
+              {currentPet && (
+                <PetPhotoAvatar pet={displayPet} size="default" className="hero-circular-avatar" />
+              )}
             </div>
             {/* 浮动装饰元素 */}
             <div className="ph3d-float-deco ph3d-float-heart"><Heart size={14} /></div>
@@ -649,7 +302,7 @@ export default function Pets() {
         </div>
         
         <div className="ph3d-quick-grid">
-          <button type="button" className="ph3d-quick-item" onClick={() => setQuickOpen("weight")}>
+          <button type="button" className="ph3d-quick-item" onClick={() => navigate(`/app/add-record?type=observation&default_title=体重记录&pet_id=${currentPet?.id}`)}>
             <div className="ph3d-quick-icon ph3d-qi-weight">⚖️</div>
             <div className="ph3d-quick-text">
               <strong>体重记录</strong>
@@ -658,7 +311,7 @@ export default function Pets() {
             <ChevronRight size={14} className="ph3d-arrow" />
           </button>
 
-          <button type="button" className="ph3d-quick-item" onClick={() => setQuickOpen("vaccine")}>
+          <button type="button" className="ph3d-quick-item" onClick={() => navigate(`/app/add-record?type=vaccine&pet_id=${currentPet?.id}`)}>
             <div className="ph3d-quick-icon ph3d-qi-vaccine">💉</div>
             <div className="ph3d-quick-text">
               <strong>疫苗记录</strong>
@@ -667,7 +320,7 @@ export default function Pets() {
             <ChevronRight size={14} className="ph3d-arrow" />
           </button>
 
-          <button type="button" className="ph3d-quick-item" onClick={() => setQuickOpen("deworm")}>
+          <button type="button" className="ph3d-quick-item" onClick={() => navigate(`/app/add-record?type=deworm&pet_id=${currentPet?.id}`)}>
             <div className="ph3d-quick-icon ph3d-qi-deworm">💊</div>
             <div className="ph3d-quick-text">
               <strong>驱虫记录</strong>
@@ -676,7 +329,7 @@ export default function Pets() {
             <ChevronRight size={14} className="ph3d-arrow" />
           </button>
 
-          <button type="button" className="ph3d-quick-item" onClick={() => setQuickOpen("checkup")}>
+          <button type="button" className="ph3d-quick-item" onClick={() => navigate(`/app/add-record?type=checkup&pet_id=${currentPet?.id}`)}>
             <div className="ph3d-quick-icon ph3d-qi-checkup">🩺</div>
             <div className="ph3d-quick-text">
               <strong>体检记录</strong>
@@ -685,7 +338,7 @@ export default function Pets() {
             <ChevronRight size={14} className="ph3d-arrow" />
           </button>
 
-          <button type="button" className="ph3d-quick-item" onClick={() => setQuickOpen("diet")}>
+          <button type="button" className="ph3d-quick-item" onClick={() => navigate(`/app/add-record?type=observation&default_title=饮食记录&pet_id=${currentPet?.id}`)}>
             <div className="ph3d-quick-icon ph3d-qi-diet">🍖</div>
             <div className="ph3d-quick-text">
               <strong>饮食记录</strong>
@@ -694,7 +347,7 @@ export default function Pets() {
             <ChevronRight size={16} className="ph3d-arrow" />
           </button>
 
-          <button type="button" className="ph3d-quick-item" onClick={() => setQuickOpen("beauty")}>
+          <button type="button" className="ph3d-quick-item" onClick={() => navigate(`/app/add-record?type=visit&pet_id=${currentPet?.id}`)}>
             <div className="ph3d-quick-icon ph3d-qi-beauty">✨</div>
             <div className="ph3d-quick-text">
               <strong>美容医护</strong>
@@ -733,9 +386,40 @@ export default function Pets() {
             <div className="ph3d-modal-list">
               {pets.map(p => {
                 const active = p.id === activePetId;
+                // 头像优先级：localStorage 缓存 > 后端解析URL > 原始数据
+                // 与主页面 displayPet 保持一致（第50-59行）
+                const localCached = getLocalAvatar(p.id);
+                const petAvatarUrl = localCached || p._resolved_avatar_url || p.image_url;
                 return (
-                  <button key={p.id} type="button" className={`ph3d-modal-item ${active ? "active" : ""}`} onClick={() => { setPetId(p.id); setSwitchOpen(false); }}>
-                    <span className="ph3d-modal-avatar">{petEmoji(p.species)}</span>
+                  <button key={p.id} type="button" className={`ph3d-modal-item ${active ? "active" : ""}`} onClick={() => {
+                    setPetId(p.id);
+                    setLocalAvatarUrl(null);
+                    setSwitchOpen(false);
+                  }}>
+                    <span className="ph3d-modal-avatar" title={`DEBUG: avatarUrl=${petAvatarUrl || 'EMPTY'}, resolved=${p._resolved_avatar_url || 'NONE'}`}>
+                      {/* DEBUG: 2024-05-24 代码已更新 - 如看到此注释说明新代码生效 */}
+                      {petAvatarUrl ? (
+                        isNameCircleMarker(petAvatarUrl) ? (
+                          <PetNameCircle name={p.name || '宠物'} size={40} />
+                        ) : (
+                          <img
+                            src={petAvatarUrl}
+                            alt={p.name}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+                            onError={(e) => { e.currentTarget.style.display = "none"; }}
+                          />
+                        )
+                      ) : (
+                        // 无头像数据时：用 _resolved_avatar_url 或名字圆
+                        p._resolved_avatar_url && !isNameCircleMarker(p._resolved_avatar_url) ? (
+                          <img src={p._resolved_avatar_url} alt={p.name}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                        ) : (
+                          <PetNameCircle name={p.name || '宠物'} size={40} />
+                        )
+                      )}
+                    </span>
                     <div className="ph3d-modal-info">
                       <strong>{p.name}</strong>
                       <span>{p.breed || '宠物'}</span>
@@ -753,16 +437,9 @@ export default function Pets() {
         </div>
       )}
 
-      {/* 快速操作专属弹窗 */}
-      {quickOpen === "weight"  && <WeightModal  petName={currentPet?.name || '我的宠物'} onClose={() => setQuickOpen(null)} onSave={handleSave} />}
-      {quickOpen === "vaccine" && <VaccineModal petName={currentPet?.name || '我的宠物'} onClose={() => setQuickOpen(null)} onSave={handleSave} />}
-      {quickOpen === "deworm"  && <DewormModal  petName={currentPet?.name || '我的宠物'} onClose={() => setQuickOpen(null)} onSave={handleSave} />}
-      {quickOpen === "checkup" && <CheckupModal petName={currentPet?.name || '我的宠物'} onClose={() => setQuickOpen(null)} onSave={handleSave} />}
-      {quickOpen === "diet"    && <DietModal    petName={currentPet?.name || '我的宠物'} onClose={() => setQuickOpen(null)} onSave={handleSave} />}
-      {quickOpen === "beauty"  && <BeautyModal  petName={currentPet?.name || '我的宠物'} onClose={() => setQuickOpen(null)} onSave={handleSave} />}
-
       {/* Toast 提示 */}
       {toast && <div className="qm-toast">{toast}</div>}
     </main>
   );
 }
+

@@ -15,12 +15,7 @@ import { PetPhotoUploader, type PhotoUploadResult } from "../components/PetPhoto
 import { PhotoAnalysisOverlay } from "../components/PetChat/PhotoAnalysisOverlay";
 import { PhotoMindResultCard } from "../components/PetChat/PhotoMindResult";
 import { useShell } from "../hooks/useShell";
-
-/** 读取本地存储的宠物头像 */
-function getLocalPetAvatar(petId?: number | null): string | null {
-  if (!petId) return null;
-  try { return localStorage.getItem(`pet_avatar_${petId}`); } catch { return null; }
-}
+import { getLocalAvatar } from "../lib/pet-avatar";
 import { 
   fetchPhotoMind, 
   fetchPetRoast, 
@@ -820,9 +815,9 @@ export default function PetChat() {
           {/* 左侧：宠物头像区域 */}
           <div className="chat-avatar-wrap">
             <div className="chat-avatar">
-              {selectedPet?.image_url || getLocalPetAvatar(selectedPet?.id) ? (
+              {selectedPet?.image_url || getLocalAvatar(selectedPet?.id ?? 0) ? (
                 <img
-                  src={selectedPet?.image_url || getLocalPetAvatar(selectedPet?.id)}
+                  src={selectedPet?.image_url || getLocalAvatar(selectedPet?.id ?? 0)}
                   alt={selectedPet?.name || "宠物头像"}
                   className="chat-pet-avatar-img"
                 />
@@ -1358,9 +1353,9 @@ export default function PetChat() {
                 <span className="chat-msg-time">{msg.time}</span>
                 {(msg.type === "pet" || msg.type === "pet_translate") && selectedPet && (
                   <div className="chat-msg-avatar chat-msg-avatar-pet chat-msg-pet-avatar">
-                    {selectedPet.image_url || getLocalPetAvatar(selectedPet.id) ? (
+                    {selectedPet.image_url || getLocalAvatar(selectedPet.id) ? (
                       <img
-                        src={selectedPet.image_url || getLocalPetAvatar(selectedPet.id)!}
+                        src={selectedPet.image_url || getLocalAvatar(selectedPet.id)!}
                         alt={selectedPet.name}
                         className="chat-pet-avatar-small"
                       />

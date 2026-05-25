@@ -15,10 +15,11 @@ import {
   AlertCircle,
   Clock,
 } from "lucide-react";
-import { fetchRecords, updatePet } from "../lib/api";
+import { fetchRecords } from "../lib/api";
 import { useShell } from "../hooks/useShell";
 import type { HealthRecord, RecordType } from "../types";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
+import { getLocalAvatar } from "../lib/pet-avatar";
 
 type AnalysisTab = "all" | "health" | "trend" | "diet" | "vaccine" | "exercise" | "beauty";
 
@@ -79,40 +80,6 @@ function petEmoji(species?: string) {
   if (species === "cat") return "🐱";
   if (species === "other") return "🐰";
   return "🐕";
-}
-
-/** localStorage key 前缀：按 pet id 存储本地头像 */
-const AVATAR_LS_KEY = (petId: number) => `pet_avatar_${petId}`;
-
-function getLocalAvatar(petId: number): string | null {
-  try { return localStorage.getItem(AVATAR_LS_KEY(petId)); } catch { return null; }
-}
-
-function saveLocalAvatar(petId: number, url: string) {
-  try { localStorage.setItem(AVATAR_LS_KEY(petId), url); } catch {}
-}
-
-/** 处理宠物头像上传 */
-function handlePetAvatarUpload(
-  e: React.ChangeEvent<HTMLInputElement>,
-  pet: any,
-  phone: string,
-  onSuccess: (newImageUrl: string) => void,
-) {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  if (!file.type.startsWith("image/")) {
-    alert("请选择图片文件");
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = async (ev) => {
-    const image_url = ev.target?.result as string;
-    onSuccess(image_url);
-    saveLocalAvatar(pet.id, image_url);
-    try { await updatePet(pet.id, { image_url }, phone); } catch {}
-  };
-  reader.readAsDataURL(file);
 }
 
 // ── 状态图标 ──────────────────────────────────────────────

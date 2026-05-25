@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FiPhone, FiLock, FiUser, FiHeart, FiUserPlus, FiMessageSquare } from "react-icons/fi";
+import { FiPhone, FiLock, FiUser, FiUserPlus, FiMessageSquare } from "react-icons/fi";
 import Mascot from "../components/Mascot";
 import { register, sendRegisterCode } from "../lib/api";
 
@@ -13,7 +13,6 @@ export default function Register() {
     nickname: "",
     password: "",
     confirm_password: "",
-    pet_name: "",
   });
   const [loading, setLoading] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
@@ -96,7 +95,6 @@ export default function Register() {
         nickname: form.nickname.trim(),
         password: form.password,
         confirm_password: form.confirm_password,
-        pet_name: form.pet_name.trim() || "毛球",
       });
       setSuccess(data.message || "注册成功");
       setTimeout(() => navigate("/login"), 800);
@@ -174,14 +172,6 @@ export default function Register() {
                 <div className="relative">
                   <FiUser className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--primary)" }} />
                   <input className="pet-input pl-10" type="text" placeholder="给自己起个可爱的名字" value={form.nickname} onChange={set("nickname")} required />
-                </div>
-              </div>
-
-              <div>
-                <label className="pet-label">宠物名（选填）</label>
-                <div className="relative">
-                  <FiHeart className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--primary)" }} />
-                  <input className="pet-input pl-10" type="text" placeholder="你的毛孩子叫什么？" value={form.pet_name} onChange={set("pet_name")} />
                 </div>
               </div>
 

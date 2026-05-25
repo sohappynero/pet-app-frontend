@@ -17,6 +17,37 @@ import {
 
 import { fetchReminders } from "../lib/api";
 import { useShell } from "../hooks/useShell";
+import { getLocalAvatar } from "../lib/pet-avatar";
+
+// ══════════════════════════════════════════════════
+// 名字圆形头像工具函数
+// ══════════════════════════════════════════════════
+
+/** 检查后端返回的是否为名字圆形标记 */
+function isNameCircleMarker(url?: string | null): boolean {
+  return url === "__name_circle__";
+}
+
+/**
+ * 渲染名字圆形头像组件
+ * 当后端返回 __name_circle__ 标记或宠物无头像时使用
+ */
+function PetNameCircle({ name, size = 80 }: { name: string; size?: number }) {
+  const char = (name || "宠").charAt(0).toUpperCase();
+  return (
+    <span
+      className="pet-name-circle"
+      style={{
+        width: size,
+        height: size,
+        fontSize: Math.round(size * 0.42),
+        lineHeight: `${size}px`,
+      }}
+    >
+      {char}
+    </span>
+  );
+}
 
 type MenuItem = {
   label: string;
@@ -117,9 +148,38 @@ function ComingSoonModal({ feature, onClose }: { feature: FeatureItem; onClose: 
 }
 
 export default function Mine() {
-  const { nickname, phone, pets, selectedPetId, avatar, onLogout } = useShell();
+  const { nickname, phone, pets, selectedPetId, avatar, onLogout, selectedPet } = useShell();
   const [pendingCount, setPendingCount] = useState(0);
   const [showFeatureModal, setShowFeatureModal] = useState<FeatureItem | null>(null);
+
+  // 获取当前选中宠物
+  const currentPet = useMemo(
+    () => pets.find((p) => p.id === selectedPetId) || pets[0] || null,
+    [pets, selectedPetId]
+  );
+
+  // 【修复】"我的"页面头部头像逻辑：
+  //   1. 优先显示用户自己的 avatar（来自 ShellContext）
+  //   2. 用户无头像时，降级为当前选中宠物的头像
+  //   3. 都没有 → 渲染名字圆形（用户昵称首字或"宠"）
+  const headerAvatarUrl = useMemo(() => {
+    // 优先级1: 用户自己的头像
+    if (avatar && avatar.trim()) return avatar;
+    
+    // 优先级2: 宠物头像作为备选
+    if (currentPet) {
+      const petUrl = getLocalAvatar(currentPet.id)
+        || currentPet._resolved_avatar_url
+        || currentPet.image_url;
+      if (petUrl) return petUrl;
+    }
+    
+    // 无任何头像 → 返回 null，渲染时使用 PetNameCircle
+    return null;
+  }, [avatar, currentPet]);
+
+  // 判断最终是否需要用名字圆形降级
+  const useNameCircle = !headerAvatarUrl || isNameCircleMarker(headerAvatarUrl);
 
   useEffect(() => {
     if (pets.length === 0) {
@@ -227,10 +287,28 @@ export default function Mine() {
       <section className="mine-profile-card">
         <div className="mine-avatar-section">
           <div className="mine-avatar-container">
-            {avatar ? (
-              <img src={avatar} alt={ownerName} className="mine-user-avatar-img" />
+            {/* 【修复】头像显示：用户头像 > 宠物头像 > 名字圆形 > 爪印占位 */}
+            {useNameCircle ? (
+              /* 无有效URL → 显示名字圆形（用用户昵称首字） */
+              <PetNameCircle name={nickname || "宠"} size={80} />
             ) : (
-              <PawPrint size={32} className="mine-avatar-icon" />
+              /* 有有效头像URL → 显示图片 */
+              <img
+                src={headerAvatarUrl}
+                alt={nickname || "我的头像"}
+                className="mine-user-avatar-img"
+                onError={(e) => {
+                  // 图片加载失败 → 降级为名字圆形
+                  e.currentTarget.style.display = "none";
+                  const parent = e.currentTarget.parentElement;
+                  if (parent && !parent.querySelector(".pet-name-circle")) {
+                    const fallback = document.createElement("span");
+                    fallback.className="pet-name-circle mine-fallback-name-circle";
+                    fallback.textContent = (nickname || "宠").charAt(0).toUpperCase();
+                    parent.appendChild(fallback);
+                  }
+                }}
+              />
             )}
             <Star size={14} className="mine-star-deco" />
           </div>

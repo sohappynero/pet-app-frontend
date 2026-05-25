@@ -1,45 +1,26 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import "./AddPetPage.css";
 import {
-  FileText,
-  Bell,
-  Share2,
-  Brain,
-  Shield,
-  CircleHelp,
   PawPrint,
   ChevronRight,
-  LogOut,
-  Heart,
-  CalendarDays,
-  TriangleAlert,
   ArrowLeft,
   ArrowRight,
-  Camera,
-  Dog,
-  Cat,
-  Rabbit,
-  Calendar,
   Check,
   AlertCircle,
-  Star,
+  Sparkles,
+  CalendarDays,
+  Camera,
 } from "lucide-react";
 
-import { createPet, fetchReminders, updatePet } from "../lib/api";
+import { createPet, createPetWithAvatar, mapUiSpeciesToApi } from "../lib/api";
 import { useShell } from "../hooks/useShell";
-import type { Gender, Species } from "../types";
+import type { Gender } from "../types";
 
-type MenuItem = {
-  label: string;
-  icon: ReactNode;
-  rightText?: string;
-  to?: string;
-  onClick?: () => void;
-  iconColor?: string;
-  iconBg?: string;
-};
+/* ── 类型定义 ── */
+type Species = "dog" | "cat" | "other";
 
-type OnboardingForm = {
+interface OnboardingForm {
   name: string;
   species: Species;
   breed: string;
@@ -47,16 +28,15 @@ type OnboardingForm = {
   birthday: string;
   color: string;
   bodySize: "small" | "medium" | "large";
-  weight_kg: string;
+  weightKg: string;
   neutered: boolean;
   hasAllergy: boolean;
   allergyNotes: string;
   specialNotes: string;
-  /** 宠物照片（本地 base64 预览） */
-  image_url: string;
-};
+}
 
-const defaultOnboardingForm: OnboardingForm = {
+/* ── 默认表单 & 常量 ── */
+const defaultForm: OnboardingForm = {
   name: "",
   species: "cat",
   breed: "",
@@ -64,12 +44,11 @@ const defaultOnboardingForm: OnboardingForm = {
   birthday: "",
   color: "白色",
   bodySize: "small",
-  weight_kg: "",
+  weightKg: "",
   neutered: false,
   hasAllergy: false,
   allergyNotes: "",
   specialNotes: "",
-  image_url: "",
 };
 
 const stepTitles: Record<number, string> = {
@@ -79,813 +58,678 @@ const stepTitles: Record<number, string> = {
   4: "确认添加",
 };
 
-const colorOptions = ["白色", "黑色", "金色", "棕色", "灰色", "花色", "奶油色", "其他"];
-const bodySizeOptions: Array<{ label: string; value: OnboardingForm["bodySize"] }> = [
-  { label: "小型", value: "small" },
-  { label: "中型", value: "medium" },
-  { label: "大型", value: "large" },
-];
-
-const bodySizeHint: Record<OnboardingForm["bodySize"], string> = {
-  small: "<10kg",
-  medium: "10-25kg",
-  large: ">25kg",
+const stepEmojis: Record<number, string> = {
+  1: "📝",
+  2: "🎨",
+  3: "💊",
+  4: "✨",
 };
 
-const breedOptionsBySpecies: Record<string, string[]> = {
-  dog: [
-    "金毛寻回犬", "拉布拉多", "柯基", "泰迪", "哈士奇",
-    "柴犬", "边境牧羊犬", "德国牧羊犬", "萨摩耶", "比熊",
-    "吉娃娃", "博美", "法斗", "阿拉斯加", "其他",
-  ],
-  cat: [
-    "中华田园猫", "英短", "美短", "布偶猫", "暹罗猫",
-    "波斯猫", "加菲猫", "缅因猫", "苏格兰折耳猫",
-    "俄罗斯蓝猫", "无毛猫", "其他",
-  ],
+const colorOptions = [
+  "白色", "黑色", "黄色", "棕色", "灰色", "花色", "奶油色", "其他",
+];
+
+const bodySizeOptions = [
+  { label: "小型", value: "small" as const },
+  { label: "中型", value: "medium" as const },
+  { label: "大型", value: "large" as const },
+];
+
+const bodySizeHint: Record<string, string> = {
+  small: "≤10kg",
+  medium: "10-25kg",
+  large: "≥25kg",
+};
+
+const breedBySpecies: Record<string, string[]> = {
+  dog: ["金毛寻回犬", "拉布拉多", "柯基", "泰迪", "哈士奇", "柴犬", "边境牧羊犬", "德国牧羊犬", "萨摩耶", "比熊", "吉娃娃", "博美", "法斗", "阿拉斯加", "其他"],
+  cat: ["中华田园猫", "英短", "美短", "布偶猫", "暹罗猫", "波斯猫", "加菲猫", "缅因猫", "苏格兰折耳猫", "俄罗斯蓝猫", "无毛猫", "其他"],
   other: ["兔子", "仓鼠", "豚鼠", "鹦鹉", "龙猫", "其他"],
 };
 
-function petAvatarEmoji(species: string) {
-  if (species === "cat") return "🐱";
-  if (species === "other") return "🐰";
-  return "🐕";
+function speciesEmoji(s: Species): string {
+  return s === "dog" ? "🐕" : s === "cat" ? "🐱" : "🐰";
 }
 
-/** 处理宠物头像上传：读取文件并转为 base64 预览 */
-function handleAvatarUpload(
-  e: React.ChangeEvent<HTMLInputElement>,
-  setForm: React.Dispatch<React.SetStateAction<OnboardingForm>>
-) {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  if (!file.type.startsWith("image/")) {
-    alert("请选择图片文件");
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    setForm((s) => ({ ...s, image_url: ev.target?.result as string }));
-  };
-  reader.readAsDataURL(file);
+function mapGenderLabel(g: Gender): string {
+  if (g === "male") return "公";
+  if (g === "female") return "母";
+  return "未知";
 }
 
-function MenuRow({ item }: { item: MenuItem }) {
-  const navigate = useNavigate();
-  const onPress = () => {
-    if (item.to) navigate(item.to);
-    else item.onClick?.();
-  };
-
-  return (
-    <button className="dash-menu-row group" onClick={onPress}>
-      <div className="dash-row-left">
-        <span className="dash-icon-badge" style={{ background: item.iconBg || "#F5F0EB" }}>
-          <span style={{ color: item.iconColor || "#8B7355" }}>
-            {item.icon}
-          </span>
-        </span>
-        <span className="dash-label">{item.label}</span>
-      </div>
-      <span className="dash-row-right">
-        <span className="dash-right-text">{item.rightText || "查看"}</span>
-        <ChevronRight size={16} className="dash-chevron" />
-      </span>
-    </button>
-  );
+function mapSpeciesLabel(s: Species): string {
+  return s === "dog" ? "犬" : s === "cat" ? "猫" : "其他";
 }
+
+/* ══════════════════ 组件 ══════════════════ */
 
 export default function Dashboard() {
-  const { nickname, pets, phone, selectedPetId, selectedPet, onLogout, refreshPets } = useShell();
+  const { pets, refreshPets } = useShell();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [pendingCount, setPendingCount] = useState(0);
-  const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
-  const [guideForm, setGuideForm] = useState<OnboardingForm>(defaultOnboardingForm);
-  const [guideMsg, setGuideMsg] = useState("");
-  const [savingGuide, setSavingGuide] = useState(false);
-  const [dashAvatarUrl, setDashAvatarUrl] = useState<string | null>(null);
+  /* ── 状态 ── */
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState<OnboardingForm>(defaultForm);
+  const [msg, setMsg] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [isAddingMode, setIsAddingMode] = useState(false);
+  const [weightError, setWeightError] = useState("");
 
-  // 从 localStorage 读取本地保存的头像
-  useEffect(() => {
-    if (selectedPet) {
-      try {
-        const saved = localStorage.getItem(`pet_avatar_${selectedPet.id}`);
-        if (saved) setDashAvatarUrl(saved);
-      } catch {}
-    }
-  }, [selectedPet?.id]);
+  /* ── 头像上传状态 ── */
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  // 合并显示用的头像 URL
-  const displayDashAvatar = dashAvatarUrl || selectedPet?.image_url || null;
-
-  // 当 URL 带 ?add=1 时，强制进入添加引导并清理参数
+  /* ── 进入添加模式 ── */
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("add") === "1") {
+      setIsAddingMode(true);
       setStep(1);
-      setGuideForm(defaultOnboardingForm);
-      setGuideMsg("");
-      navigate("/app", { replace: true });
+      setForm(defaultForm);
+      setMsg("");
     }
-  }, [location.search, navigate]);
+  }, [location.search]);
 
+  /* ── 有宠物且非添加模式 → 跳转宠物列表 ── */
   useEffect(() => {
-    if (pets.length === 0 || step >= 1) {
-      setPendingCount(0);
-      return;
-    }
-
-    const run = async () => {
-      const remindersResp = await fetchReminders(phone, selectedPetId ?? undefined, "pending");
-      const today = new Date().toISOString().slice(0, 10);
-      const due = (remindersResp.data || []).filter((x) => x.due_date <= today);
-      setPendingCount(due.length);
-    };
-    run();
-  }, [phone, selectedPetId, pets.length, step]);
-
-  // 有宠物且不在引导流程中，自动跳首页（/app/pets）
-  useEffect(() => {
-    if (pets.length > 0 && step === 0 && !location.search.includes("add=1")) {
+    const isAddPage = location.search.includes("add=1");
+    if (!isAddingMode && !isAddPage && pets.length > 0) {
       navigate("/app/pets", { replace: true });
     }
-  }, [pets.length, step, navigate, location.search]);
+  }, [isAddingMode, pets.length, navigate, location.search]);
 
-  const petCount = useMemo(() => pets.length, [pets]);
-  const ownerName = useMemo(() => {
-    const raw = (nickname || "").trim();
-    if (!raw) return "用户";
-    if (raw === phone || /^1\d{10}$/.test(raw)) return "用户";
-    return raw;
-  }, [nickname, phone]);
+  /* ── 字段更新 helper ── */
+  const update = <K extends keyof OnboardingForm>(key: K, value: OnboardingForm[K]) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
 
-  const mainMenus: MenuItem[] = [
-    {
-      label: "我的宠物",
-      icon: <FileText size={18} />,
-      rightText: `${petCount} 只`,
-      to: "/app/pets",
-      iconColor: "#6B5B4F",
-      iconBg: "#F5F0EB",
-    },
-    {
-      label: "健康报告",
-      icon: <FileText size={18} />,
-      rightText: "查看全部",
-      to: "/app/records",
-      iconColor: "#7D6E63",
-      iconBg: "#F7F4F0",
-    },
-    {
-      label: "提醒设置",
-      icon: <Bell size={18} />,
-      rightText: pendingCount > 0 ? `${pendingCount} 条` : "管理",
-      to: "/app/reminders",
-      iconColor: "#8B7355",
-      iconBg: "#FAF8F5",
-    },
-    {
-      label: "病历共享",
-      icon: <Share2 size={18} />,
-      rightText: "3 个",
-      to: "/app/records",
-      iconColor: "#9B8577",
-      iconBg: "#F5F2EE",
-    },
-    {
-      label: "智能分析",
-      icon: <Brain size={18} />,
-      rightText: "查看",
-      to: "/app/records",
-      iconColor: "#5C6B73",
-      iconBg: "#F0F2F3",
-    },
-  ];
-
-  const secondMenus: MenuItem[] = [
-    {
-      label: "隐私设置",
-      icon: <Shield size={18} />,
-      rightText: "设置",
-      to: "/app/privacy",
-      iconColor: "#6B5B4F",
-      iconBg: "#F5F0EB",
-    },
-    {
-      label: "帮助中心",
-      icon: <CircleHelp size={18} />,
-      rightText: "查看",
-      to: "/app/records",
-      iconColor: "#7D6E63",
-      iconBg: "#F7F4F0",
-    },
-  ];
-
+  /* ── 下一步校验 ── */
   const nextStep = () => {
-    if (step === 1 && !guideForm.name.trim()) {
-      setGuideMsg("请先填写宠物名字");
-      return;
+    setMsg("");
+    if (step === 1) {
+      if (!form.name.trim()) { setMsg("请输入宠物名字"); return; }
+      if (!form.breed.trim()) { setMsg("请选择品种"); return; }
+      if (form.gender === "unknown") { setMsg("请选择性别"); return; }
     }
-    if (step === 1 && !guideForm.breed.trim()) {
-      setGuideMsg("请先选择宠物品种");
-      return;
-    }
-    if (step === 1 && guideForm.gender === "unknown") {
-      setGuideMsg("请先选择宠物性别");
-      return;
-    }
-    setGuideMsg("");
-    setStep((prev) => (prev < 4 ? ((prev + 1) as 0 | 1 | 2 | 3 | 4) : prev));
+    setStep((s) => Math.min(s + 1, 4));
   };
 
-  const prevStep = () => {
-    setGuideMsg("");
-    setStep((prev) => (prev > 1 ? ((prev - 1) as 0 | 1 | 2 | 3 | 4) : prev));
+  const prevStep = () => setStep((s) => Math.max(s - 1, 1));
+
+  /* ── 头像选择处理 ── */
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setMsg("请选择图片文件");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setMsg("图片大小不能超过 5MB");
+      return;
+    }
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+    setMsg("");
   };
 
+  const clearAvatar = () => {
+    setAvatarFile(null);
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    setAvatarPreview(null);
+  };
+
+  /* ── 提交 ── */
   const submitGuide = async () => {
-    if (!guideForm.name.trim()) {
-      setStep(1);
-      setGuideMsg("请先填写宠物名字");
-      return;
-    }
-
-    const notes: string[] = [];
-    if (guideForm.color.trim()) notes.push(`毛色：${guideForm.color.trim()}`);
-    notes.push(
-      `体型：${
-        bodySizeOptions.find((x) => x.value === guideForm.bodySize)?.label || "未填写"
-      }`
-    );
-    if (guideForm.hasAllergy) {
-      notes.push(`过敏史：${guideForm.allergyNotes.trim() || "有过敏情况"}`);
-    } else {
-      notes.push("过敏史：无");
-    }
-    if (guideForm.specialNotes.trim()) notes.push(`特殊说明：${guideForm.specialNotes.trim()}`);
-
-    setSavingGuide(true);
-    setGuideMsg("");
+    if (!form.name.trim()) { setMsg("请输入宠物名字"); return; }
+    // 二次校验 breed/gender 与 nextStep 第1步保持一致
+    if (!form.breed.trim()) { setMsg("请选择品种"); setStep(1); return; }
+    if (form.gender === "unknown") { setMsg("请选择性别"); setStep(1); return; }
+    setSaving(true);
+    setMsg("");
     try {
-      await createPet({
-        name: guideForm.name.trim(),
-        species: guideForm.species,
-        breed: guideForm.breed.trim(),
-        gender: guideForm.gender,
-        birthday: guideForm.birthday || null,
-        weight_kg: guideForm.weight_kg ? Number(guideForm.weight_kg) : null,
-        neutered: guideForm.neutered,
-        notes: notes.join("；"),
-        image_url: guideForm.image_url || null,
+      // 使用 createPetWithAvatar 确保所有字段完整发送 + 支持头像
+      await createPetWithAvatar({
+        pet_name: form.name.trim(),
+        species: mapUiSpeciesToApi(form.species),  // dog/cat/other → 后端转中文
+        breed: form.breed?.trim() || "未填写",
+        gender: form.gender === "male" ? "公" : form.gender === "female" ? "母" : "未知",
+        birth_date: form.birthday || undefined,
+        weight: form.weightKg ? parseFloat(form.weightKg) : null,
+        neutered: form.neutered,
+        notes: [
+          form.color !== "白色" ? `毛发颜色: ${form.color}` : "",
+          `体型: ${bodySizeOptions.find((o) => o.value === form.bodySize)?.label ?? ""}`,
+          form.hasAllergy ? `过敏: ${form.allergyNotes || "是"}` : "",
+          form.specialNotes ? `备注: ${form.specialNotes}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n") || null,
+        avatarFile: avatarFile, // 支持创建宠物时同步上传头像
       });
       await refreshPets();
       navigate("/app/pets");
-    } catch (err) {
-      setGuideMsg((err as Error).message || "添加失败，请稍后再试");
+    } catch (err: unknown) {
+      const e = err as Error;
+      setMsg(e.message || "添加失败，请稍后重试");
     } finally {
-      setSavingGuide(false);
+      setSaving(false);
     }
   };
 
+  /* ── 渲染各步骤内容 ── */
   const renderGuideStep = () => {
-    if (step === 1) {
-      return (
-        <>
-          <section className="pet-welcome-box">
-            <div className="pet-welcome-icon"><PawPrint size={20} /></div>
-            <div>
-              <h4>欢迎来到宠物大家庭！</h4>
-              <p>让我们先了解一下您的宠物基本信息</p>
-            </div>
-          </section>
-
-          <section className="pet-avatar-upload">
-            {/* 隐藏的文件输入 */}
-            <input
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              id="pet-avatar-input"
-              onChange={(e) => handleAvatarUpload(e, setGuideForm)}
-            />
-            {/* 头像预览区 */}
-            <label htmlFor="pet-avatar-input" className="pet-avatar-circle" style={{ cursor: "pointer" }}>
-              {guideForm.image_url ? (
-                <img
-                  src={guideForm.image_url}
-                  alt="宠物头像预览"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
-                />
-              ) : (
-                petAvatarEmoji(guideForm.species)
-              )}
-            </label>
-            <label htmlFor="pet-avatar-input" className="pet-avatar-camera" aria-label="上传宠物头像" style={{ cursor: "pointer" }}>
-              <Camera size={18} />
-            </label>
-            <p>{guideForm.image_url ? "点击更换头像" : "点击上传宠物头像"}</p>
-          </section>
-
-          <div>
-            <label className="pet-label">宠物名称 <em>*</em></label>
-            <input
-              className="pet-input"
-              placeholder="请输入宠物名称"
-              value={guideForm.name}
-              onChange={(e) => setGuideForm((s) => ({ ...s, name: e.target.value }))}
-            />
-          </div>
-
-          <div>
-            <label className="pet-label">宠物类型 <em>*</em></label>
-            <div className="pet-species-grid">
-              <button
-                type="button"
-                className={`pet-species-card ${guideForm.species === "dog" ? "active" : ""}`}
-                onClick={() => setGuideForm((s) => ({ ...s, species: "dog", breed: "" }))}
-              >
-                <Dog size={22} />
-                <strong>狗狗</strong>
-                {guideForm.species === "dog" ? <Check size={18} /> : null}
-              </button>
-              <button
-                type="button"
-                className={`pet-species-card ${guideForm.species === "cat" ? "active" : ""}`}
-                onClick={() => setGuideForm((s) => ({ ...s, species: "cat", breed: "" }))}
-              >
-                <Cat size={22} />
-                <strong>猫咪</strong>
-                {guideForm.species === "cat" ? <Check size={18} /> : null}
-              </button>
-              <button
-                type="button"
-                className={`pet-species-card ${guideForm.species === "other" ? "active" : ""}`}
-                onClick={() => setGuideForm((s) => ({ ...s, species: "other", breed: "" }))}
-              >
-                <Rabbit size={22} />
-                <strong>其他</strong>
-                {guideForm.species === "other" ? <Check size={18} /> : null}
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="pet-label">品种 <em>*</em></label>
-            <div className="pet-breed-flow">
-              {(breedOptionsBySpecies[guideForm.species] || breedOptionsBySpecies.dog).map((breed) => (
-                <button
-                  key={breed}
-                  type="button"
-                  className={`pet-breed-chip ${guideForm.breed === breed ? "active" : ""}`}
-                  onClick={() => setGuideForm((s) => ({ ...s, breed }))}
-                >
-                  {breed}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="pet-label">性别 <em>*</em></label>
-            <div className="pet-gender-grid">
-              <button
-                type="button"
-                className={`pet-gender-card ${guideForm.gender === "male" ? "active" : ""}`}
-                onClick={() => setGuideForm((s) => ({ ...s, gender: "male" }))}
-              >
-                <span className="pet-gender-symbol">♂</span>
-                <span>公</span>
-              </button>
-              <button
-                type="button"
-                className={`pet-gender-card ${guideForm.gender === "female" ? "active" : ""}`}
-                onClick={() => setGuideForm((s) => ({ ...s, gender: "female" }))}
-              >
-                <span className="pet-gender-symbol">♀</span>
-                <span>母</span>
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="pet-label">出生日期</label>
-            <label className="pet-date-wrap">
-              <Calendar size={20} />
+    switch (step) {
+      case 1:
+        return (
+          <div className="onboard-form">
+            {/* 名字 */}
+            <div className="onboard-card">
+              <label className="onboard-label">
+                <Sparkles size={14} /> 宠物名字 <span className="onboard-required">*</span>
+              </label>
               <input
-                className="pet-input pet-date-input"
-                type="date"
-                value={guideForm.birthday}
-                onChange={(e) => setGuideForm((s) => ({ ...s, birthday: e.target.value }))}
+                className="onboard-input"
+                placeholder="给它取个可爱的名字吧～"
+                value={form.name}
+                maxLength={20}
+                onChange={(e) => update("name", e.target.value)}
               />
-            </label>
-          </div>
-        </>
-      );
-    }
-
-    if (step === 2) {
-      return (
-        <section className="pet-look-step">
-          <div>
-            <label className="pet-label">毛色</label>
-            <div className="pet-look-chip-flow">
-              {colorOptions.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  className={`pet-look-chip ${guideForm.color === item ? "active" : ""}`}
-                  onClick={() => setGuideForm((s) => ({ ...s, color: item }))}
-                >
-                  {item}
-                </button>
-              ))}
             </div>
-          </div>
 
-          <div>
-            <label className="pet-label">体型</label>
-            <div className="pet-size-grid">
-              {bodySizeOptions.map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  className={`pet-size-card ${guideForm.bodySize === item.value ? "active" : ""}`}
-                  onClick={() => setGuideForm((s) => ({ ...s, bodySize: item.value }))}
-                >
-                  <strong className="pet-size-title">{item.label}</strong>
-                  <span className="pet-size-hint">{bodySizeHint[item.value]}</span>
-                  {guideForm.bodySize === item.value ? <span className="pet-size-check">✓</span> : null}
-                </button>
-              ))}
-            </div>
-          </div>
 
-          <div>
-            <label className="pet-label">体重 (kg)</label>
-            <label className="pet-weight-wrap">
-              <span className="pet-weight-icon">⚖</span>
-              <input
-                className="pet-input pet-weight-input"
-                placeholder="请输入体重"
-                value={guideForm.weight_kg}
-                onChange={(e) => setGuideForm((s) => ({ ...s, weight_kg: e.target.value }))}
-                type="number"
-                step="0.1"
-              />
-              <span className="pet-weight-unit">kg</span>
-            </label>
-          </div>
-
-          <div className="pet-tip-card">
-            <span>!</span>
-            <p>体型和体重信息有助于我们为您推荐合适的饮食和运动方案。</p>
-          </div>
-        </section>
-      );
-    }
-
-    if (step === 3) {
-      return (
-        <section className="pet-health-step">
-          <article className="pet-health-card">
-            <div className="pet-health-left">
-              <span className="pet-health-icon"><Heart size={22} /></span>
-              <div>
-                <h4>是否已绝育</h4>
-                <p>帮助我们更好地了解宠物健康状况</p>
+            {/* 物种 */}
+            <div className="onboard-card">
+              <label className="onboard-label"><PawPrint size={14} /> 物种</label>
+              <div className="onboard-toggle-group">
+                {(["dog", "cat", "other"] as Species[]).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    className={`onboard-toggle${form.species === s ? " active" : ""}`}
+                    onClick={() => { update("species", s); update("breed", ""); }}
+                  >
+                    {speciesEmoji(s)} {s === "dog" ? "狗狗" : s === "cat" ? "猫咪" : "其他"}
+                  </button>
+                ))}
               </div>
             </div>
-            <button
-              type="button"
-              className={`pet-health-switch ${guideForm.neutered ? "on" : ""}`}
-              onClick={() => setGuideForm((s) => ({ ...s, neutered: !s.neutered }))}
-              aria-label="切换是否已绝育"
-            >
-              <span />
-            </button>
-          </article>
 
-          <article className="pet-health-card pet-health-card-alt">
-            <div className="pet-health-card-row">
-              <div className="pet-health-left">
-                <span className={`pet-health-icon${guideForm.hasAllergy ? " alert" : ""}`}>
-                  {guideForm.hasAllergy ? <AlertCircle size={22} /> : <CircleHelp size={22} />}
-                </span>
+            {/* 品种 */}
+            <div className="onboard-card">
+              <label className="onboard-label">
+                品种 <span className="onboard-required">*</span>
+              </label>
+              <div className="onboard-tags-wrap">
+                {(breedBySpecies[form.species] || []).map((b) => (
+                  <button
+                    key={b}
+                    type="button"
+                    className={`onboard-tag${form.breed === b ? " active" : ""}`}
+                    onClick={() => update("breed", b)}
+                  >
+                    {b}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 性别 */}
+            <div className="onboard-card">
+              <label className="onboard-label">
+                性别 <span className="onboard-required">*</span>
+              </label>
+              <div className="onboard-gender-group">
+                {([
+                  { value: "male" as Gender, label: "♂ 男孩", icon: "💙" },
+                  { value: "female" as Gender, label: "♀ 女孩", icon: "💗" },
+                ]).map((g) => (
+                  <button
+                    key={g.value}
+                    type="button"
+                    className={`onboard-gender-btn${form.gender === g.value ? " active" : ""}`}
+                    onClick={() => update("gender", g.value)}
+                  >
+                    <span>{g.icon}</span> {g.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 生日 */}
+            <div className="onboard-card">
+              <label className="onboard-label"><CalendarDays size={14} /> 生日（选填）</label>
+              <div className="onboard-date-wrap">
+                <input
+                  type="date"
+                  className="onboard-date-input"
+                  value={form.birthday}
+                  onChange={(e) => update("birthday", e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="onboard-form">
+            {/* 毛发颜色 */}
+            <div className="onboard-card">
+              <label className="onboard-label">🎨 毛发颜色</label>
+              <div className="onboard-tags-wrap">
+                {colorOptions.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    className={`onboard-tag onboard-color-tag${form.color === c ? " active" : ""}`}
+                    onClick={() => update("color", c)}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 体型 */}
+            <div className="onboard-card">
+              <label className="onboard-label">📏 体型</label>
+              <div className="onboard-size-group">
+                {bodySizeOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    className={`onboard-size-btn${form.bodySize === opt.value ? " active" : ""}`}
+                    onClick={() => update("bodySize", opt.value)}
+                  >
+                    <strong>{opt.label}</strong>
+                    <small>{bodySizeHint[opt.value]}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 体重 — 联动体型校验 */}
+            <div className="onboard-card">
+              <label className="onboard-label">
+                ⚖️ 体重（kg，选填）
+                {form.bodySize === "small" && (
+                  <span className="weight-range-hint">小于等于10kg</span>
+                )}
+                {form.bodySize === "medium" && (
+                  <span className="weight-range-hint">10~25kg之间</span>
+                )}
+                {form.bodySize === "large" && (
+                  <span className="weight-range-hint">大于等于25kg</span>
+                )}
+              </label>
+              <div className={`onboard-weight-wrap${weightError ? " has-error" : ""}`}>
+                <input
+                  type="number"
+                  className="onboard-weight-input"
+                  placeholder="例如: 5.5"
+                  min={form.bodySize === "medium" ? 10 : form.bodySize === "large" ? 25 : 0.1}
+                  max={form.bodySize === "small" ? 10 : form.bodySize === "medium" ? 25 : 200}
+                  step={0.1}
+                  value={form.weightKg}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    update("weightKg", val);
+                    // 联动校验 — 负数/零/空/双向边界检查
+                    if (!val || val.trim() === "") {
+                      setWeightError("");
+                      return;
+                    }
+                    const w = parseFloat(val);
+                    if (isNaN(w) || w <= 0) {
+                      setWeightError("体重必须大于 0kg");
+                      return;
+                    }
+                    if (form.bodySize === "small") {
+                      if (w > 10) setWeightError("小型宠物体重大于 10kg，请确认体型或体重");
+                      else setWeightError("");
+                    } else if (form.bodySize === "medium") {
+                      if (w < 10) setWeightError("中型宠物体重小于 10kg，请确认体型或体重");
+                      else if (w > 25) setWeightError("中型宠物体重大于 25kg，请确认体型或体重");
+                      else setWeightError("");
+                    } else if (form.bodySize === "large") {
+                      if (w < 25) setWeightError("大型宠物体重小于 25kg，请确认体型或体重");
+                      else setWeightError("");
+                    }
+                  }}
+                />
+                <span className="onboard-weight-unit">kg</span>
+              </div>
+              {weightError && (
+                <p className="weight-error-text"><AlertCircle size={13} /> {weightError}</p>
+              )}
+              {!weightError && (
+                <p className="weight-hint-text">已根据体型设置合理范围，如超出请先调整体型</p>
+              )}
+            </div>
+
+            <div className="onboard-tip">
+              <span>💡</span>
+              <p>体型和体重信息有助于我们为你的宠物推荐更精准的健康建议和饮食方案。</p>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="onboard-form">
+            {/* 绝育 */}
+            <div className="onboard-card onboard-switch-card">
+              <div className="onboard-switch-info">
+                <label className="onboard-label" style={{ marginBottom: 0 }}>💉 是否绝育</label>
+                <p className="onboard-switch-desc">绝育有助于延长寿命</p>
+              </div>
+              <button
+                type="button"
+                className={`onboard-switch${form.neutered ? " active" : ""}`}
+                onClick={() => update("neutered", !form.neutered)}
+              >
+                <span className="onboard-switch-thumb" />
+              </button>
+            </div>
+
+            {/* 过敏 */}
+            <div className={`onboard-card onboard-allergy-card${form.hasAllergy ? " active" : ""}`}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: form.hasAllergy ? 12 : 0 }}>
+                <div className="onboard-switch-info">
+                  <label className="onboard-label" style={{ marginBottom: 0 }}>
+                    {form.hasAllergy ? (
+                      <span className="allergy-alert-icon">🔴</span>
+                    ) : (
+                      <span style={{ color: "#C4959E" }}>⚪</span>
+                    )}{" "}
+                    过敏情况
+                  </label>
+                  {!form.hasAllergy && <p className="onboard-switch-desc">记录过敏原便于提醒</p>}
+                </div>
+                <button
+                  type="button"
+                  className={`onboard-switch onboard-switch-warn${form.hasAllergy ? " active" : ""}`}
+                  onClick={() => update("hasAllergy", !form.hasAllergy)}
+                >
+                  <span className="onboard-switch-thumb" />
+                </button>
+              </div>
+              {form.hasAllergy && (
+                <div className="allergy-expanded-content">
+                  <div className="allergy-reminder">
+                    <AlertCircle size={14} />
+                    <span>请详细记录过敏原，我们会在相关提醒中自动标注避免接触。</span>
+                  </div>
+                  <textarea
+                    className="onboard-textarea"
+                    placeholder="例如: 鸡肉、某些药物、花粉、尘螨..."
+                    value={form.allergyNotes}
+                    onChange={(e) => update("allergyNotes", e.target.value)}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* 特殊备注 */}
+            <div className="onboard-card">
+              <label className="onboard-label">📝 特殊备注（选填）</label>
+              <textarea
+                className="onboard-textarea"
+                placeholder="任何你想记录的信息：性格、习惯、喜好..."
+                value={form.specialNotes}
+                onChange={(e) => update("specialNotes", e.target.value)}
+              />
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="onboard-form">
+            <div className="onboard-preview">
+              <div className="onboard-preview-header">
+                {/* 可点击的头像上传区域 */}
+                <label
+                  className="onboard-preview-avatar"
+                  style={{ cursor: "pointer", position: "relative", overflow: "hidden" }}
+                  onClick={() => avatarInputRef.current?.click()}
+                >
+                  {avatarPreview ? (
+                    <img
+                      src={avatarPreview}
+                      alt="宠物头像预览"
+                      style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }}
+                    />
+                  ) : (
+                    <span>{speciesEmoji(form.species)}</span>
+                  )}
+                  <span
+                    className="avatar-camera-overlay"
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      padding: "4px",
+                      background: "rgba(0,0,0,0.5)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                      fontSize: "12px",
+                    }}
+                  >
+                    <Camera size={12} /> {avatarPreview ? "更换" : "上传"}
+                  </span>
+                </label>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleAvatarSelect}
+                />
                 <div>
-                  <h4>是否有过敏史</h4>
-                  <p>了解过敏情况有助于饮食建议</p>
+                  <h4>{form.name || "未命名"}</h4>
+                  <p>{form.breed || "未知品种"} · {mapGenderLabel(form.gender)}</p>
                 </div>
               </div>
-              <button
-                type="button"
-                className={`pet-health-switch ${guideForm.hasAllergy ? "on" : ""}`}
-                onClick={() => setGuideForm((s) => ({ ...s, hasAllergy: !s.hasAllergy }))}
-                aria-label="切换是否有过敏史"
-              >
-                <span />
-              </button>
+
+              {/* 已选头像提示 */}
+              {avatarFile && (
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 12,
+                  padding: "8px 12px",
+                  background: "rgba(124, 92, 255, 0.08)",
+                  borderRadius: 8,
+                  fontSize: 13,
+                  color: "#5C3D99",
+                }}>
+                  <span>📷 已选择头像：{avatarFile.name} ({(avatarFile.size / 1024).toFixed(1)}KB)</span>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); clearAvatar(); }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#E85A71",
+                      cursor: "pointer",
+                      fontSize: 13,
+                      padding: "2px 6px",
+                    }}
+                  >
+                    移除
+                  </button>
+                </div>
+              )}
+
+              <div className="onboard-preview-grid">
+                <div><span>物种</span><strong>{mapSpeciesLabel(form.species)}</strong></div>
+                <div><span>性别</span><strong>{mapGenderLabel(form.gender)}</strong></div>
+                <div><span>毛发</span><strong>{form.color}</strong></div>
+                <div><span>体型</span><strong>{bodySizeOptions.find((o) => o.value === form.bodySize)?.label}</strong></div>
+                <div><span>生日</span><strong>{form.birthday || "未设置"}</strong></div>
+                <div><span>体重</span><strong>{form.weightKg ? `${form.weightKg} kg` : "未填写"}</strong></div>
+                <div><span>绝育</span><strong>{form.neutered ? "是" : "否"}</strong></div>
+                <div><span>过敏</span><strong>{form.hasAllergy ? "有" : "无"}</strong></div>
+              </div>
+              {form.specialNotes && (
+                <div className="onboard-preview-notes">
+                  <span className="onboard-notes-label">备注</span>
+                  <p>{form.specialNotes}</p>
+                </div>
+              )}
             </div>
-            {guideForm.hasAllergy && (
-              <textarea
-                className="pet-input pet-allergy-textarea"
-                placeholder="请描述宠物的过敏情况..."
-                value={guideForm.allergyNotes}
-                onChange={(e) => setGuideForm((s) => ({ ...s, allergyNotes: e.target.value }))}
-              />
-            )}
-          </article>
 
-          <div>
-            <label className="pet-label">特殊说明</label>
-            <textarea
-              className="pet-input pet-special-textarea"
-              placeholder="请描述宠物是否有慢性病、正在服用的药物、特殊护理需求等..."
-              value={guideForm.specialNotes}
-              onChange={(e) => setGuideForm((s) => ({ ...s, specialNotes: e.target.value }))}
-            />
+            <div className="onboard-tip onboard-tip-success">
+              <span>✅</span>
+              <p>确认无误后点击下方按钮完成添加。之后你可以在宠物详情页随时修改这些信息。</p>
+            </div>
           </div>
+        );
 
-          <div className="pet-tip-card pet-tip-card-alt">
-            <span><Heart size={16} /></span>
-            <p>这些健康信息将帮助我们为您提供更精准的健康建议和提醒服务。</p>
-          </div>
-        </section>
-      );
+      default:
+        return null;
     }
-
-    return (
-      <article className="pet-preview-card">
-        <div className="pet-preview-header">
-          <div className="pet-preview-avatar">
-            <PawPrint size={20} color="#8B7355" />
-          </div>
-          <div>
-            <h4>{guideForm.name || "未命名宠物"}</h4>
-            <p>
-              {(guideForm.species === "cat" && "猫猫") ||
-                (guideForm.species === "dog" && "狗狗") ||
-                "其他"}
-              {guideForm.breed ? ` · ${guideForm.breed}` : ""}
-            </p>
-          </div>
-        </div>
-
-        <div className="pet-preview-grid">
-          <div>
-            <span>毛色</span>
-            <strong>{guideForm.color || "未填写"}</strong>
-          </div>
-          <div>
-            <span>体型</span>
-            <strong>{bodySizeOptions.find((x) => x.value === guideForm.bodySize)?.label || "未填写"}</strong>
-          </div>
-          <div>
-            <span>体重</span>
-            <strong>{guideForm.weight_kg ? `${guideForm.weight_kg} kg` : "未填写"}</strong>
-          </div>
-          <div>
-            <span>健康信息</span>
-            <strong>
-              {guideForm.neutered ? "已绝育" : "未绝育"} / {guideForm.hasAllergy ? "有过敏" : "无过敏"}
-            </strong>
-          </div>
-        </div>
-      </article>
-    );
   };
 
-  if (pets.length === 0 || step >= 1) {
+  /* ── 进度条宽度 ── */
+  const progressPct = ((step - 1) / 3) * 100;
+
+  /* ── 主渲染：非添加模式 — Welcome 页 ── */
+  if (!isAddingMode) {
     return (
-      <main className="dash-page">
-        {step === 0 ? (
-          <section className="dash-welcome-screen">
-            <header className="dash-welcome-header">
-              <h2 className="dash-welcome-title">首页</h2>
-              <p className="dash-welcome-sub">守护宠物健康</p>
-            </header>
+      <main className="onboard-welcome-container">
+        {/* 浮动装饰 */}
+        <div className="floating-decorations" aria-hidden="true">
+          <span className="float-item float-1">✨</span>
+          <span className="float-item float-2">💖</span>
+          <span className="float-item float-3">🌸</span>
+          <span className="float-item float-4">⭐</span>
+          <span className="float-item float-5">🎀</span>
+          <span className="float-paw paw-1">🐾</span>
+          <span className="float-paw paw-2">🐾</span>
+          <span className="float-paw paw-3">🐾</span>
+        </div>
 
-            <section className="dash-hero-card">
-              <div className="dash-hero-avatar">
-                <PawPrint size={36} />
-                <Star size={16} className="dash-hero-star" />
-              </div>
-              <h3>欢迎使用宠物健康管家</h3>
-              <p>让我们一起守护您宠物的健康</p>
-            </section>
-
-            <section className="dash-features-card">
-              <h4>您可以在这里</h4>
-
-              <div className="dash-features-list">
-                <article className="dash-feature-item">
-                  <span className="dash-feature-icon green"><Heart size={20} /></span>
-                  <div>
-                    <strong>记录健康数据</strong>
-                    <p>体重、疫苗、驱虫、体检等全方位记录</p>
-                  </div>
-                </article>
-
-                <article className="dash-feature-item">
-                  <span className="dash-feature-icon blue"><CalendarDays size={20} /></span>
-                  <div>
-                    <strong>智能健康提醒</strong>
-                    <p>再也不会错过疫苗、驱虫等重要日期</p>
-                  </div>
-                </article>
-
-                <article className="dash-feature-item">
-                  <span className="dash-feature-icon purple"><Brain size={20} /></span>
-                  <div>
-                    <strong>AI 健康分析</strong>
-                    <p>智能分析宠物健康状况，提供专业建议</p>
-                  </div>
-                </article>
-
-                <article className="dash-feature-item">
-                  <span className="dash-feature-icon amber"><FileText size={20} /></span>
-                  <div>
-                    <strong>一键共享记录</strong>
-                    <p>方便快捷地与兽医分享健康档案</p>
-                  </div>
-                </article>
-              </div>
-            </section>
-
-            <button className="dash-tip-btn" type="button" onClick={() => setStep(1)}>
-              <TriangleAlert size={18} />
-              <span>添加您的第一只宠物，开启全方位的健康管理之旅</span>
-            </button>
-
-            <button className="dash-main-btn" type="button" onClick={() => setStep(1)}>
-              <PawPrint size={22} />
-              <span>添加我的第一只宠物</span>
-            </button>
+        <div className="onboard-welcome-content">
+          {/* Hero 区域 */}
+          <section className="welcome-hero">
+            <div className="welcome-emoji">🐾</div>
+            <h1 className="welcome-title heartbeat-text">
+              欢迎来到 <span className="title-accent">宠物管家</span>
+            </h1>
+            <p className="welcome-subtitle">让我们开始创建你的第一个宠物档案吧</p>
           </section>
-        ) : (
-          <section className="dash-add-screen">
-            <header className="dash-add-topbar">
-              <button
-                type="button"
-                className="dash-add-back"
-                onClick={() => {
-                  if (step > 1) prevStep();
-                  else {
-                    setStep(0);
-                    setGuideMsg("");
-                  }
-                }}
-              >
-                <ArrowLeft size={24} />
-              </button>
-              <h3>添加宠物</h3>
-              <span />
-            </header>
 
-            <section className="dash-add-meta">
-              <div className="dash-add-step-title">{stepTitles[step]}</div>
-              <div className="dash-add-step-index">{step}/4</div>
-            </section>
-
-            <div className="dash-add-progress">
-              <span style={{ width: `${(step / 4) * 100}%` }} />
-            </div>
-
-            <section className="dash-add-scroll">{renderGuideStep()}</section>
-
-            {guideMsg ? <div className="dash-msg-error">{guideMsg}</div> : null}
-
-            <footer className="dash-add-footer">
-              {step > 1 && step < 4 ? (
-                <div className="dash-footer-grid">
-                  <button type="button" className="dash-btn-prev" onClick={prevStep} disabled={savingGuide}>
-                    <ArrowLeft size={20} />
-                    <span>上一步</span>
-                  </button>
-                  <button type="button" className="dash-btn-next" onClick={nextStep} disabled={savingGuide}>
-                    <span>下一步</span>
-                    <ArrowRight size={22} />
-                  </button>
+          {/* 功能卡片 */}
+          <div className="welcome-feature-cards">
+            {[
+              { icon: "❤️", title: "健康追踪", desc: "记录体重、疫苗、驱虫等健康数据" },
+              { icon: "🔔", title: "智能提醒", desc: "自动提醒喂食、体检等重要事项" },
+              { icon: "🧠", title: "AI 分析", desc: "基于数据的健康趋势分析与建议" },
+              { icon: "📋", title: "健康记录", desc: "完整记录体检、疫苗、驱虫等健康档案" },
+            ].map((f) => (
+              <div className="feature-card" key={f.title}>
+                <span className="feature-icon">{f.icon}</span>
+                <div>
+                  <strong>{f.title}</strong>
+                  <p>{f.desc}</p>
                 </div>
-              ) : step < 4 ? (
-                <button type="button" className="dash-btn-next" onClick={nextStep} disabled={savingGuide}>
-                  <span>下一步</span>
-                  <ArrowRight size={22} />
-                </button>
-              ) : (
-                <button type="button" className="dash-btn-confirm" onClick={submitGuide} disabled={savingGuide}>
-                  <span>{savingGuide ? "添加中..." : "确认添加"}</span>
-                  <ArrowRight size={22} />
-                </button>
-              )}
-            </footer>
-          </section>
-        )}
+              </div>
+            ))}
+          </div>
+
+          {/* CTA 按钮 */}
+          <button type="button" className="welcome-primary-btn" onClick={() => setIsAddingMode(true)}>
+            <PawPrint size={20} /> 开始添加宠物
+          </button>
+        </div>
       </main>
     );
   }
 
+  /* ── 四步引导界面 ── */
   return (
-    <main className="dash-page-container">
-      {/* 页面标题区 */}
-      <section className="dash-header">
-        <h1 className="dash-title">首页</h1>
-        <p className="dash-subtitle">宠物健康管理</p>
-      </section>
+    <div className="onboard-add-container">
+      {/* 浮动装饰（引导页也有） */}
+      <div className="floating-decorations floating-subtle" aria-hidden="true">
+        <span className="float-item float-1">✨</span>
+        <span className="float-item float-3">🌸</span>
+        <span className="float-item float-5">🎀</span>
+        <span className="float-paw paw-1">🐾</span>
+        <span className="float-paw paw-2">🐾</span>
+      </div>
 
-      {/* 用户信息卡片 */}
-      <section className="dash-profile-card">
-        <div className="dash-avatar-section">
-          <label htmlFor="dashboard-avatar-input" className="dash-avatar-container" style={{ cursor: "pointer", overflow: "hidden" }}>
-            {displayDashAvatar ? (
-              <img
-                src={displayDashAvatar}
-                alt={`${selectedPet?.name || '宠物'} 头像`}
-                style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
-              />
-            ) : (
-              <>
-                <PawPrint size={32} className="dash-avatar-icon" />
-                <span
-                  className="dash-avatar-camera"
-                  aria-label="上传宠物照片"
-                  title="点击更换宠物照片"
-                >
-                  <Camera size={12} />
-                </span>
-              </>
-            )}
-            <Star size={14} className="dash-star-deco" style={{ zIndex: 1 }} />
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            id="dashboard-avatar-input"
-            style={{ display: "none" }}
-            onChange={(e) => {
-              if (!selectedPet) return;
-              const file = e.target.files?.[0];
-              if (!file) return;
-              if (!file.type.startsWith("image/")) {
-                alert("请选择图片文件");
-                return;
-              }
-              const reader = new FileReader();
-              reader.onload = async (ev) => {
-                const image_url = ev.target?.result as string;
-                // 立即更新 UI + 持久化 localStorage
-                setDashAvatarUrl(image_url);
-                try { localStorage.setItem(`pet_avatar_${selectedPet.id}`, image_url); } catch {}
-                // 尝试同步后端（不阻塞）
-                try { await updatePet(selectedPet.id, { image_url }, phone); } catch {}
-              };
-              reader.readAsDataURL(file);
-            }}
-          />
-        </div>
-
-        <div className="dash-user-info">
-          <h2 className="dash-username">{ownerName}</h2>
-          <div className="dash-pet-info">
-            <span>{petCount > 0 ? `${petCount} 只宠物` : '暂无宠物'}</span>
-            <span className="dash-verified-badge">
-              <Star size={12} fill="currentColor" />
-              已认证
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* 主要菜单卡片 */}
-      <section className="dash-card">
-        {mainMenus.map((item, idx) => (
-          <div key={item.label}>
-            <MenuRow item={item} />
-            {idx !== mainMenus.length - 1 && <div className="dash-divider" />}
-          </div>
-        ))}
-      </section>
-
-      {/* 次要菜单卡片 */}
-      <section className="dash-card dash-card-secondary">
-        {secondMenus.map((item, idx) => (
-          <div key={item.label}>
-            <MenuRow item={item} />
-            {idx !== secondMenus.length - 1 && <div className="dash-divider" />}
-          </div>
-        ))}
-      </section>
-
-      {/* 退出登录 */}
-      <section className="dash-logout-section">
-        <button type="button" className="dash-logout-btn" onClick={onLogout}>
-          <span className="dash-logout-icon-wrap">
-            <LogOut size={18} />
-          </span>
-          <span>退出登录</span>
+      {/* 顶部导航栏 */}
+      <header className="onboard-topbar">
+        <button type="button" className="onboard-back-btn" onClick={() => navigate("/app/pets")} aria-label="返回">
+          <ArrowLeft size={20} />
         </button>
-      </section>
-    </main>
+        <h3>添加宠物</h3>
+        <div style={{ width: 38 }} />
+      </header>
+
+      {/* 步骤标题区 & 进度 */}
+      <div className="onboard-step-header">
+        <div className="step-info">
+          <span className="step-emoji">{stepEmojis[step]}</span>
+          <div>
+            <div className="step-title">{stepTitles[step]}</div>
+            <div className="step-index">步骤 {step} / 4</div>
+          </div>
+        </div>
+        <div className="progress-bar-track">
+          <div className="progress-bar-fill" style={{ width: `${progressPct}%` }} />
+        </div>
+      </div>
+
+      {/* 错误提示 */}
+      {msg && (
+        <div className="onboard-error-msg" role="alert">
+          <AlertCircle size={14} /> {msg}
+        </div>
+      )}
+
+      {/* 步骤内容区 */}
+      <div className="onboard-scroll-area">{renderGuideStep()}</div>
+
+      {/* 底部按钮 */}
+      <footer className="onboard-footer">
+        {step < 4 ? (
+          <div className="footer-btn-row">
+            <button
+              type="button"
+              className="btn-prev"
+              disabled={step <= 1}
+              onClick={prevStep}
+            >
+              <ArrowLeft size={18} /> 上一步
+            </button>
+            <button
+              type="button"
+              className="btn-next"
+              onClick={nextStep}
+            >
+              下一步 <ArrowRight size={18} />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="btn-confirm"
+            disabled={saving}
+            onClick={submitGuide}
+          >
+            {saving ? "提交中..." : <><Check size={20} /> 确认添加</>}
+          </button>
+        )}
+      </footer>
+    </div>
   );
 }

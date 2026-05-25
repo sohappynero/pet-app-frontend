@@ -8,6 +8,7 @@ import type {
   Reminder,
   ReminderStatus,
 } from "../types";
+import { getLocalAvatar } from "./pet-avatar";
 import { getSessionToken, setSessionUser, getSessionUser } from "./session";
 
 
@@ -130,7 +131,7 @@ export async function refreshToken(): Promise<string> {
 
 async function request<T = unknown>(url: string, init?: RequestInit): Promise<T> {
   const fullUrl = `${API_BASE_URL}${url}`;
-  
+
   // 第一次尝试请求
   let res = await fetch(fullUrl, {
     headers: createHeaders(init?.headers),
@@ -148,30 +149,30 @@ async function request<T = unknown>(url: string, init?: RequestInit): Promise<T>
             headers: createHeaders(init?.headers, init?.headers?.['Content-Type'] === 'application/json'),
             ...init,
           })
-            .then(newRes => {
-              const contentType = newRes.headers.get("content-type") || "";
-              const data = contentType.includes("application/json") ? newRes.json() : null;
-              if (!newRes.ok || data?.ok === false) {
-                const fallbackMessage = !newRes.ok ? `请求失败（HTTP ${newRes.status}）` : "请求失败";
-                reject(new Error(data?.message || data?.detail || fallbackMessage));
-              } else {
-                resolve(data as T);
-              }
-            })
-            .catch(reject);
+          .then(newRes => {
+            const contentType = newRes.headers.get("content-type") || "";
+            const data = contentType.includes("application/json") ? newRes.json() : null;
+            if (!newRes.ok || data?.ok === false) {
+              const fallbackMessage = !newRes.ok ? `请求失败（HTTP ${newRes.status}）` : "请求失败";
+              reject(new Error(data?.message || data?.detail || fallbackMessage));
+            } else {
+              resolve(data as T);
+            }
+          })
+          .catch(reject);
         });
       });
     }
-    
+
     // 开始刷新流程
     isRefreshing = true;
-    
+
     try {
       const newToken = await refreshToken();
-      
+
       // 通知所有等待的请求
       onRefreshed(newToken);
-      
+
       // 使用新 Token 重试请求
       res = await fetch(fullUrl, {
         headers: createHeaders(init?.headers, init?.headers?.['Content-Type'] === 'application/json'),
@@ -192,7 +193,20 @@ async function request<T = unknown>(url: string, init?: RequestInit): Promise<T>
 
   const contentType = res.headers.get("content-type") || "";
   const data = contentType.includes("application/json") ? await res.json() : null;
+
   if (!res.ok || data?.ok === false) {
+    // 特殊处理 422 验证错误，显示详细信息
+    if (res.status === 422 && data?.detail) {
+      const detailMsg = Array.isArray(data.detail)
+        ? data.detail.map((d: any) => {
+            const loc = Array.isArray(d?.loc) ? d.loc.slice(1).join(".") : "";
+            const msg = d?.msg || JSON.stringify(d);
+            return loc ? `[${loc}] ${msg}` : msg;
+          }).join("; ")
+        : JSON.stringify(data.detail);
+      console.error(`🌐 [API] 验证错误详情: ${detailMsg}`);
+      throw new Error(`数据验证失败: ${detailMsg}`);
+    }
     const fallbackMessage = !res.ok ? `请求失败（HTTP ${res.status}）` : "请求失败";
     throw new Error(data?.message || data?.detail || fallbackMessage);
   }
@@ -211,7 +225,7 @@ function mapGenderToUi(gender?: string): Pet["gender"] {
   return "unknown";
 }
 
-function mapUiSpeciesToApi(species: Pet["species"]) {
+export function mapUiSpeciesToApi(species: Pet["species"]) {
   if (species === "dog") return "犬";
   if (species === "cat") return "猫";
   return "其他";
@@ -223,9 +237,32 @@ function mapUiGenderToApi(gender: Pet["gender"]) {
   return "未知";
 }
 
+/** 检测是否为相对路径URL（需要拼接 API 基础地址） */
+function isRelativePath(url: string): boolean {
+  return url.startsWith("/") && !url.startsWith("//");
+}
+
+/** 为相对路径 URL 拼接 API 基础地址 */
+function resolveFullUrl(url: string | null): string | null {
+  if (!url) return null;
+  // Data URI / 完整 HTTP(S) URL → 直接使用
+  if (url.startsWith("data:") || url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  // 相对路径 → 拼接 API 基础地址
+  if (isRelativePath(url)) {
+    return `${API_BASE_URL}${url}`;
+  }
+  return url;
+}
+
 function normalizePet(raw: any): Pet {
   const birthDate = raw?.birth_date ? String(raw.birth_date).slice(0, 10) : null;
   const age = birthDate ? `${Math.max(0, new Date().getFullYear() - Number(birthDate.slice(0, 4)))}岁` : "--";
+  // 优先级链：_resolved_avatar_url（后端解析后的默认头像）> avatar_url（后端原始值）> image_url（旧兼容）
+  const resolvedUrl = resolveFullUrl(raw?._resolved_avatar_url || raw?.resolved_avatar_url || null);
+  const rawAvatarUrl = resolveFullUrl(raw?.avatar_url || null);
+  const imgUrl = resolveFullUrl(raw?.image_url || raw?.avatar || raw?.photo || raw?.image || null);
   return {
     id: Number(raw?.id || 0),
     phone: raw?.phone || "",
@@ -238,7 +275,9 @@ function normalizePet(raw: any): Pet {
     weight_kg: raw?.weight ?? raw?.weight_kg ?? null,
     neutered: raw?.neutered_status === "已绝育" || raw?.neutered === true,
     notes: raw?.medical_history || raw?.notes || "",
-    image_url: raw?.image_url || null,
+    image_url: resolvedUrl || imgUrl,  // 有默认头像时优先使用
+    avatar_url: rawAvatarUrl,
+    _resolved_avatar_url: resolvedUrl,
     created_at: raw?.created_at || "",
   };
 }
@@ -349,10 +388,18 @@ export function register(payload: {
 export async function fetchPets(_phone?: string) {
   const res = await request<any>("/api/v1/pets");
   const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+  // normalize + 合并 localStorage 头像缓存（解决后端不返回 image_url 时头像丢失）
+  const pets = list.map(normalizePet).map((pet) => {
+    if (!pet.image_url) {
+      const local = getLocalAvatar(pet.id);
+      if (local) return { ...pet, image_url: local };
+    }
+    return pet;
+  });
   return {
     ok: true,
     message: "获取成功",
-    data: list.map(normalizePet),
+    data: pets,
   } as ApiResp<Pet[]>;
 }
 
@@ -391,6 +438,84 @@ export function deletePet(id: number, _phone?: string) {
   return request<ApiResp>(`/api/v1/pets/${id}`, { method: "DELETE" });
 }
 
+/**
+ * 创建宠物（支持文件上传，使用 multipart/form-data）
+ * 调用后端新接口 POST /api/v1/pets/create-with-avatar
+ */
+export async function createPetWithAvatar(payload: {
+  pet_name: string;
+  species: string;       // 中文：犬/猫/其他
+  breed?: string | null;
+  gender?: string;
+  birth_date?: string | null;
+  weight?: number | null;
+  neutered?: boolean;
+  notes?: string | null;
+  avatarFile?: File | null;
+}): Promise<ApiResp<Pet>> {
+  const formData = new FormData();
+  formData.append("pet_name", payload.pet_name);
+  formData.append("species", payload.species);  // 前端需传中文值
+  formData.append("breed", payload.breed?.trim() || "");
+  formData.append("gender", payload.gender || "未知");
+  formData.append("birth_date", payload.birth_date || "");
+  if (payload.weight != null) formData.append("weight", String(payload.weight));
+  formData.append("neutered_status", payload.neutered ? "已绝育" : "未绝育");
+  if (payload.notes) formData.append("medical_history", payload.notes);
+  if (payload.avatarFile) formData.append("avatar", payload.avatarFile);
+
+  const fullUrl = `${API_BASE_URL}/api/v1/pets/create-with-avatar`;
+  const token = getSessionToken();
+  const res = await fetch(fullUrl, {
+    method: "POST",
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const errData = res.headers.get("content-type")?.includes("application/json")
+      ? await res.json().catch(() => null) : null;
+    throw new Error(errData?.detail || `创建失败（HTTP ${res.status}）`);
+  }
+  const data = await res.json().catch(() => null);
+  const raw = data?.data ?? data;
+  return {
+    ok: true,
+    message: "创建成功",
+    data: normalizePet(raw),
+  } as ApiResp<Pet>;
+}
+
+/**
+ * 更新/上传宠物头像（使用 multipart 文件上传）
+ * 调用后端新接口 PUT /api/v1/pets/{pet_id}/avatar
+ */
+export async function updatePetAvatar(petId: number, file: File): Promise<ApiResp<Pet>> {
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  const fullUrl = `${API_BASE_URL}/api/v1/pets/${petId}/avatar`;
+  const token = getSessionToken();
+  const res = await fetch(fullUrl, {
+    method: "PUT",
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const errData = res.headers.get("content-type")?.includes("application/json")
+      ? await res.json().catch(() => null) : null;
+    throw new Error(errData?.detail || `头像上传失败（HTTP ${res.status}）`);
+  }
+  const data = await res.json().catch(() => null);
+  const raw = data?.data ?? data;
+  return {
+    ok: true,
+    message: "头像更新成功",
+    data: normalizePet(raw),
+  } as ApiResp<Pet>;
+}
+
 export function switchPet(petId: number) {
   return request<ApiResp<{ pet_id: number }>>("/api/v1/pets/switch", {
     method: "POST",
@@ -427,7 +552,7 @@ export function createRecord(payload: {
 }) {
   return request<ApiResp<HealthRecord>>("/api/v1/health/records", {
     method: "POST",
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ ...payload, type: payload.record_type }),
   });
 }
 
@@ -454,7 +579,7 @@ export function updateRecord(
   const params = new URLSearchParams({ phone });
   return request<ApiResp<HealthRecord>>(`/api/v1/health/records/${id}?${params.toString()}`, {
     method: "PUT",
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ ...payload, type: payload.record_type }),
   });
 }
 

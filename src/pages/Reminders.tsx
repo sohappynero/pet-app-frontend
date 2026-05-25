@@ -12,6 +12,7 @@ import {
   Bell, Plus, ChevronRight, CalendarDays,
   ChevronLeft, Clock, RefreshCw, AlignLeft, MapPin, FileText, Check, X,
   Sparkles, AlertCircle, CheckCircle2, Repeat, CalendarRange, PawPrint,
+  Syringe, Stethoscope, Scale, UtensilsCrossed, Pin, Heart, Star, Pill,
 } from "lucide-react";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
 
@@ -44,13 +45,13 @@ const weekdayOptions: { value: number; label: string }[] = [
 const monthlyDayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
 
 const categoryList = [
-  { name: "疫苗", icon: "💉", color: "#6c5ce7", bg: "rgba(108,92,231,0.12)" },
-  { name: "驱虫", icon: "🔔", color: "#f5576c", bg: "rgba(245,87,108,0.12)" },
-  { name: "体检", icon: "🏥", color: "#74b9ff", bg: "rgba(116,185,255,0.12)" },
-  { name: "体重", icon: "⚖️", color: "#f0932b", bg: "rgba(240,147,43,0.12)" },
-  { name: "饮食", icon: "🍖", color: "#00b894", bg: "rgba(0,184,148,0.12)" },
-  { name: "美容护理", icon: "✨", color: "#fd79a8", bg: "rgba(253,121,168,0.12)" },
-  { name: "其他", icon: "📌", color: "#8b7355", bg: "rgba(139,115,85,0.12)" },
+  { name: "疫苗", icon: <Syringe size={16} />, color: "#6c5ce7", bg: "rgba(108,92,231,0.12)" },
+  { name: "驱虫", icon: <Bell size={16} />, color: "#f5576c", bg: "rgba(245,87,108,0.12)" },
+  { name: "体检", icon: <Stethoscope size={16} />, color: "#74b9ff", bg: "rgba(116,185,255,0.12)" },
+  { name: "体重", icon: <Scale size={16} />, color: "#f0932b", bg: "rgba(240,147,43,0.12)" },
+  { name: "饮食", icon: <UtensilsCrossed size={16} />, color: "#00b894", bg: "rgba(0,184,148,0.12)" },
+  { name: "美容护理", icon: <Sparkles size={16} />, color: "#fd79a8", bg: "rgba(253,121,168,0.12)" },
+  { name: "其他", icon: <Pin size={16} />, color: "#8b7355", bg: "rgba(139,115,85,0.12)" },
 ];
 
 function getCategoryInfo(title: string) {
@@ -368,7 +369,8 @@ function AddReminderPage({ pets, phone, selectedPetId, onClose, onDone }: AddPag
 
 /* ──────────────────── Reminders 主页面 ──────────────────── */
 export default function Reminders() {
-  const { phone, pets, selectedPetId } = useShell();
+  // 使用 AppShell 提供的 selectedPet（与 Pets.tsx 保持一致）
+  const { phone, pets, selectedPet, selectedPetId } = useShell();
   const navigate = useNavigate();
 
   const [list, setList] = useState<Reminder[]>([]);
@@ -386,7 +388,8 @@ export default function Reminders() {
   });
 
   const petNameMap = useMemo(() => new Map(pets.map((x) => [x.id, x.name])), [pets]);
-  const currentPet = useMemo(() => pets.find((p) => p.id === selectedPetId) || pets[0] || null, [pets, selectedPetId]);
+  // 与 Pets.tsx 保持一致：优先使用 AppShell 预计算的 selectedPet，降级到 pets[0]
+  const currentPet = useMemo(() => selectedPet || pets[0] || null, [selectedPet, pets]);
 
   const load = async () => {
     setLoading(true);
@@ -462,10 +465,10 @@ export default function Reminders() {
               </div>
             </div>
 
-            {/* 浮动装饰 */}
-            <span className="ph3d-float-deco ph3d-float-heart">❤</span>
-            <span className="ph3d-float-deco ph3d-float-star">★</span>
-            <span className="ph3d-float-deco ph3d-float-paw">🐾</span>
+            {/* 浮动装饰 - 白色图标 + 彩色圆底 */}
+            <span className="ph3d-float-deco ph3d-float-heart"><Heart size={20} fill="#fff" color="#fff" /></span>
+            <span className="ph3d-float-deco ph3d-float-star"><Star size={18} fill="#fff" color="#fff" /></span>
+            <span className="ph3d-float-deco ph3d-float-paw"><PawPrint size={18} color="#fff" /></span>
           </div>
         </section>
 
@@ -553,18 +556,18 @@ export default function Reminders() {
               <div className="rm3d-empty-3d-scene">
                 {/* 宠物照片头像 */}
                 <PetPhotoAvatar pet={currentPet} size="small" />
-                {/* 环绕的可爱元素 */}
-                <span className="rm3d-float-ele rm3d-fe-1">🔔</span>
-                <span className="rm3d-float-ele rm3d-fe-2">⏰</span>
-                <span className="rm3d-float-ele rm3d-fe-3">💊</span>
-                <span className="rm3d-float-ele rm3d-fe-4">✨</span>
-                <span className="rm3d-float-ele rm3d-fe-5">📅</span>
+                {/* 环绕的可爱元素 - 全部白色图标 */}
+                <span className="rm3d-float-ele rm3d-fe-1"><Bell size={16} color="#fff" /></span>
+                <span className="rm3d-float-ele rm3d-fe-2"><Clock size={16} color="#fff" /></span>
+                <span className="rm3d-float-ele rm3d-fe-3"><Pill size={16} color="#fff" /></span>
+                <span className="rm3d-float-ele rm3d-fe-4"><Sparkles size={14} color="#fff" /></span>
+                <span className="rm3d-float-ele rm3d-fe-5"><CalendarDays size={16} color="#fff" /></span>
               </div>
 
               <div className="rm3d-empty-circle">
                 <div className="rm3d-empty-ring rm3d-ring-1" />
                 <div className="rm3d-empty-ring rm3d-ring-2" />
-                <div className="rm3d-empty-emoji">🔔</div>
+                <div className="rm3d-empty-icon"><Bell size={28} color="#fff" /></div>
               </div>
 
               <h4 className="rm3d-empty-title">暂无提醒</h4>
