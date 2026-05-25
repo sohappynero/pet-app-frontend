@@ -15,6 +15,7 @@ import {
   Syringe, Stethoscope, Scale, UtensilsCrossed, Pin, Heart, Star, Pill,
 } from "lucide-react";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
+import { getLocalAvatar } from "../lib/pet-avatar";
 
 type TabKey = "urgent" | "pending" | "weekly" | "done";
 
@@ -379,6 +380,7 @@ export default function Reminders() {
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showFilter, setShowFilter] = useState(false);
+  const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
 
   const [editForm, setEditForm] = useState({
     title: "",
@@ -390,6 +392,26 @@ export default function Reminders() {
   const petNameMap = useMemo(() => new Map(pets.map((x) => [x.id, x.name])), [pets]);
   // 与 Pets.tsx 保持一致：优先使用 AppShell 预计算的 selectedPet，降级到 pets[0]
   const currentPet = useMemo(() => selectedPet || pets[0] || null, [selectedPet, pets]);
+
+  // 初始化时从 localStorage 读取已保存的头像（与 Pets.tsx 保持一致）
+  useEffect(() => {
+    if (currentPet) {
+      const saved = getLocalAvatar(currentPet.id);
+      if (saved) setLocalAvatarUrl(saved);
+    }
+  }, [currentPet?.id, pets]);
+
+  // 合并头像 URL（优先级：localStorage > 后端resolved_url > 服务端原始数据）- 与 Pets.tsx 完全一致
+  const displayPet = useMemo(() => {
+    if (!currentPet) return null;
+    // 1. 本地缓存（用户刚上传的，最高优先级）
+    const local = localAvatarUrl || getLocalAvatar(currentPet.id);
+    if (local) return { ...currentPet, image_url: local };
+    // 2. 后端解析后的默认头像 URL（含品种默认图回退）
+    if (currentPet._resolved_avatar_url) return { ...currentPet, image_url: currentPet._resolved_avatar_url };
+    // 3. 原始数据
+    return currentPet;
+  }, [currentPet, localAvatarUrl, pets]);
 
   const load = async () => {
     setLoading(true);
@@ -461,7 +483,7 @@ export default function Reminders() {
 
             <div className="rm3d-hero-visual">
               <div className="rm3d-char-stage">
-                <PetPhotoAvatar pet={currentPet} size="default" className="hero-circular-avatar" />
+                <PetPhotoAvatar pet={displayPet} size="default" className="hero-circular-avatar" />
               </div>
             </div>
 
@@ -555,7 +577,7 @@ export default function Reminders() {
             <div className="rm3d-empty-fancy">
               <div className="rm3d-empty-3d-scene">
                 {/* 宠物照片头像 */}
-                <PetPhotoAvatar pet={currentPet} size="small" />
+                <PetPhotoAvatar pet={displayPet} size="small" />
                 {/* 环绕的可爱元素 - 全部白色图标 */}
                 <span className="rm3d-float-ele rm3d-fe-1"><Bell size={16} color="#fff" /></span>
                 <span className="rm3d-float-ele rm3d-fe-2"><Clock size={16} color="#fff" /></span>
