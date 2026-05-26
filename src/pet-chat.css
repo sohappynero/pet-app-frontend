@@ -1633,15 +1633,17 @@
   50% { height: 20px; }
 }
 
-/* AI 吐槽标签 */
-.chat-roast-tag {
-  display: inline-block;
-  padding: 3px 8px;
-  background: linear-gradient(135deg, rgba(244, 114, 182, 0.15), rgba(244, 114, 182, 0.1));
-  border-radius: 10px;
-  font-size: 10px;
-  color: #E879A8;
-  font-weight: 600;
+/* 人话转宠物语标签 */
+.chat-human-pet-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, rgba(74, 222, 128, 0.15), rgba(74, 222, 128, 0.1));
+  border-radius: 12px;
+  font-size: 11px;
+  color: #16A34A;
+  font-weight: 700;
   margin-bottom: 6px;
 }
 
@@ -2010,71 +2012,288 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   快捷吐槽指令栏
+   人话转宠物语结果卡片
 ═══════════════════════════════════════════════════════ */
 
-.chat-roast-bar {
-  position: relative;
-  z-index: 10;
+.chat-human-to-pet-card {
+  background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(34, 197, 94, 0.06));
+  border: 1.5px solid rgba(74, 222, 128, 0.25);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  animation: chatCardPopIn 0.4s ease-out;
+}
+
+.chat-human-to-pet-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 8px 18px 0;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  border-radius: 14px;
-  border: 1px solid rgba(200, 170, 140, 0.12);
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
 
-.chat-roast-bar-title {
-  font-size: 12px;
-  color: #8B7355;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.chat-roast-actions {
+.chat-human-to-pet-label {
   display: flex;
+  align-items: center;
   gap: 6px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  font-size: 11px;
+  font-weight: 700;
+  color: #16A34A;
+  background: rgba(74, 222, 128, 0.15);
+  padding: 4px 10px;
+  border-radius: 10px;
 }
 
-.chat-roast-actions::-webkit-scrollbar {
-  display: none;
+.chat-human-to-pet-original {
+  font-size: 12px;
+  color: #A69076;
+  font-style: italic;
+  padding: 4px 10px;
+  background: rgba(160, 144, 118, 0.08);
+  border-radius: 10px;
 }
 
-.chat-roast-action-btn {
+.chat-human-to-pet-text {
+  font-size: 17px;
+  font-weight: 700;
+  color: #5C4A32;
+  letter-spacing: 1.5px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.chat-human-to-pet-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-human-to-pet-emotion {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 5px 10px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, rgba(244, 114, 182, 0.12), rgba(244, 114, 182, 0.08));
-  color: #E879A8;
   font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
+  font-weight: 600;
+  color: #16A34A;
+  background: rgba(74, 222, 128, 0.12);
+  padding: 3px 8px;
+  border-radius: 8px;
 }
 
-.chat-roast-action-btn:hover {
-  background: linear-gradient(135deg, rgba(244, 114, 182, 0.2), rgba(244, 114, 182, 0.15));
+/* ============================================================
+   TTS 语音播放器（微信语音消息风格）
+   ============================================================ */
+
+.chat-tts-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-top: 10px;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, #16A34A, #15803D);
+  border-radius: 20px;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.2);
+  color: white;
+}
+
+.chat-tts-player:hover {
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
   transform: translateY(-1px);
 }
 
-.chat-roast-action-btn:active {
-  transform: scale(0.96);
+.chat-tts-player:active {
+  transform: scale(0.98);
 }
 
-.chat-roast-action-btn:disabled {
-  opacity: 0.5;
+.chat-tts-playing {
+  animation: ttsPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes ttsPulse {
+  0%, 100% { box-shadow: 0 2px 8px rgba(22, 163, 74, 0.2); }
+  50% { box-shadow: 0 4px 20px rgba(22, 163, 74, 0.45); }
+}
+
+/* 播放/暂停按钮 */
+.chat-tts-play-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  color: white;
+  flex-shrink: 0;
+}
+
+/* 波形条容器 */
+.chat-tts-waveform {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 28px;
+  flex: 1;
+}
+
+/* 单个波形条 */
+.chat-tts-bar {
+  display: inline-block;
+  width: 3px;
+  min-height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.75);
+  transition: height 0.1s ease;
+}
+
+.chat-tts-playing .chat-tts-bar {
+  animation: ttsWaveBar 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes ttsWaveBar {
+  0% { transform: scaleY(0.3); opacity: 0.5; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+
+/* 时长标签 */
+.chat-tts-duration {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  min-width: 36px;
+  text-align: right;
+  letter-spacing: 0.5px;
+}
+
+/* 底部提示文字 */
+.chat-tts-hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(22, 163, 74, 0.55);
+  margin-left: auto;
+  background: rgba(22, 163, 74, 0.08);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+/* Voice Tab 模式切换 */
+.chat-voice-mode-switch {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  background: rgba(200, 170, 140, 0.1);
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.chat-voice-mode-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: #8B7355;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chat-voice-mode-btn.active {
+  background: #fff;
+  color: #5C4A32;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.chat-voice-mode-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* 人话输入区域 */
+.chat-human-input-area {
+  width: 100%;
+}
+
+.chat-human-textarea-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.chat-human-textarea {
+  width: 100%;
+  min-height: 80px;
+  max-height: 150px;
+  padding: 12px 14px;
+  border: 2px solid rgba(74, 222, 128, 0.3);
+  border-radius: 14px;
+  background: rgba(74, 222, 128, 0.04);
+  font-size: 14px;
+  color: #5C4A32;
+  resize: none;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.chat-human-textarea:focus {
+  border-color: #4ADE80;
+  background: rgba(74, 222, 128, 0.08);
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+}
+
+.chat-human-textarea::placeholder {
+  color: #A69076;
+}
+
+.chat-human-translate-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px 20px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #4ADE80, #22C55E);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 12px rgba(74, 222, 128, 0.35);
+}
+
+.chat-human-translate-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(74, 222, 128, 0.45);
+}
+
+.chat-human-translate-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.chat-human-translate-btn:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
   transform: none;
+}
+
+.chat-human-hint {
+  text-align: center;
+  font-size: 11.5px;
+  color: #A69076;
+  margin-top: 8px;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2262,132 +2481,17 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   表情包面板
+   增强响应式
 ═══════════════════════════════════════════════════════ */
-
-.chat-sticker-panel {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 150;
-  width: calc(100% - 36px);
-  max-width: 400px;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(12px);
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  border: 1px solid rgba(200, 170, 140, 0.15);
-  padding: 14px;
-  animation: chatStickerSlideUp 0.3s ease-out;
-}
-
-@keyframes chatStickerSlideUp {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-.chat-sticker-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.chat-sticker-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #5C4A32;
-}
-
-.chat-sticker-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-
-.chat-sticker-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 10px 6px;
-  border: none;
-  border-radius: 12px;
-  background: rgba(200, 170, 140, 0.08);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.chat-sticker-item:hover {
-  background: rgba(200, 170, 140, 0.15);
-  transform: scale(1.05);
-}
-
-.chat-sticker-item:active {
-  transform: scale(0.95);
-}
-
-.chat-sticker-emoji {
-  font-size: 28px;
-  line-height: 1;
-}
-
-.chat-sticker-label {
-  font-size: 10px;
-  color: #8B7355;
-  white-space: nowrap;
-}
-
-/* 表情包消息 */
-.chat-sticker-message {
-  margin-bottom: 6px;
-}
-
-.chat-sticker-big {
-  font-size: 48px;
-  line-height: 1;
-}
 
 /* ═══════════════════════════════════════════════════════
    增强响应式
 ═══════════════════════════════════════════════════════ */
 
 @media (max-width: 380px) {
-  .chat-roast-bar {
-    margin: 6px 12px 0;
-    padding: 6px 10px;
-  }
-  
-  .chat-roast-bar-title {
-    font-size: 11px;
-  }
-  
-  .chat-roast-action-btn {
-    padding: 4px 8px;
-    font-size: 11px;
-  }
-  
-  .chat-sticker-panel {
-    bottom: 70px;
-    width: calc(100% - 24px);
-    padding: 12px;
-  }
-  
-  .chat-sticker-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-  }
-  
-  .chat-sticker-emoji {
-    font-size: 24px;
-  }
+  .chat-human-to-pet-card { padding: 10px 12px; }
+  .chat-human-textarea { min-height: 65px; padding: 10px 12px; }
+  .chat-voice-mode-btn { padding: 6px 8px; font-size: 12px; }
 }
 
 /* ============================================================

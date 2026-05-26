@@ -13,7 +13,7 @@ export type PetEmotion = "excited" | "anxious" | "hungry" | "lonely" | "angry" |
 | "sleepy" | "playful" | "relaxed" | "sad" | "curious";
 
 /** 消息来源类型 */
-export type MessageSource = "human" | "pet" | "pet_translate" | "ai_photo_mind" | "ai_roast" | "ai_voice";
+export type MessageSource = "human" | "pet" | "pet_translate" | "ai_photo_mind" | "ai_voice" | "human_to_pet";
 
 /** 宠物性格类型 */
 export type PetPersonality = "energetic" | "calm" | "playful" | "shy" | "bossy" | "clingy";
@@ -25,14 +25,6 @@ export interface ChatMessage {
   text: string;
   emoji: string;
   time: string;
-}
-
-/** 宠物表情包/贴纸 */
-export interface PetSticker {
-  id: string;
-  emoji: string;
-  label: string;
-  适用性格?: PetPersonality[];
 }
 
 /** 互动行为建议 */
@@ -60,12 +52,12 @@ export interface PhotoMindResult {
   humorLevel: "low" | "medium" | "high";
 }
 
-/** AI 吐槽结果 */
-export interface RoastResult {
-  roastMessage: string;
-  roastType: "complaint" | "demand" | "empathy" | "tease";
-  triggerReason: string;
-  suggestedAction?: string;
+/** 人话转宠物语结果 */
+export interface HumanToPetResult {
+  petLanguage: string;
+  emoji: string;
+  emotion: PetEmotion;
+  originalText: string;
 }
 
 /** 聊天消息扩展 */
@@ -78,8 +70,8 @@ export interface ChatMessageExtra {
   voiceResult?: VoiceTranslateResult;
   audioUrl?: string;
   
-  // AI 吐槽
-  roastResult?: RoastResult;
+  // 人话转宠物语
+  humanToPetResult?: HumanToPetResult;
   
   // 情绪相关
   emotion?: PetEmotion;
@@ -188,4 +180,78 @@ export interface DashboardData {
     record_count: number;
     done_rate: number;
   };
+}
+
+// ============================================================
+// 健康记录详细类型（5种专用记录类型）
+// ============================================================
+
+/** 疫苗记录 */
+export interface VaccineRecord {
+  id: number;
+  pet_id: number;
+  vaccine_date?: string | null;
+  pet_hospital?: string | null;
+  vaccine_name?: string | null;
+  vaccine_batch_number?: string | null;
+  next_vaccine_date?: string | null;
+  photo_urls?: string[];
+  notes?: string | null;
+  created_at?: string;
+}
+
+/** 驱虫记录 */
+export interface DewormingRecord {
+  id: number;
+  pet_id: number;
+  deworming_date?: string | null;
+  pet_hospital?: string | null;
+  deworming_medication_name?: string | null;
+  deworming_type?: string | null;       // internal / external / broad_spectrum
+  next_deworming_date?: string | null;
+  deworming_medication_dosage?: string[] | null;
+  photo_urls?: string[] | null;
+  notes?: string | null;
+  created_at?: string;
+}
+
+/** 体检记录 */
+export interface CheckUpRecord {
+  id: number;
+  pet_id: number;
+  check_up_date?: string | null;
+  pet_hospital?: string | null;
+  check_up_projects?: string | null;
+  check_up_result?: string | null;
+  doctor_advice?: string | null;
+  check_up_photo_urls?: string[];
+  notes?: string | null;
+  created_at?: string;
+}
+
+/** 就诊记录 */
+export interface MedicalRecord {
+  id: number;
+  pet_id: number;
+  medical_date?: string | null;
+  pet_hospital?: string | null;
+  medical_amount?: number | null;
+  medical_case_photo_urls?: string[];
+  medical_result?: string | null;
+  treatment_plan?: string | null;
+  notes?: string | null;
+  created_at?: string;
+}
+
+/** 观察记录 */
+export interface ObservationRecord {
+  id: number;
+  pet_id: number;
+  observation_date?: string | null;
+  appetite_status?: string | null;
+  mental_status?: string | null;
+  bowel_movements?: string | null;
+  weight?: number | null;
+  notes?: string | null;
+  created_at?: string;
 }

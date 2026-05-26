@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, TrendingUp, TrendingDown, Minus, Scale, Target, Calendar, AlertTriangle, CheckCircle2, Activity, BarChart3, LineChart as LineChartIcon } from "lucide-react";
 import { useShell } from "../hooks/useShell";
@@ -238,37 +238,55 @@ export default function WeightTrendAnalysis() {
   const { phone, selectedPetId, selectedPet, pets } = useShell();
   const currentPet = selectedPet || pets[0] || null;
 
-  // 模拟数据（实际应从API获取）
-  const weightRecords = useMemo(() => {
-    const mockData: { date: string; weight: number; idealMin: number; idealMax: number }[] = [
-      { date: "2025-11-01", weight: 26.2, idealMin: 24.5, idealMax: 27.5 },
-      { date: "2025-11-15", weight: 26.5, idealMin: 24.5, idealMax: 27.5 },
-      { date: "2025-12-01", weight: 26.8, idealMin: 24.5, idealMax: 27.5 },
-      { date: "2025-12-15", weight: 27.0, idealMin: 24.5, idealMax: 27.5 },
-      { date: "2026-01-01", weight: 27.3, idealMin: 24.5, idealMax: 27.5 },
-      { date: "2026-01-15", weight: 27.1, idealMin: 24.5, idealMax: 27.5 },
-      { date: "2026-02-01", weight: 26.9, idealMin: 24.5, idealMax: 27.5 },
-      { date: "2026-02-15", weight: 26.7, idealMin: 24.5, idealMax: 27.5 },
-      { date: "2026-03-01", weight: 26.5, idealMin: 24.5, idealMax: 27.5 },
-      { date: "2026-03-15", weight: 26.4, idealMin: 24.5, idealMax: 27.5 },
-      { date: "2026-04-01", weight: 26.6, idealMin: 24.5, idealMax: 27.5 },
-      { date: "2026-05-01", weight: 26.8, idealMin: 24.5, idealMax: 27.5 },
-    ];
-    return mockData.sort((a, b) => a.date.localeCompare(b.date));
-  }, []);
+  // ── 从数据库获取真实体重记录 ──
+  const [weightRecords, setWeightRecords] = useState<{ date: string; weight: number; idealMin?: number; idealMax?: number }[]>([]);
+  const [wtLoading, setWtLoading] = useState(true);
 
-  // 计算分析数据
+  useEffect(() => {
+    setWtLoading(true);
+    fetchRecords(phone, selectedPetId ?? undefined, "all")
+      .then((res) => {
+        const all = res.data || [];
+        // 筛选包含体重的记录
+        const withWeight = all
+          .filter((r: HealthRecord) => r.weight_kg != null && Number(r.weight_kg) > 0)
+          .map((r: HealthRecord) => ({
+            date: r.record_date || r.created_at || "",
+            weight: Number(r.weight_kg),
+            idealMin: currentPet?.ideal_weight_min ? Number(currentPet.ideal_weight_min) : undefined,
+            idealMax: currentPet?.ideal_weight_max ? Number(currentPet.ideal_weight_max) : undefined,
+          }))
+          .filter((r) => r.date && !isNaN(r.weight));
+        // 按日期排序
+        withWeight.sort((a, b) => a.date.localeCompare(b.date));
+        setWeightRecords(withWeight);
+      })
+      .catch(console.error)
+      .finally(() => setWtLoading(false));
+  }, [phone, selectedPetId, currentPet]);
+
+  // 理想范围（从宠物信息或默认值）
+  const idealMin = currentPet?.ideal_weight_min ? Number(currentPet.ideal_weight_min) : (weightRecords.length > 2 ? Math.min(...weightRecords.map(r => r.weight)) * 0.9 : 20);
+  const idealMax = currentPet?.ideal_weight_max ? Number(currentPet.ideal_weight_max) : (weightRecords.length > 2 ? Math.max(...weightRecords.map(r => r.weight)) * 1.1 : 30);
+
+  // 为每条记录补充理想范围（用于图表显示）
+  const chartRecords = weightRecords.map(r => ({ ...r, idealMin, idealMax }));
+
+  // 计算分析数据（基于真实记录）
   const analysisData = useMemo(() => {
-    const currentWeight = weightRecords[weightRecords.length - 1]?.weight ?? 26.8;
+    if (weightRecords.length === 0) {
+      return { currentWeight: 0, prevWeight: 0, firstWeight: 0, diff: 0, totalDiff: 0, deviation: "0", bmiEstimate: "0", volatility: 0, avgWeight: 0 };
+    }
+    const currentWeight = weightRecords[weightRecords.length - 1]?.weight ?? 0;
     const prevWeight = weightRecords[weightRecords.length - 2]?.weight ?? currentWeight;
     const firstWeight = weightRecords[0]?.weight ?? currentWeight;
     const diff = currentWeight - prevWeight;
     const totalDiff = currentWeight - firstWeight;
-    const idealMid = (24.5 + 27.5) / 2;
-    const deviation = ((currentWeight - idealMid) / idealMid * 100).toFixed(1);
+    const idealMid = (idealMin + idealMax) / 2 || 25;
+    const deviation = idealMid > 0 ? ((currentWeight - idealMid) / idealMid * 100).toFixed(1) : "0";
 
     // BMI估算（犬类简化公式）
-    const bmiEstimate = (currentWeight / Math.pow(0.55, 2)).toFixed(1);
+    const bmiEstimate = currentWeight > 0 ? (currentWeight / Math.pow(0.55, 2)).toFixed(1) : "0";
 
     // 波动率
     const weights = weightRecords.map(r => r.weight);
@@ -277,33 +295,35 @@ export default function WeightTrendAnalysis() {
     const volatility = Math.sqrt(variance);
 
     return { currentWeight, prevWeight, firstWeight, diff, totalDiff, deviation, bmiEstimate, volatility, avgWeight };
-  }, [weightRecords]);
+  }, [weightRecords, idealMin, idealMax]);
 
-  // 综合评分计算
+  // 综合评分计算（基于真实数据）
   const overallScore = useMemo(() => {
-    let score = 75;
+    if (weightRecords.length === 0) return 0;
+    let score = wtLoading ? 0 : 60; // 无数据时基础分
     const { currentWeight, deviation, volatility } = analysisData;
-    
+
     // 偏离理想体重的程度
     const devAbs = Math.abs(parseFloat(deviation));
-    if (devAbs <= 3) score += 10;
+    if (devAbs <= 3 && devAbs > 0) score += 10;
     else if (devAbs <= 6) score += 5;
-    else score -= 5;
+    else if (devAbs > 6) score -= 5;
 
     // 波动稳定性
-    if (volatility <= 0.3) score += 8;
+    if (volatility > 0 && volatility <= 0.3) score += 8;
     else if (volatility <= 0.6) score += 3;
-    else score -= 3;
+    else if (volatility > 0.6) score -= 3;
 
     // 数据记录频率加分
     if (weightRecords.length >= 10) score += 7;
     else if (weightRecords.length >= 6) score += 4;
+    else if (weightRecords.length >= 3) score += 2;
 
-    return Math.min(Math.max(Math.round(score), 45), 98);
-  }, [analysisData, weightRecords]);
+    return Math.min(Math.max(Math.round(score), 0), 100);
+  }, [analysisData, weightRecords, wtLoading]);
 
-  const isOverweight = analysisData.currentWeight > 27.5;
-  const isUnderweight = analysisData.currentWeight < 24.5;
+  const isOverweight = analysisData.currentWeight > idealMax;
+  const isUnderweight = analysisData.currentWeight < idealMin;
   const trendStatus = analysisData.diff > 0.2 ? "up" as const : analysisData.diff < -0.2 ? "down" as const : "stable" as const;
 
   return (
@@ -333,7 +353,7 @@ export default function WeightTrendAnalysis() {
                 {trendStatus === "down" && <TrendingDown size={16} />}
                 {trendStatus === "stable" && <Minus size={16} />}
                 <span>
-                  {trendStatus === "up" ? "+0.3kg" : trendStatus === "down" ? "-0.1kg" : "持平"}
+                  {analysisData.diff > 0 ? `+${analysisData.diff.toFixed(1)}kg` : analysisData.diff < 0 ? `${analysisData.diff.toFixed(1)}kg` : "持平"}
                 </span>
               </div>
               <div className={`wt-range-badge ${isOverweight || isUnderweight ? "wt-range-warn" : "wt-range-ok"}`}>
@@ -347,14 +367,14 @@ export default function WeightTrendAnalysis() {
           <div className="wt-range-bar-section">
             <div className="wt-range-bar-labels">
               <span>偏轻</span>
-              <span>理想范围 (24.5-27.5kg)</span>
+              <span>理想范围 ({idealMin.toFixed(1)}-{idealMax.toFixed(1)}kg)</span>
               <span>偏重</span>
             </div>
             <div className="wt-range-bar-track">
-              <div className="wt-range-ideal-zone" style={{ left: "30%", width: "40%" }} />
+              <div className="wt-range-ideal-zone" style={{ left: "25%", width: "50%" }} />
               <div 
                 className="wt-range-indicator"
-                style={{ left: `${30 + ((analysisData.currentWeight - 24.5) / 3) * 40}%` }}
+                style={{ left: `${Math.min(Math.max(25 + ((analysisData.currentWeight - idealMin) / (idealMax - idealMin || 1)) * 50, 5), 95)}%` }}
               >
                 <Scale size={18} />
               </div>
@@ -434,7 +454,13 @@ export default function WeightTrendAnalysis() {
       <section className="wt-chart-section">
         <h2 className="wt-section-title"><LineChartIcon size={18} /> 趋势曲线</h2>
         <div className="wt-chart-card">
-          <WeightChart records={weightRecords} />
+          {chartRecords.length > 0 ? (
+            <WeightChart records={chartRecords} />
+          ) : (
+            <p style={{ textAlign: "center", color: "#999", padding: "40px" }}>
+              {wtLoading ? "加载中..." : "暂无体重数据，请先添加体重记录"}
+            </p>
+          )}
           
           {/* 图表说明 */}
           <div className="wt-chart-insight">

@@ -1,26 +1,29 @@
 /**
  * AI 宠物心声 API 服务层
- * 提供照片心声、AI吐槽、声音翻译的 AI 服务调用
+ * 提供宠物聊天、照片心声、声音翻译、人话转宠物语的 AI 服务调用
+ * 优先调用后端 API (/api/v1/ai/*)，支持降级到外部 OpenAI 兼容 API 或 Mock 模式
  */
 
 import type { 
   Pet, 
   PetEmotion, 
   PhotoMindResult, 
-  RoastResult, 
   VoiceTranslateResult,
+  HumanToPetResult,
   PetPersonality 
 } from "../types";
+import { getSessionToken } from "./session";
+
+// 后端 API 基础地址（与 api.ts 保持一致）
+const envBaseUrl = (import.meta as any)?.env?.VITE_API_BASE_URL || "";
+const BACKEND_API_URL = String(envBaseUrl).replace(/\/$/, "");
 import { 
   buildPhotoMindPrompt, 
-  buildRoastPrompt, 
   buildVoiceTranslatePrompt,
   inferPersonality,
   mockPhotoMindResult,
-  mockRoastResult,
   mockVoiceTranslateResult,
-  generateInteractionSuggestions,
-  getStickersForPersonality
+  generateInteractionSuggestions
 } from "./pet-prompt";
 import {
   analyzeEmotion,
@@ -97,6 +100,70 @@ async function callAIChat(request: AIChatRequest): Promise<AIChatResponse> {
     };
   }
 }
+
+// ============================================================
+// 后端 AI 聊天接口调用（优先使用）
+// ============================================================
+
+interface BackendChatResponse {
+  success: boolean;
+  reply: string;
+  emoji: string;
+  emotion: string;
+  error?: string;
+}
+
+/**
+ * 与宠物聊天（调用后端 POST /api/v1/ai/chat）
+ * 这是前端聊天功能的主要接口，走后端 AI 服务
+ */
+export async function chatWithPet(
+  petId: number, 
+  message: string, 
+  history?: Array<{ role: string; content: string }>
+): Promise<{
+  success: boolean;
+  reply?: string;
+  emoji?: string;
+  emotion?: string;
+  error?: string;
+}> {
+  try {
+    const token = getSessionToken();
+    const url = `${BACKEND_API_URL}/api/v1/ai/chat`;
+    
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        pet_id: petId,
+        message,
+        history: history || undefined,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text().catch(() => "");
+      console.error(`[Backend Chat] API 错误 ${response.status}:`, errText);
+      return { success: false, error: `聊天请求失败（HTTP ${response.status}）` };
+    }
+
+    const data: BackendChatResponse = await response.json();
+
+    if (data.success && data.reply) {
+      return { success: true, reply: data.reply, emoji: data.emoji || "🐾", emotion: data.emotion || "happy" };
+    }
+    return { success: false, error: data.error || "返回数据异常" };
+
+  } catch (error) {
+    console.error("[Backend Chat] 请求异常:", error);
+    return { success: false, error: error instanceof Error ? error.message : "网络请求失败" };
+  }
+}
+
 
 /**
  * 延迟函数
@@ -254,105 +321,6 @@ function parsePhotoMindResponse(content: string, personality: PetPersonality): P
 }
 
 // ============================================================
-// AI 吐槽 API（增强版）
-// ============================================================
-
-export interface RoastRequest {
-  pet: Pet;
-  context?: {
-    mood?: string;
-    lastInteractionDays?: number;
-    activityLevel?: string;
-    waterIntake?: string;
-    sleepQuality?: string;
-    appOpenFrequency?: string;
-    timeOfDay?: string;
-  };
-  /** 快捷指令 ID */
-  quickAction?: string;
-  personality?: PetPersonality;
-  onProgress?: (status: string) => void;
-}
-
-export interface RoastResponse {
-  success: boolean;
-  result?: RoastResult;
-  /** 适用的表情包 */
-  stickers?: ReturnType<typeof getStickersForPersonality>;
-  error?: string;
-}
-
-/**
- * 获取 AI 宠物吐槽（增强版）
- */
-export async function fetchPetRoast(request: RoastRequest): Promise<RoastResponse> {
-  const { pet, context = {}, quickAction, personality: customPersonality, onProgress } = request;
-  
-  try {
-    onProgress?.("正在分析宠物状态...");
-    await delay(300);
-    
-    // 获取宠物性格
-    const personality = customPersonality || inferPersonality(pet.species, pet.breed);
-    
-    // 如果有健康记录，使用真实数据
-    let healthContext = context;
-    if (!context.mood) {
-      healthContext = { ...context, mood: "一般" };
-    }
-    
-    onProgress?.("正在生成吐槽...");
-    
-    if (USE_MOCK) {
-      await delay(600 + Math.random() * 800);
-      const mockResult = mockRoastResult(pet, personality, quickAction);
-      const stickers = getStickersForPersonality(personality);
-      return { success: true, result: mockResult, stickers };
-    }
-    
-    const prompt = buildRoastPrompt(pet, personality, {
-      ...healthContext,
-      quickAction
-    });
-    
-    const aiResponse = await callAIChat({
-      messages: [
-        { role: "system", content: "你是一个俏皮的宠物，擅长用宠物的口吻表达不满和撒娇。" },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.9,
-      max_tokens: 100
-    });
-    
-    if (!aiResponse.success || !aiResponse.content) {
-      const mockResult = mockRoastResult(pet, personality, quickAction);
-      const stickers = getStickersForPersonality(personality);
-      return { success: true, result: mockResult, stickers };
-    }
-    
-    const result: RoastResult = {
-      roastMessage: aiResponse.content.trim().substring(0, 50),
-      roastType: "complaint",
-      triggerReason: quickAction ? `快捷指令：${quickAction}` : "宠物的心情表达",
-      suggestedAction: "多陪伴宠物"
-    };
-    
-    const stickers = getStickersForPersonality(personality);
-    
-    onProgress?.("吐槽生成完毕！");
-    
-    return { success: true, result, stickers };
-    
-  } catch (error) {
-    console.error("AI 吐槽生成失败:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "生成失败，请重试"
-    };
-  }
-}
-
-// ============================================================
 // 声音翻译 API
 // ============================================================
 
@@ -495,6 +463,186 @@ function analyzeAudioEmotion(audioBlob?: Blob, personality?: PetPersonality): { 
   const analysis = analyzeEmotion(features, personality);
   return { emotion: analysis.primaryEmotion, score: analysis.confidence };
 }
+
+
+// ============================================================
+// 人话转宠物语 API
+// ============================================================
+
+export interface HumanToPetRequest {
+  pet: Pet;
+  text: string;
+  emotionHint?: string;
+  onProgress?: (status: string) => void;
+}
+
+/** 人话转宠物语结果 */
+export interface HumanToPetResult {
+  petLanguage: string;    // 翻译后的宠物语言
+  emoji: string;          // 表情符号
+  emotion: PetEmotion;    // 情绪类型
+  originalText: string;   // 原始文本（回显）
+}
+
+/**
+ * 人话转宠物语（POST /api/v1/ai/human-to-pet）
+ * 将主人的话翻译成宠物能理解的语言
+ */
+export async function translateHumanToPet(request: HumanToPetRequest): Promise<{
+  success: boolean;
+  result?: HumanToPetResult;
+  error?: string;
+}> {
+  const { pet, text, emotionHint, onProgress } = request;
+
+  try {
+    onProgress?.("正在翻译成宠物语言...");
+
+    // 优先调用后端接口
+    const token = getSessionToken();
+    const url = `${BACKEND_API_URL}/api/v1/ai/human-to-pet`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        pet_id: pet.id,
+        text,
+        emotion_hint: emotionHint || undefined,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+
+      if (data.success && data.pet_language) {
+        onProgress?.("翻译完成！");
+        return {
+          success: true,
+          result: {
+            petLanguage: data.pet_language,
+            emoji: data.emoji || "🐾",
+            emotion: data.emotion || "neutral",
+            originalText: data.original_text || text,
+          },
+        };
+      }
+    }
+
+    // 后端失败或无响应，降级到客户端规则匹配
+    console.warn("[HumanToPet] 后端返回失败，使用客户端降级:", !response.ok ? `HTTP ${response.status}` : "数据异常");
+    return fallbackHumanToPet(pet, text, onProgress);
+
+  } catch (error) {
+    console.error("[HumanToPet] 请求异常:", error);
+    // 网络错误时也使用降级策略
+    return fallbackHumanToPet(pet, text, onProgress);
+  }
+}
+
+/**
+ * 客户端降级：基于关键词的人话转宠物语
+ */
+function fallbackHumanToPet(
+  pet: Pet,
+  text: string,
+  onProgress?: (status: string) => void
+): { success: true; result: HumanToPetResult } {
+  onProgress?.("使用本地翻译规则...");
+
+  // 兼容中英文品种标识：猫/cat → isCat, 犬/dog/其他 → isDog
+  const speciesLower = (pet.species || "").toLowerCase();
+  const isCat = speciesLower === "猫" || speciesLower === "cat";
+  const call = isCat ? "喵" : "汪";
+  const lowerText = text.toLowerCase();
+
+  let petLanguage = "";
+  let emotion: PetEmotion = "neutral";
+  let emoji = "🐾";
+
+  // 关键词匹配翻译规则
+  if (anyInclude(lowerText, ["吃", "饿", "饭", "罐头", "好吃", "美食"])) {
+    petLanguage = isCat
+      ? "喵呜~喵呜~（盯着一脸渴望，尾巴竖起）"
+      : `${call}${call}！！（疯狂摇尾巴流口水，眼睛放光）`;
+    emotion = "excited";
+    emoji = "😋";
+  } else if (anyInclude(lowerText, ["爱", "喜欢", "乖", "宝贝", "爱你", "亲亲"])) {
+    petLanguage = isCat
+      ? "呼噜呼噜~（蹭蹭主人手心，眯起眼睛）"
+      : `摇尾巴！舔舔！（扑到主人身上，疯狂蹭）`;
+    emotion = "happy";
+    emoji = "💕";
+  } else if (anyInclude(lowerText, ["玩", "出去", "散步", "公园", "球", "跑"])) {
+    petLanguage = isCat
+      ? "喵~（竖起尾巴抖动，瞳孔放大）"
+      : `${call}${call}！${call}！（原地蹦跳转圈圈）`;
+    emotion = "playful";
+    emoji = "🎉";
+  } else if (anyInclude(lowerText, ["睡", "困", "晚安", "休息"])) {
+    petLanguage = isCat
+      ? "嗯~zzZ（找个暖和的地方蜷缩起来）"
+      : `呵...${call}...（打哈欠，趴下闭眼）`;
+    emotion = "sleepy";
+    emoji = "😴";
+  } else if (anyInclude(lowerText, ["生气", "不要", "不行", "讨厌", "走开"])) {
+    petLanguage = isCat
+      ? "嘶~！（炸毛，转身背对）"
+      : `${call}！${call}呜！（低吼，耳朵贴后）`;
+    emotion = "angry";
+    emoji = "💢";
+  } else if (anyInclude(lowerText, ["好", "棒", "厉害", "聪明", "真乖"])) {
+    petLanguage = isCat
+      ? "喵~（高傲地扬起下巴，但尾巴在摇）"
+      : `${call}${call}！（骄傲地挺胸，尾巴翘到天上）`;
+    emotion = "happy";
+    emoji = "✨";
+  } else {
+    // 默认：根据文本长度生成随机叫声
+    const wordCount = text.length;
+    const barkCount = Math.min(Math.max(1, Math.ceil(wordCount / 4)), 5);
+
+    const dogBarks = ["汪", "汪汪", "呜", "嗷呜"];
+    const catMeows = ["喵", "喵呜", "喵~", "呼噜"];
+
+    const barks = isCat ? catMeows : dogBarks;
+    let result = "";
+    for (let i = 0; i < barkCount; i++) {
+      result += barks[Math.floor(Math.random() * barks.length)];
+      if (i < barkCount - 1) result += i < 2 ? "，" : "";
+    }
+    petLanguage = result + (isCat ? "~（歪头看着）" : "!（歪头摇尾巴）");
+    emotion = "neutral";
+  }
+
+  // 模拟延迟
+  const mockDelay = 300 + Math.random() * 500;
+  const startTime = Date.now();
+
+  return new Promise((resolve) => {
+    const checkDone = () => {
+      if (Date.now() - startTime >= mockDelay) {
+        onProgress?.("翻译完成！");
+        resolve({
+          success: true,
+          result: { petLanguage, emoji, emotion, originalText: text },
+        });
+      } else {
+        requestAnimationFrame(checkDone);
+      }
+    };
+    checkDone();
+  }) as any;
+}
+
+/** 简单的数组包含检查 */
+function anyInclude(text: string, keywords: string[]): boolean {
+  return keywords.some(kw => text.includes(kw));
+}
+
 
 // ============================================================
 // 音频录制 API（第三阶段）

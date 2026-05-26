@@ -49,8 +49,13 @@ export default function Login() {
       }
 
       setTimeout(() => navigate("/app"), 400);
-    } catch {
-      setError("用户名或密码错误");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("aborted") || msg.includes("timeout") || msg.includes("Failed to fetch")) {
+        setError("连接服务器失败，请检查后端是否启动");
+      } else {
+        setError("用户名或密码错误");
+      }
     } finally {
 
       setLoading(false);

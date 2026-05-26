@@ -10173,6 +10173,7 @@ body::before {
 .h3d-weight-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   margin-bottom: 14px;
 }
@@ -10242,6 +10243,41 @@ body::before {
 .h3d-trend-down { background: #ffe4e8; color: #ff4757; }
 .h3d-trend-flat { background: #f5f5f5; color: #888; }
 
+/* 较上次对比 */
+.h3d-weight-prev {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #888;
+}
+.h3d-weight-prev strong {
+  color: #555;
+  font-weight: 700;
+}
+.h3d-prev-diff {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 2px;
+}
+.h3d-prev-up { background: #e8f8f0; color: #00b894; }
+.h3d-prev-down { background: #ffe4e8; color: #ff4757; }
+
+/* 右上角紧凑版 */
+.h3d-prev-inline {
+  font-size: 12px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.h3d-prev-inline .h3d-prev-diff {
+  padding: 1px 5px;
+}
+
 .h3d-weight-stats {
   display: flex;
   align-items: center;
@@ -10255,8 +10291,21 @@ body::before {
   align-items: center;
   gap: 3px;
   flex: 1;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 6px 0;
+  border-radius: 10px;
+  transition: all 0.2s ease;
 }
+.h3d-ws-item:hover { background: rgba(102, 126, 234, 0.06); transform: translateY(-1px); }
+.h3d-ws-item.active {
+  background: rgba(102, 126, 234, 0.1);
+  box-shadow: inset 0 0 0 1.5px rgba(102, 126, 234, 0.25);
+}
+.h3d-ws-item:active { transform: scale(0.95); }
 .h3d-ws-icon { opacity: 0.7; }
+.h3d-ws-item.active .h3d-ws-icon { opacity: 1; }
 .h3d-ws-vaccine { color: #6c5ce7; }
 .h3d-ws-deworm { color: #f5576c; }
 .h3d-ws-checkup { color: #74b9ff; }
@@ -10573,14 +10622,81 @@ body::before {
 }
 .h3d-record-date-icon { font-size: 11px; }
 
-.h3d-record-arrow {
-  color: #ddd;
+/* ══════════════════════════════════
+   记录项 - 可点击操作按钮（爪子图标）
+   ══════════════════════════════════ */
+.h3d-record-action {
   flex-shrink: 0;
-  transition: all 0.2s;
+  margin-left: auto;
 }
-.h3d-record-item:hover .h3d-record-arrow {
+
+.h3d-action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f8f9ff 0%, #eef1ff 100%);
+  border: 2px solid rgba(102, 126, 234, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.h3d-action-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.h3d-action-btn svg {
   color: #667eea;
-  transform: translateX(2px);
+  position: relative;
+  z-index: 1;
+  transition: all 0.25s ease;
+}
+
+.h3d-record-item:hover .h3d-action-btn {
+  border-color: rgba(102, 126, 234, 0.4);
+  box-shadow: 
+    0 4px 12px rgba(102, 126, 234, 0.15),
+    0 2px 4px rgba(102, 126, 234, 0.1);
+  transform: scale(1.05);
+}
+
+.h3d-record-item:hover .h3d-action-btn::before {
+  opacity: 1;
+}
+
+.h3d-record-item:hover .h3d-action-btn svg {
+  color: white;
+  transform: scale(1.1);
+}
+
+/* 点击动画 */
+.h3d-record-item:active .h3d-action-btn {
+  transform: scale(0.95);
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.2);
+}
+
+/* 脉冲动画提示可点击 */
+@keyframes pawPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.25); }
+  50% { box-shadow: 0 0 0 6px rgba(102, 126, 234, 0); }
+}
+
+.h3d-action-btn {
+  animation: pawPulse 2s ease-in-out infinite;
+}
+
+.h3d-record-item:hover .h3d-action-btn {
+  animation: none;
 }
 
 /* ==============================
@@ -11914,13 +12030,13 @@ body::before {
   flex-shrink: 0;
   border-radius: 50%;
   overflow: visible;
-  transform: translate(-12px, -8px);
+  transform: translate(-12px, -20px);
   animation: arAvatarFloat 2.5s ease-in-out infinite;
 }
 
 @keyframes arAvatarFloat {
-  0%, 100% { transform: translate(-12px, -8px); }
-  50% { transform: translate(-12px, -16px); }
+  0%, 100% { transform: translate(-12px, -20px); }
+  50% { transform: translate(-12px, -28px); }
 }
 
 /* 隐藏阴影和粒子 */
@@ -12267,6 +12383,97 @@ body::before {
 .ar-submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ══════════════════════
+   图片上传组件
+   ══════════════════════ */
+.ar-upload-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.ar-upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 2px dashed #d1d5db;
+  background: linear-gradient(135deg, #fafafa, #f5f3ff);
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.ar-upload-btn:hover {
+  border-color: #a78bfa;
+  background: linear-gradient(135deg, #f3edfc, #ede9fe);
+  color: #7c3aed;
+  transform: translateY(-1px);
+}
+.ar-upload-btn:active {
+  transform: scale(0.97);
+}
+.ar-upload-camera {
+  border-color: #93c5fd;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+}
+.ar-upload-camera:hover {
+  border-color: #60a5fa;
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #2563eb;
+}
+
+/* 图片预览网格 */
+.ar-image-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+.ar-image-preview {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+.ar-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ar-image-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.85);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 1;
+}
+.ar-image-remove:hover {
+  background: #ef4444;
+  transform: scale(1.15);
+}
+
+.ar-upload-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  line-height: 1.5;
+  padding: 8px 4px;
 }
 
 /* ==============================

@@ -16,7 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { useShell } from "../hooks/useShell";
-import { fetchReminders } from "../lib/api";
+import { fetchReminders, fetchRecords } from "../lib/api";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
 import { Generate3DButton } from "../components/Pet3DAvatarGenerator";
 import { handleAvatarUpload as unifiedHandleUpload, getLocalAvatar, handleAvatarFileUpload, clearLocalAvatar } from "../lib/pet-avatar";
@@ -64,6 +64,9 @@ export default function Pets() {
   const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const [pendingCount, setPendingCount] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [weightRecords, setWeightRecords] = useState(0);
+  const [healthScore, setHealthScore] = useState(0);
 
   const currentPet = useMemo(() => selectedPet || pets[0] || null, [selectedPet, pets]);
 
@@ -99,6 +102,32 @@ export default function Pets() {
         const today = new Date().toISOString().slice(0, 10);
         const due = (remindersResp.data || []).filter((x: any) => x.due_date <= today);
         setPendingCount(due.length);
+      } catch { /* ignore */ }
+    };
+    run();
+  }, [phone, currentPet?.id]);
+
+  // 获取健康概览统计数据（总记录数、体重记录、健康评分）
+  useEffect(() => {
+    if (!currentPet || !phone) return;
+    const run = async () => {
+      try {
+        const resp = await fetchRecords(phone, currentPet.id, "all");
+        const records: any[] = resp.data || [];
+        setTotalRecords(records.length);
+        // 统计体重记录（observation 类型中包含 weight_kg 字段的）
+        const weightCount = records.filter(
+          (r) => r.weight_kg != null && String(r.weight_kg).trim() !== ""
+        ).length;
+        setWeightRecords(weightCount);
+        // 简单健康评分算法：基础60分 + 记录数量加权 + 多样性加成
+        if (records.length === 0) { setHealthScore(0); return; }
+        let score = 60;
+        score = Math.min(100, score + Math.min(20, records.length * 2));
+        const types = new Set(records.map((r: any) => r.record_type || r.type));
+        score = Math.min(100, score + (types.size - 1) * 5);
+        if (weightCount > 0) score = Math.min(100, score + 5);
+        setHealthScore(score);
       } catch { /* ignore */ }
     };
     run();
@@ -241,9 +270,6 @@ export default function Pets() {
       <section className="ph3d-stats-section">
         <div className="ph3d-section-head">
           <h3 className="ph3d-section-title">健康概览</h3>
-          <button className="ph3d-more-btn" onClick={() => navigate("/app/records")}>
-            查看详情 <ChevronRight size={14} />
-          </button>
         </div>
         
         <div className="ph3d-stats-grid">
@@ -253,12 +279,14 @@ export default function Pets() {
               <div className="ph3d-icon-pulse" />
             </div>
             <div className="ph3d-stat-info">
-              <strong className="ph3d-stat-value">0</strong>
+              <strong className="ph3d-stat-value">{healthScore}</strong>
               <span>健康评分</span>
             </div>
-            <div className="ph3d-stat-trend up">
-              <TrendingUp size={12} /> 良好
-            </div>
+            {healthScore > 0 && (
+              <div className={`ph3d-stat-trend ${healthScore >= 80 ? "up" : healthScore >= 60 ? "" : "down"}`}>
+                <TrendingUp size={12} /> {healthScore >= 80 ? "良好" : healthScore >= 60 ? "一般" : "待改善"}
+              </div>
+            )}
           </article>
 
           <article className="ph3d-stat-card ph3d-stat-records">
@@ -266,7 +294,7 @@ export default function Pets() {
               <FileText size={20} />
             </div>
             <div className="ph3d-stat-info">
-              <strong className="ph3d-stat-value">0</strong>
+              <strong className="ph3d-stat-value">{totalRecords}</strong>
               <span>总记录数</span>
             </div>
           </article>
@@ -276,7 +304,7 @@ export default function Pets() {
               <Scale size={20} />
             </div>
             <div className="ph3d-stat-info">
-              <strong className="ph3d-stat-value">0</strong>
+              <strong className="ph3d-stat-value">{weightRecords}</strong>
               <span>体重记录</span>
             </div>
           </article>
@@ -347,7 +375,7 @@ export default function Pets() {
             <ChevronRight size={16} className="ph3d-arrow" />
           </button>
 
-          <button type="button" className="ph3d-quick-item" onClick={() => navigate(`/app/add-record?type=visit&pet_id=${currentPet?.id}`)}>
+          <button type="button" className="ph3d-quick-item" onClick={() => navigate(`/app/add-record?type=beauty&pet_id=${currentPet?.id}`)}>
             <div className="ph3d-quick-icon ph3d-qi-beauty">✨</div>
             <div className="ph3d-quick-text">
               <strong>美容医护</strong>

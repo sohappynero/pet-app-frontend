@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Mine from "./pages/Mine";
 import Pets from "./pages/Pets";
 import Records from "./pages/Records";
+import RecordDetail from "./pages/RecordDetail";
 import AiAnalysis from "./pages/AiAnalysis";
 import BeautyAnalysis from "./pages/BeautyAnalysis";
 import RecordsCalendar from "./pages/RecordsCalendar";
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="mine" element={<Mine />} />
             <Route path="pets" element={<Pets />} />
             <Route path="records" element={<Records />} />
+            <Route path="record/:id" element={<RecordDetail />} />
             <Route path="records-calendar" element={<RecordsCalendar />} />
             <Route path="add-record" element={<AddRecord />} />
             <Route path="reminders" element={<Reminders />} />

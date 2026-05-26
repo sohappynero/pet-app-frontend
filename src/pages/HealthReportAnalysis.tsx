@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -14,7 +14,10 @@ import {
   Clock,
 } from "lucide-react";
 import { useShell } from "../hooks/useShell";
+import { fetchRecords, fetchAnalysisDashboard, type AnalysisDashboardData } from "../lib/api";
+import type { HealthRecord, RecordType } from "../types";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
+import { getLocalAvatar } from "../lib/pet-avatar";
 import "../health-report-analysis.css";
 
 // ── 雷达图组件（SVG实现）────────────────────────
@@ -112,7 +115,7 @@ function RadarChart({ dimensions }: { dimensions: { label: string; value: number
   );
 }
 
-// ── 健康指标卡片 ────────────────────────────────
+// ── 健康指标卡片（真·液态玻璃设计）────────────────
 function HealthMetric({
   icon,
   title,
@@ -120,6 +123,7 @@ function HealthMetric({
   unit,
   status,
   detail,
+  index = 0,
 }: {
   icon: React.ReactNode;
   title: string;
@@ -127,28 +131,62 @@ function HealthMetric({
   unit?: string;
   status: "good" | "warning" | "danger";
   detail?: string;
+  index?: number;
 }) {
-  const statusConfig = {
-    good: { icon: CheckCircle2, cls: "hr-metric-good", text: "正常" },
-    warning: { icon: AlertTriangle, cls: "hr-metric-warn", text: "注意" },
-    danger: { icon: AlertCircle, cls: "hr-metric-danger", text: "异常" },
-  };
+  // 自然柔和色调 — 去掉AI味，参考Apple Liquid Glass的温暖/冷静配色
+  const liquidThemes = [
+    { key: "peach",  bgGradient: "linear-gradient(145deg, rgba(251,180,140,0.75), rgba(245,158,110,0.55), rgba(239,130,70,0.35))",   textColor: "#c05620" },
+    { key: "lavender",bgGradient: "linear-gradient(145deg, rgba(196,181,230,0.72), rgba(167,139,250,0.52), rgba(139,92,246,0.32))", textColor: "#6d28d9" },
+    { key: "mint",   bgGradient: "linear-gradient(145deg, rgba(134,226,200,0.68), rgba(52,211,153,0.48), rgba(16,185,129,0.28))",    textColor: "#047857" },
+    { key: "sky",    bgGradient: "linear-gradient(145deg, rgba(147,197,253,0.65), rgba(96,165,250,0.45), rgba(59,130,246,0.25))",     textColor: "#1d4ed8" },
+  ];
 
-  const StatusIcon = statusConfig[status].icon;
+  const lt = liquidThemes[index % liquidThemes.length];
+
+  const statusInfo = {
+    good:   { label: "正常", color: "#059669", bg: "rgba(5,150,105,0.10)" },
+    warning:{ label: "关注", color: "#b45309", bg: "rgba(180,83,9,0.10)" },
+    danger: { label: "异常", color: "#dc2626", bg: "rgba(220,38,38,0.10)" },
+  };
+  const si = statusInfo[status];
 
   return (
-    <div className={`hr-metric-card ${statusConfig[status].cls}`}>
-      <div className="hr-metric-icon-wrap">{icon}</div>
-      <div className="hr-metric-body">
-        <span className="hr-metric-title">{title}</span>
-        <div className="hr-metric-value-row">
-          <strong className="hr-metric-value">{value}</strong>
-          {unit && <span className="hr-metric-unit">{unit}</span>}
-          <StatusIcon size={16} className="hr-status-indicator" />
-        </div>
-        {detail && <p className="hr-metric-detail">{detail}</p>}
+    <article className="lg-card">
+      {/* ══ 内部液体层：柔和彩色大圆角块 ══ */}
+      <div className={`lg-liquid lg-liquid--${lt.key}`} style={{ background: lt.bgGradient }}>
+        <div className="lg-liquid-shine" />
       </div>
-    </div>
+
+      {/* ══ 玻璃表面 ══ */}
+      <div className="lg-glass" />
+
+      {/* ══ 边框高光 ══ */}
+      <div className="lg-border-glow" />
+
+      {/* ══ 内容区（深色文字） ══ */}
+      <div className="lg-content">
+        {/* 标题行 */}
+        <div className="lg-top-row">
+          <h3 className="lg-title">{title}</h3>
+          <span className="lg-status-pill" style={{ color: si.color, background: si.bg }}>
+            {si.label}
+          </span>
+        </div>
+
+        {/* 大数字 — 用主题深色 */}
+        <div className="lg-value-row">
+          <span className="lg-big-number" style={{ color: lt.textColor }}>{value}</span>
+          {unit && <span className="lg-unit">{unit}</span>}
+        </div>
+
+        {detail && <p className="lg-detail">{detail}</p>}
+      </div>
+
+      {/* 图标 */}
+      <div className="lg-icon-float">
+        {icon}
+      </div>
+    </article>
   );
 }
 
@@ -168,65 +206,141 @@ function CheckItem({ name, result, date, status }: { name: string; result: strin
   );
 }
 
+// ── 基于后端 core_metrics 客观分析数据构建核心指标 ──
+function buildCoreMetrics(analysisData: AnalysisDashboardData | null) {
+  const cm = analysisData?.core_metrics;
+  if (!cm) {
+    // 后端未返回 core_metrics 时显示加载中/无数据状态（兼容旧版）
+    return [
+      { icon: <Heart size={14} />, title: "心血管系统", value: "暂无数据", status: "warning" as const, detail: "正在从数据库获取分析结果..." },
+      { icon: <Activity size={14} />, title: "体温", value: "--", unit: "°C" as const, status: "good" as const, detail: "正在获取..." },
+      { icon: <Droplets size={14} />, title: "皮肤状况", value: "待观察", status: "good" as const, detail: "正在获取..." },
+      { icon: <Shield size={14} />, title: "免疫状态", value: "--", status: "good" as const, detail: "正在获取..." },
+    ];
+  }
+
+  // 状态映射：后端 status → 前端 HealthMetric status
+  const mapStatus = (s: string): "good" | "warning" | "danger" => {
+    if (s === "danger" || s === "no_data" && cm.cardiovascular.value === "暂无数据") return s === "danger" ? "danger" : "warning";
+    if (s === "warning") return "warning";
+    return "good";
+  };
+
+  return [
+    {
+      icon: <Heart size={14} />,
+      title: "心血管系统",
+      value: cm.cardiovascular.value,
+      status: (cm.cardiovascular.status === "danger" ? "danger" : cm.cardiovascular.status === "warning" ? "warning" : "good") as "good" | "warning" | "danger",
+      detail: cm.cardiovascular.detail,
+    },
+    {
+      icon: <Activity size={14} />,
+      title: "体温",
+      value: cm.temperature.value,
+      unit: cm.temperature.unit as "°C",
+      status: (cm.temperature.status === "danger" ? "danger" : cm.temperature.status === "warning" ? "warning" : "good") as "good" | "warning" | "danger",
+      detail: cm.temperature.detail,
+    },
+    {
+      icon: <Droplets size={14} />,
+      title: "皮肤状况",
+      value: cm.skin.value,
+      status: (cm.skin.status === "danger" ? "danger" : cm.skin.status === "warning" ? "warning" : "good") as "good" | "warning" | "danger",
+      detail: cm.skin.detail,
+    },
+    {
+      icon: <Shield size={14} />,
+      title: "免疫状态",
+      value: cm.immunity.value,
+      status: (cm.immunity.status === "danger" ? "danger" : cm.immunity.status === "warning" ? "warning" : "good") as "good" | "warning" | "danger",
+      detail: cm.immunity.detail,
+    },
+  ];
+}
+
+// ── 从真实体检记录构建检查项目列表 ───────────────
+function buildCheckItems(checkupRecords: HealthRecord[]) {
+  if (checkupRecords.length === 0) {
+    return [
+      { name: "血常规", result: "未检查", date: "--", status: "pending" as const },
+      { name: "生化检测", result: "未检查", date: "--", status: "pending" as const },
+      { name: "粪便检查", result: "未检查", date: "--", status: "pending" as const },
+      { name: "尿液分析", result: "未检查", date: "--", status: "pending" as const },
+      { name: "心电图", result: "未检查", date: "--", status: "pending" as const },
+      { name: "眼科检查", result: "未检查", date: "--", status: "pending" as const },
+    ];
+  }
+  const items: { name: string; result: string; date: string; status: "normal" | "abnormal" | "pending" }[] = [];
+  for (const rec of checkupRecords.slice(0, 6)) {
+    const result = (rec as Record<string, unknown>).result || rec.notes || "";
+    const hasAbnormal = String(result).includes("异常") || String(result).includes("偏高");
+    items.push({
+      name: rec.title || (rec.type === "medical" ? "就诊记录" : "体检"),
+      result: String(result).slice(0, 50) || "有记录",
+      date: rec.record_date ? String(rec.record_date).slice(0, 10) : "--",
+      status: hasAbnormal ? "abnormal" : "normal",
+    });
+  }
+  return items;
+}
+
 // ══════════════════════════════════════════════════
 export default function HealthReportAnalysis() {
   const navigate = useNavigate();
   const { phone, selectedPetId, selectedPet, pets } = useShell();
   const currentPet = selectedPet || pets[0] || null;
 
-  const healthData = useMemo(() => ({
-    overallScore: 82,
+  // ── 从后端获取真实数据 ──
+  const [analysisData, setAnalysisData] = useState<AnalysisDashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [checkupRecords, setCheckupRecords] = useState<HealthRecord[]>([]);
 
-    radarDimensions: [
-      { label: "体重", value: 85, max: 100, color: "#6366f1" },
-      { label: "食欲", value: 90, max: 100, color: "#ec4899" },
-      { label: "精神", value: 88, max: 100, color: "#f59e0b" },
-      { label: "毛发", value: 78, max: 100, color: "#10b981" },
-      { label: "消化", value: 75, max: 100, color: "#8b5cf6" },
-      { label: "活力", value: 82, max: 100, color: "#ef4444" },
-    ],
+  useEffect(() => {
+    if (!currentPet?.id) return;
+    setLoading(true);
+    fetchAnalysisDashboard(currentPet.id)
+      .then((data) => setAnalysisData(data))
+      .catch((err) => console.error("健康报告数据获取失败:", err))
+      .finally(() => setLoading(false));
+  }, [currentPet?.id]);
 
-    metrics: [
-      {
-        icon: <Heart size={20} />,
-        title: "心血管系统",
-        value: "正常",
-        status: "good" as const,
-        detail: "心率稳定，心音清晰无杂音",
-      },
-      {
-        icon: <Activity size={20} />,
-        title: "体温",
-        value: "38.5",
-        unit: "°C",
-        status: "good" as const,
-        detail: "犬类正常范围：38-39°C",
-      },
-      {
-        icon: <Droplets size={20} />,
-        title: "皮肤状况",
-        value: "轻微干燥",
-        status: "warning" as const,
-        detail: "建议补充Omega脂肪酸，增加饮水量",
-      },
-      {
-        icon: <Shield size={20} />,
-        title: "免疫状态",
-        value: "良好",
-        status: "good" as const,
-        detail: "核心疫苗已接种完成，抗体水平充足",
-      },
-    ],
+  useEffect(() => {
+    fetchRecords(phone, selectedPetId ?? undefined, "all")
+      .then((res) => {
+        // 筛选体检类型记录
+        const all = res.data || [];
+        setCheckupRecords(all.filter((r: HealthRecord) =>
+          r.type === "checkup" || r.type === "medical" || r.type === "check_up"
+        ));
+      })
+      .catch(console.error);
+  }, [phone, selectedPetId]);
 
-    checkItems: [
-      { name: "血常规", result: "各项指标在正常范围内", date: "2026-03-15", status: "normal" as const },
-      { name: "生化检测", result: "肝肾功能正常", date: "2026-03-15", status: "normal" as const },
-      { name: "粪便检查", result: "未见寄生虫卵", date: "2026-02-01", status: "normal" as const },
-      { name: "尿液分析", result: "尿比重略高", date: "2026-03-15", status: "abnormal" as const },
-      { name: "心电图", result: "窦性心律，心率正常", date: "2025-11-10", status: "pending" as const },
-      { name: "眼科检查", result: "--", date: "未检查", status: "pending" as const },
-    ],
-  }), []);
+  // ── 基于真实数据构建显示内容 ──
+  const healthData = useMemo(() => {
+    const dims = analysisData?.dimensions;
+    const overallScore = analysisData?.overall_score ?? 0;
+    const summary = analysisData?.data_summary;
+
+    // 雷达图维度 — 使用后端真实评分
+    const radarDimensions = [
+      { label: "体重", value: dims?.weight?.score ?? 0, max: 100, color: "#6366f1" },
+      { label: "食欲", value: dims?.diet?.score ?? 0, max: 100, color: "#ec4899" },
+      { label: "精神", value: dims?.mental?.score ?? 0, max: 100, color: "#f59e0b" },
+      { label: "毛发", value: dims?.grooming?.score ?? 0, max: 100, color: "#10b981" },
+      { label: "消化", value: dims?.diet?.score ?? 0, max: 100, color: "#8b5cf6" },
+      { label: "活力", value: dims?.exercise?.score ?? 0, max: 100, color: "#ef4444" },
+    ];
+
+    // ── 核心指标：基于后端客观分析数据 ──
+    const metrics = buildCoreMetrics(analysisData);
+
+    // ── 检查项目：从真实体检记录提取 ──
+    const checkItems = buildCheckItems(checkupRecords);
+
+    return { overallScore, radarDimensions, metrics, checkItems };
+  }, [analysisData, checkupRecords]);
 
   return (
     <main className="hr-page">
@@ -254,7 +368,12 @@ export default function HealthReportAnalysis() {
           <div className="hr-bar-track">
             <div className="hr-bar-fill" style={{ width: `${healthData.overallScore}%` }} />
           </div>
-          <p className="hr-hint">整体健康状况良好，少数指标需要关注</p>
+          <p className="hr-hint">
+            {loading ? "正在从数据库加载分析数据..." :
+              healthData.overallScore >= 75 ? "整体健康状况良好，继续保持！" :
+              healthData.overallScore >= 55 ? "部分指标需要关注，请查看详细分析" :
+              "需要更多关注宝贝的健康状况，建议咨询兽医"}
+          </p>
         </div>
       </header>
 
@@ -282,10 +401,10 @@ export default function HealthReportAnalysis() {
 
       {/* ═══ 核心健康指标 ═══ */}
       <section className="hr-metrics-section">
-        <h2 className="hr-section-title"><Heart size={18} /> 核心指标</h2>
+        <h2 className="hr-section-title hr-title-cute"><Heart size={18} /> 核心健康指标 <span className="title-sparkle">✦</span></h2>
         <div className="hr-metrics-grid">
           {healthData.metrics.map((metric, i) => (
-            <HealthMetric key={i} {...metric} />
+            <HealthMetric key={i} {...metric} index={i} />
           ))}
         </div>
       </section>
@@ -299,47 +418,62 @@ export default function HealthReportAnalysis() {
           ))}
         </div>
 
-        {/* 异常项提示 */}
-        <div className="hr-abnormal-alert">
-          <AlertCircle size={18} />
-          <div>
-            <strong>发现 1 项需关注：</strong> 尿液分析显示尿比重略高，建议增加饮水量并复查。
+        {/* 异常项提示 — 基于真实数据 */}
+        {healthData.checkItems.some((item) => item.status === "abnormal") && (
+          <div className="hr-abnormal-alert">
+            <AlertCircle size={18} />
+            <div>
+              <strong>发现 {healthData.checkItems.filter((i) => i.status === "abnormal").length} 项需关注：</strong>
+              {healthData.checkItems.filter((i) => i.status === "abnormal").map((i) => i.name).join("、")} 检查结果异常，建议咨询兽医。
+            </div>
           </div>
-        </div>
+        )}
+        {!loading && healthData.checkItems.length > 0 && healthData.checkItems.every((i) => i.status === "pending") && (
+          <div className="hr-abnormal-alert" style={{ background: "#fef3c7", borderColor: "#f59e0b" }}>
+            <Clock size={18} />
+            <div>
+              <strong>暂无体检记录：</strong> 建议每年至少进行 1-2 次全面体检，以便及时发现健康问题。
+            </div>
+          </div>
+        )}
       </section>
 
-      {/* ═══ 健康建议 ═══ */}
+      {/* ═══ 健康建议 — 基于API真实推荐 ═══ */}
       <section className="hr-advice-section">
         <h2 className="hr-section-title"><CheckCircle2 size={18} /> 健康建议</h2>
         <div className="hr-advice-card">
-          <div className="hr-advice-item">
-            <span className="hr-advice-icon">💧</span>
-            <div className="hr-advice-content">
-              <h4>改善水分摄入</h4>
-              <p>当前饮水量偏低。建议更换自动饮水机，每日保证500ml+饮水。可在水中少量添加低钠鸡汤增加适口性。</p>
-            </div>
-          </div>
-          <div className="hr-advice-item">
-            <span className="hr-advice-icon">🥗</span>
-            <div className="hr-advice-content">
-              <h4>皮肤护理方案</h4>
-              <p>秋冬季节皮肤易干燥。每周使用宠物润肤乳按摩一次，饮食中添加鱼油或亚麻籽油，每次洗澡间隔延长至3周。</p>
-            </div>
-          </div>
-          <div className="hr-advice-item">
-            <span className="hr-advice-icon">📅</span>
-            <div className="hr-advice-content">
-              <h4>下次体检计划</h4>
-              <p>建议于2026年9月进行年度全面体检，重点复查尿液分析和心电图。日常关注排便、排尿频率和状态变化。</p>
-            </div>
-          </div>
-          <div className="hr-advice-item">
-            <span className="hr-advice-icon">💉</span>
-            <div className="hr-advice-content">
-              <h4>疫苗接种提醒</h4>
-              <p>狂犬疫苗将于2026年11月到期，请提前预约接种。可考虑添加犬窝咳疫苗（如常去宠物店/犬舍）。</p>
-            </div>
-          </div>
+          {loading ? (
+            <p style={{ color: "#999", textAlign: "center", padding: "20px" }}>正在从数据库加载分析结果...</p>
+          ) : analysisData?.recommendations && analysisData.recommendations.length > 0 ? (
+            analysisData.recommendations.map((rec, i) => (
+              <div key={i} className="hr-advice-item">
+                <span className="hr-advice-icon">{rec.priority === "high" ? "⚠️" : rec.priority === "medium" ? "💡" : "✅"}</span>
+                <div className="hr-advice-content">
+                  <h4>{rec.category === "vaccine" ? "疫苗接种" : rec.category === "deworm" ? "驱虫提醒" : rec.category === "weight" ? "体重管理" : rec.category === "diet" ? "饮食营养" : "健康建议"}</h4>
+                  <p>{rec.text}</p>
+                </div>
+              </div>
+            ))
+          ) : analysisData?.data_summary ? (
+            <>
+              <div className="hr-advice-item">
+                <span className="hr-advice-icon">📊</span>
+                <div className="hr-advice-content">
+                  <h4>数据概况</h4>
+                  <p>当前共有 {analysisData.data_summary.observations || 0} 条观察记录、{analysisData.data_summary.vaccines || 0} 条疫苗记录、{analysisData.data_summary.checkups || 0} 条体检记录。建议持续记录以获得更准确的健康分析。</p>
+                </div>
+              </div>
+              {analysisData.data_summary.observations === 0 && (
+                <div className="hr-advice-item">
+                  <span className="hr-advice-icon">📝</span>
+                  <div className="hr-advice-content">
+                    <h4>开始记录</h4>
+                    <p>暂无日常观察记录。建议每天记录宝贝的食欲、精神状态、排便情况等，帮助系统进行健康趋势分析。</p>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : null}
         </div>
       </section>
 

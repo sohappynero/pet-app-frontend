@@ -127,8 +127,12 @@ export default function AppShell() {
   const path = location.pathname;
   const isOnboardingMode = pets.length === 0 && path === "/app";
 
-  // 子详情页隐藏底部导航栏
-  const hideTabBar = path.startsWith("/app/feedback") || path.startsWith("/app/help");
+  // 子详情页隐藏底部导航栏（添加记录、记录详情是独立全屏页面）
+  const hideTabBar =
+    path.startsWith("/app/feedback") ||
+    path.startsWith("/app/help") ||
+    path.startsWith("/app/add-record") ||
+    path.startsWith("/app/record/");
 
   return (
     <div className={`my-shell ${isOnboardingMode ? "onboarding-mode" : ""}`}>

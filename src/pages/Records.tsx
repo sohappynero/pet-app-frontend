@@ -47,10 +47,10 @@ const filterItems: { key: HealthFilter; label: string; icon: React.ReactNode; co
   { key: "all", label: "全部", icon: <Sparkles size={14} />, color: "#667eea", bg: "rgba(102,126,234,0.12)" },
   { key: "weight", label: "体重", icon: <Scale size={14} />, color: "#f0932b", bg: "rgba(240,147,43,0.12)" },
   { key: "vaccine", label: "疫苗", icon: <Syringe size={14} />, color: "#6c5ce7", bg: "rgba(108,92,231,0.12)" },
-  { key: "deworm", label: "驱虫", icon: <Bell size={14} />, color: "#f5576c", bg: "rgba(245,87,108,0.12)" },
+  { key: "deworm", label: "驱虫", icon: <Pill size={14} />, color: "#f5576c", bg: "rgba(245,87,108,0.12)" },
   { key: "diet", label: "饮食", icon: <Heart size={14} />, color: "#00b894", bg: "rgba(0,184,148,0.12)" },
   { key: "checkup", label: "体检", icon: <Stethoscope size={14} />, color: "#74b9ff", bg: "rgba(116,185,255,0.12)" },
-  { key: "beauty", label: "美容", icon: <Droplet size={14} />, color: "#fd79a8", bg: "rgba(253,121,168,0.12)" },
+  { key: "beauty", label: "美容", icon: <Sparkles size={14} />, color: "#fd79a8", bg: "rgba(253,121,168,0.12)" },
 ];
 
 function isDietRecord(record: HealthRecord) {
@@ -66,6 +66,8 @@ function isBeautyRecord(record: HealthRecord) {
 
 function getRecordTitle(record: HealthRecord) {
   if (record.title?.trim()) return record.title;
+  // 🔧 修复：优先识别美容记录（beauty数据存入observation表，但应显示为"美容护理"）
+  if (isBeautyRecord(record)) return "美容护理";
   const map: Record<string, string> = {
     vaccine: "疫苗接种",
     deworm: "驱虫记录",
@@ -78,10 +80,71 @@ function getRecordTitle(record: HealthRecord) {
 }
 
 function getRecordSub(record: HealthRecord) {
-  if (record.note?.trim()) return record.note.split("\n")[0];
-  if (record.hospital?.trim()) return record.hospital;
-  if (record.weight_kg !== null && record.weight_kg !== undefined)
-    return `${record.weight_kg} kg`;
+  // 🔧 优化：按记录类型返回更有意义的摘要信息，过滤无意义的数字/ID
+  
+  // 工具函数：判断文本是否有意义（不是纯数字或短ID）
+  const isMeaningfulText = (text?: string | null): boolean => {
+    if (!text || !text.trim()) return false;
+    const trimmed = text.trim();
+    // 过滤纯数字、短数字ID（1-3位）
+    if (/^\d{1,3}$/.test(trimmed)) return false;
+    // 过滤 "机构:11" 这种格式中的数字部分
+    if (/^机构:\s*\d+$/.test(trimmed)) return false;
+    // 过滤 "费用:0元|费用:11元" 但保留有意义的内容
+    if (/^(费用|机构):\s*\d+(元)?$/.test(trimmed)) return false;
+    return true;
+  };
+
+  // 美容记录特殊处理：解析结构化notes
+  if (record.record_type === "beauty" || isBeautyRecord(record)) {
+    // 从 notes 中提取服务项目名称（[美容] 后面的第一个内容）
+    if (record.note?.includes("[美容]")) {
+      const match = record.note.match(/\[美容\]\s*(.+?)(?:\s*[\|]|$)/);
+      if (match && isMeaningfulText(match[1])) return match[1].trim();
+    }
+    if (isMeaningfulText(record.hospital)) return record.hospital!.trim();
+    return "美容护理";  // 兜底显示友好文案
+  }
+  
+  // 驱虫记录
+  if (record.record_type === "deworm") {
+    if (record.deworm_type && isMeaningfulText(record.hospital)) 
+      return `${record.deworm_type} · ${record.hospital!.trim()}`;
+    if (record.deworm_type) return `${record.deworm_type}护理`;
+    if (isMeaningfulText(record.hospital)) return record.hospital!.trim();
+    return "驱虫护理";
+  }
+  
+  // 疫苗记录
+  if (record.record_type === "vaccine") {
+    if (isMeaningfulText(record.hospital)) return record.hospital!.trim();
+    // 尝试从title提取有用信息
+    if (isMeaningfulText(record.title)) return record.title!;
+    return "";  // 不显示无意义的内容
+  }
+  
+  // 就诊记录
+  if (record.record_type === "visit") {
+    if (isMeaningfulText(record.hospital)) return record.hospital!.trim();
+    if (isMeaningfulText(record.symptom)) return record.symptom!.trim();
+    if (isMeaningfulText(record.treatment)) return record.treatment!.split("\n")[0];
+    return "";
+  }
+  
+  // 体检记录
+  if (record.record_type === "checkup") {
+    if (record.medical_result && isMeaningfulText(record.medical_result)) 
+      return record.medical_result.split("\n")[0];
+    if (isMeaningfulText(record.hospital)) return record.hospital!.trim();
+    if (isMeaningfulText(record.note)) return record.note!.split("\n")[0];
+    return "";
+  }
+  
+  // 默认逻辑：observation等
+  if (isMeaningfulText(record.note)) return record.note!.split("\n")[0];
+  if (isMeaningfulText(record.hospital)) return record.hospital!.trim();
+  if (record.weight_kg != null && !Number.isNaN(Number(record.weight_kg)))
+    return `${Number(record.weight_kg).toFixed(1)} kg`;
   return "";
 }
 
@@ -92,11 +155,11 @@ function getIconInfo(record: HealthRecord): IconInfo {
   if (record.record_type === "vaccine")
     return { icon: <Syringe size={20} />, bg: "#f0edfc", color: "#6c5ce7", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" };
   if (record.record_type === "deworm")
-    return { icon: <Bell size={20} />, bg: "#fff0f3", color: "#f5576c", gradient: "linear-gradient(135deg, #f5576c 0%, #f093fb 100%)" };
+    return { icon: <Pill size={20} />, bg: "#fff0f3", color: "#f5576c", gradient: "linear-gradient(135deg, #f5576c 0%, #f093fb 100%)" };
   if (record.record_type === "checkup")
     return { icon: <Stethoscope size={20} />, bg: "#eaf4ff", color: "#74b9ff", gradient: "linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%)" };
   if (record.record_type === "beauty" || isBeautyRecord(record))
-    return { icon: <Droplet size={20} />, bg: "#fff0f5", color: "#fd79a8", gradient: "linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%)" };
+    return { icon: <Sparkles size={20} />, bg: "#fff0f5", color: "#fd79a8", gradient: "linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%)" };
   if (record.record_type === "visit")
     return { icon: <Activity size={20} />, bg: "#fef0e8", color: "#e17055", gradient: "linear-gradient(135deg, #e17055 0%, #f6b93b 100%)" };
   if (record.weight_kg !== null && !Number.isNaN(Number(record.weight_kg)))
@@ -106,12 +169,6 @@ function getIconInfo(record: HealthRecord): IconInfo {
   if (record.record_type === "observation")
     return { icon: <Heart size={20} />, bg: "#e8f8f0", color: "#00b894", gradient: "linear-gradient(135deg, #00cec9 0%, #81ecec 100%)" };
   return { icon: <FileText size={20} />, bg: "#f5f0eb", color: "#8b7355", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" };
-}
-
-function petEmoji(species?: string) {
-  if (species === "cat") return "🐱";
-  if (species === "other") return "🐰";
-  return "🐕";
 }
 
 export default function Records() {
@@ -260,10 +317,30 @@ export default function Records() {
       <section className="h3d-stats-section">
         <div className="h3d-weight-card">
           <div className="h3d-weight-header">
-            <div className="h3d-weight-icon">
-              <Scale size={20} />
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div className="h3d-weight-icon">
+                <Scale size={20} />
+              </div>
+              <span className="h3d-weight-label">体重追踪</span>
             </div>
-            <span className="h3d-weight-label">体重追踪</span>
+            <div className="h3d-weight-prev h3d-prev-inline">
+              较上次{" "}
+              {prevWeight !== null ? (
+                <>
+                  <strong>{Number(prevWeight).toFixed(1)}</strong> kg
+                  {weightDiff !== null && (
+                    <span className={`h3d-prev-diff h3d-prev-${weightTrend}`}>
+                      {weightTrend === "up" && <TrendingUp size={11} />}
+                      {weightTrend === "down" && <TrendingDown size={11} />}
+                      {weightTrend === "flat" && <Minus size={11} />}
+                      {Number(weightDiff) > 0 ? `+${weightDiff}` : weightDiff}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <strong style={{ color: "#bbb", fontWeight: 600 }}>--</strong>
+              )}
+            </div>
           </div>
 
           <div className="h3d-weight-body">
@@ -273,41 +350,44 @@ export default function Records() {
               </span>
               <span className="h3d-weight-unit">kg</span>
             </div>
-
-            {weightDiff !== null && (
-              <div className={`h3d-weight-trend h3d-trend-${weightTrend}`}>
-                {weightTrend === "up" && <TrendingUp size={14} />}
-                {weightTrend === "down" && <TrendingDown size={14} />}
-                {weightTrend === "flat" && <Minus size={14} />}
-                <span>{Number(weightDiff) > 0 ? `+${weightDiff}` : weightDiff} kg</span>
-              </div>
-            )}
           </div>
 
           <div className="h3d-weight-stats">
-            <div className="h3d-ws-item">
+            <button
+              className={`h3d-ws-item ${activeFilter === "vaccine" ? "active" : ""}`}
+              onClick={() => setActiveFilter("vaccine")}
+            >
               <Syringe size={14} className="h3d-ws-icon h3d-ws-vaccine" />
               <span className="h3d-ws-num">{stats.vaccine}</span>
               <span className="h3d-ws-label">疫苗</span>
-            </div>
+            </button>
             <div className="h3d-ws-divider" />
-            <div className="h3d-ws-item">
-              <Bell size={14} className="h3d-ws-icon h3d-ws-deworm" />
+            <button
+              className={`h3d-ws-item ${activeFilter === "deworm" ? "active" : ""}`}
+              onClick={() => setActiveFilter("deworm")}
+            >
+              <Pill size={14} className="h3d-ws-icon h3d-ws-deworm" />
               <span className="h3d-ws-num">{stats.deworm}</span>
               <span className="h3d-ws-label">驱虫</span>
-            </div>
+            </button>
             <div className="h3d-ws-divider" />
-            <div className="h3d-ws-item">
+            <button
+              className={`h3d-ws-item ${activeFilter === "checkup" ? "active" : ""}`}
+              onClick={() => setActiveFilter("checkup")}
+            >
               <Stethoscope size={14} className="h3d-ws-icon h3d-ws-checkup" />
               <span className="h3d-ws-num">{stats.checkup}</span>
               <span className="h3d-ws-label">体检</span>
-            </div>
+            </button>
             <div className="h3d-ws-divider" />
-            <div className="h3d-ws-item">
-              <Droplet size={14} className="h3d-ws-icon h3d-ws-beauty" />
+            <button
+              className={`h3d-ws-item ${activeFilter === "beauty" ? "active" : ""}`}
+              onClick={() => setActiveFilter("beauty")}
+            >
+              <Sparkles size={14} className="h3d-ws-icon h3d-ws-beauty" />
               <span className="h3d-ws-num">{stats.beauty}</span>
               <span className="h3d-ws-label">美容</span>
-            </div>
+            </button>
           </div>
         </div>
       </section>
@@ -377,7 +457,7 @@ export default function Records() {
                 <button
                   key={record.id}
                   className="h3d-record-item"
-                  onClick={() => navigate(`/app/add-record?edit=${record.id}`)}
+                  onClick={() => navigate(`/app/record/${record.id}`)}
                 >
                   <div className="h3d-record-icon" style={{ background: bg }}>
                     <div className="h3d-record-icon-inner" style={{ background: gradient }}>
@@ -394,8 +474,10 @@ export default function Records() {
                     </div>
                   </div>
 
-                  <div className="h3d-record-arrow">
-                    <PawPrint size={16} />
+                  <div className="h3d-record-action">
+                    <div className="h3d-action-btn" title="查看详情">
+                      <PawPrint size={16} strokeWidth={2.5} />
+                    </div>
                   </div>
                 </button>
               );

@@ -109,7 +109,17 @@ export default function PetPhotoAvatar({
             {/* 加载中占位 */}
             {!imgLoaded && (
               <div className="ppa-skeleton">
-                <span className="ppa-skeleton-emoji">{getDefaultEmoji(species)}</span>
+                {isNameCircleMarker(imageUrl) || (!imageUrl && (pet as any)?._resolved_avatar_url === "__name_circle__") ? (
+                  <PetNameCircle name={(pet as any)?.name || "宠物"} size={48} />
+                ) : imageUrl || (pet as any)?._resolved_avatar_url ? (
+                  <img
+                    src={imageUrl || (pet as any)?._resolved_avatar_url}
+                    alt={(pet as any)?.name || "宠物"}
+                    style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover" }}
+                  />
+                ) : (
+                  <PetNameCircle name={(pet as any)?.name || "宠物"} size={48} />
+                )}
               </div>
             )}
             {/* 真实照片 — 大尺寸溢出显示 */}

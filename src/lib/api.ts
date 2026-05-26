@@ -7,6 +7,11 @@ import type {
   RecordType,
   Reminder,
   ReminderStatus,
+  VaccineRecord,
+  DewormingRecord,
+  CheckUpRecord,
+  MedicalRecord,
+  ObservationRecord,
 } from "../types";
 import { getLocalAvatar } from "./pet-avatar";
 import { getSessionToken, setSessionUser, getSessionUser } from "./session";
@@ -14,6 +19,24 @@ import { getSessionToken, setSessionUser, getSessionUser } from "./session";
 
 const envBaseUrl = (import.meta as any)?.env?.VITE_API_BASE_URL || "";
 const API_BASE_URL = String(envBaseUrl).replace(/\/$/, "");
+
+// ============================================================
+// 请求超时配置
+// ============================================================
+
+const FETCH_TIMEOUT_MS = 15000; // 15秒超时
+
+/** 创建带超时的 fetch（防止后端无响应时永久挂起） */
+function fetchWithTimeout(url: string, options?: RequestInit, timeoutMs = FETCH_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  
+  return fetch(url, {
+    ...options,
+    signal: controller.signal,
+  }).finally(() => clearTimeout(timer));
+}
+
 
 // ============================================================
 // JWT 工具函数（前端轻量解码，不验证签名）
@@ -90,7 +113,7 @@ export async function refreshToken(): Promise<string> {
       headers["Content-Type"] = "application/json";
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/auth/refresh`, {
       method: "POST",
       headers,
       body: JSON.stringify(refreshTokenStr ? { refresh_token: refreshTokenStr } : {}),
@@ -132,8 +155,8 @@ export async function refreshToken(): Promise<string> {
 async function request<T = unknown>(url: string, init?: RequestInit): Promise<T> {
   const fullUrl = `${API_BASE_URL}${url}`;
 
-  // 第一次尝试请求
-  let res = await fetch(fullUrl, {
+  // 第一次尝试请求（带超时保护）
+  let res = await fetchWithTimeout(fullUrl, {
     headers: createHeaders(init?.headers),
     ...init,
   });
@@ -144,8 +167,8 @@ async function request<T = unknown>(url: string, init?: RequestInit): Promise<T>
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         addRefreshSubscriber((newToken: string) => {
-          // 使用新 Token 重试请求
-          fetch(fullUrl, {
+          // 使用新 Token 重试请求（带超时）
+          fetchWithTimeout(fullUrl, {
             headers: createHeaders(init?.headers, init?.headers?.['Content-Type'] === 'application/json'),
             ...init,
           })
@@ -173,8 +196,8 @@ async function request<T = unknown>(url: string, init?: RequestInit): Promise<T>
       // 通知所有等待的请求
       onRefreshed(newToken);
 
-      // 使用新 Token 重试请求
-      res = await fetch(fullUrl, {
+      // 使用新 Token 重试请求（带超时）
+      res = await fetchWithTimeout(fullUrl, {
         headers: createHeaders(init?.headers, init?.headers?.['Content-Type'] === 'application/json'),
         ...init,
       });
@@ -304,7 +327,7 @@ function toPetApiPayload(payload: Omit<Pet, "id" | "phone" | "age" | "created_at
 
 
 export async function login(payload: { username: string; password: string }) {
-  const res = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+  const res = await fetchWithTimeout(`${API_BASE_URL}/api/v1/auth/login`, {
     method: "POST",
     headers: createHeaders(undefined, true),
     body: JSON.stringify(payload),
@@ -466,7 +489,7 @@ export async function createPetWithAvatar(payload: {
 
   const fullUrl = `${API_BASE_URL}/api/v1/pets/create-with-avatar`;
   const token = getSessionToken();
-  const res = await fetch(fullUrl, {
+  const res = await fetchWithTimeout(fullUrl, {
     method: "POST",
     headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: formData,
@@ -496,7 +519,7 @@ export async function updatePetAvatar(petId: number, file: File): Promise<ApiRes
 
   const fullUrl = `${API_BASE_URL}/api/v1/pets/${petId}/avatar`;
   const token = getSessionToken();
-  const res = await fetch(fullUrl, {
+  const res = await fetchWithTimeout(fullUrl, {
     method: "PUT",
     headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: formData,
@@ -526,10 +549,36 @@ export function switchPet(petId: number) {
 
 
 export function fetchRecords(phone: string, petId?: number, recordType?: RecordType | "all") {
-  const params = new URLSearchParams({ phone });
+  const params = new URLSearchParams();
   if (petId) params.set("pet_id", String(petId));
-  if (recordType) params.set("record_type", recordType);
-  return request<ApiResp<HealthRecord[]>>(`/api/v1/health/records?${params.toString()}`);
+  if (recordType && recordType !== "all") params.set("type", recordType);
+  // 后端返回分页格式 { total, list, page, page_size }，需要转换为 ApiResp<HealthRecord[]>
+  return request<any>(`/api/v1/health/records?${params.toString()}`).then((raw) => {
+    // 兼容两种后端返回格式
+    const list: any[] = raw?.list ?? raw?.data ?? (Array.isArray(raw) ? raw : []);
+    // 标准化日期格式（后端可能返回 "2025-05-10T00:00:00" 或 "2025-05-20"）
+    const records = list.map((r: any) => ({
+      ...r,
+      record_date: r.record_date ? String(r.record_date).slice(0, 10) : r.record_date,
+      title: r.title || "",
+      hospital: r.hospital || "",
+      doctor: r.doctor || "",
+      symptom: r.symptom || "",
+      treatment: r.treatment || "",
+      cost: r.cost ?? null,
+      weight_kg: r.weight_kg ?? null,
+      mood: r.mood || "",
+      appetite: r.appetite || "",
+      note: r.note || "",
+      images: r.images || [],
+      next_due_date: r.next_due_date ?? null,
+    }));
+    return {
+      ok: true,
+      message: "获取成功",
+      data: records,
+    } as ApiResp<HealthRecord[]>;
+  });
 }
 
 export function createRecord(payload: {
@@ -746,4 +795,211 @@ export async function fetchUserInfo(): Promise<{
     phone: raw?.phone ?? raw?.data?.phone ?? "",
     avatar: raw?.avatar ?? raw?.data?.avatar ?? null,
   };
+}
+
+
+// ============================================================
+// 疫苗记录 API (POST body 包含 pet_id)
+// ============================================================
+
+export function fetchVaccines(petId: number, page = 1, pageSize = 100) {
+  return request<any>(`/api/v1/health/vaccines?pet_id=${petId}&page=${page}&page_size=${pageSize}`);
+}
+
+export function createVaccine(payload: Omit<VaccineRecord, "id" | "created_at">) {
+  return request<any>("/api/v1/health/vaccines", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateVaccine(id: number, payload: Partial<Omit<VaccineRecord, "id" | "pet_id" | "created_at">>) {
+  return request<any>(`/api/v1/health/vaccines/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteVaccine(id: number) {
+  return request<ApiResp>(`/api/v1/health/vaccines/${id}`, { method: "DELETE" });
+}
+
+
+// ============================================================
+// 驱虫记录 API (POST body 包含 pet_id)
+// ============================================================
+
+export function fetchDewormings(petId: number) {
+  return request<any[]>(`/api/v1/health/dewormings?pet_id=${petId}`);
+}
+
+export function createDeworming(payload: Omit<DewormingRecord, "id" | "created_at">) {
+  return request<DewormingRecord>("/api/v1/health/dewormings", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteDeworming(id: number) {
+  return request<ApiResp>(`/api/v1/health/dewormings/${id}`, { method: "DELETE" });
+}
+
+
+// ============================================================
+// 体检记录 API (POST body 包含 pet_id)
+// ============================================================
+
+export function fetchCheckups(petId: number) {
+  return request<any[]>(`/api/v1/health/checkups?pet_id=${petId}`);
+}
+
+export function createCheckup(payload: Omit<CheckUpRecord, "id" | "created_at">) {
+  return request<CheckUpRecord>("/api/v1/health/checkups", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteCheckup(id: number) {
+  return request<ApiResp>(`/api/v1/health/checkups/${id}`, { method: "DELETE" });
+}
+
+
+// ============================================================
+// 就诊记录 API (POST body 包含 pet_id)
+// ============================================================
+
+export function fetchMedicals(petId: number) {
+  return request<any[]>(`/api/v1/health/medicals?pet_id=${petId}`);
+}
+
+export function createMedical(payload: Omit<MedicalRecord, "id" | "created_at">) {
+  return request<MedicalRecord>("/api/v1/health/medicals", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteMedical(id: number) {
+  return request<ApiResp>(`/api/v1/health/medicals/${id}`, { method: "DELETE" });
+}
+
+
+// ============================================================
+// 观察记录 API (POST body 包含 pet_id)
+// ============================================================
+
+export function fetchObservations(petId: number) {
+  return request<any[]>(`/api/v1/health/observations?pet_id=${petId}`);
+}
+
+export function createObservation(payload: Omit<ObservationRecord, "id" | "created_at">) {
+  return request<ObservationRecord>("/api/v1/health/observations", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteObservation(id: number) {
+  return request<ApiResp>(`/api/v1/health/observations/${id}`, { method: "DELETE" });
+}
+
+
+// ============================================================
+// AI 健康分析 API (基于数据库真实数据)
+// ============================================================
+
+export interface AnalysisDimension {
+  score: number;
+  detail: Record<string, any>;
+}
+
+export interface AnalysisDashboardData {
+  success: boolean;
+  pet_id: number;
+  generated_at: string;
+  overall_score: number;
+  score_grade: string;
+  dimensions: {
+    weight: AnalysisDimension;
+    diet: AnalysisDimension;
+    exercise: AnalysisDimension;
+    immunity: AnalysisDimension;
+    grooming: AnalysisDimension;
+    mental: AnalysisDimension;
+  };
+  weight_detail: {
+    status: string;
+    current_kg?: number;
+    prev_kg?: number;
+    diff_kg?: number | null;
+    trend?: string;
+    record_count: number;
+    history?: Array<{ date: string; kg: number }>;
+  };
+  vaccine_alerts: Array<{
+    id: number; name: string; type: string; last_date: string;
+    next_date: string; days_until: number; status: string; hospital?: string;
+  }>;
+  deworm_alerts: Array<{
+    id: number; name: string; type: string; last_date: string;
+    next_date: string; days_until: number; status: string;
+  }>;
+  recommendations: Array<{
+    priority: string; category: string; text: string;
+  }>;
+  data_summary: {
+    observations: number; vaccines: number; dewormings: number; checkups: number; weight_records?: number;
+  };
+  /** 核心健康指标（基于DB真实记录的客观分析） */
+  core_metrics?: {
+    cardiovascular: {
+      status: "good" | "warning" | "danger" | "no_data";
+      value: string;
+      detail: string;
+      score: number | null;
+      data_source: {
+        heart_rate?: number | null;
+        blood_pressure?: string | null;
+        respiratory_rate?: number | null;
+        record_date?: string | null;
+        cardiac_diagnoses_count?: number;
+        vitals_records_count?: number;
+      } | null;
+    };
+    temperature: {
+      status: "good" | "warning" | "danger" | "no_data";
+      value: string;
+      unit: string;
+      detail: string;
+      score: number | null;
+      last_record: string | null;
+      history_count?: number;
+    };
+    skin: {
+      status: "good" | "warning" | "danger" | "no_data";
+      value: string;
+      detail: string;
+      score: number | null;
+      source_records: number;
+      issues?: string[];
+      latest_source?: "grooming" | "observation" | null;
+    };
+    immunity: {
+      status: "good" | "warning" | "danger" | "no_data";
+      value: string;
+      detail: string;
+      score: number | null;
+      vac_count: number;
+      dew_count: number;
+      overdue_vac?: number;
+      overdue_dew?: number;
+      approaching_vac?: number;
+    };
+  };
+}
+
+/** 获取AI分析仪表盘数据（纯DB计算，真实数据） */
+export function fetchAnalysisDashboard(petId: number): Promise<AnalysisDashboardData> {
+  return request<AnalysisDashboardData>(`/api/v1/analysis/dashboard/${petId}`);
 }
