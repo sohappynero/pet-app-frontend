@@ -15,7 +15,7 @@ import {
   X,
 } from "lucide-react";
 
-import { fetchReminders } from "../lib/api";
+import { fetchReminders, getLocalToday } from "../lib/api";
 import { useShell } from "../hooks/useShell";
 import { getLocalAvatar } from "../lib/pet-avatar";
 
@@ -189,9 +189,7 @@ export default function Mine() {
 
     const run = async () => {
       const remindersResp = await fetchReminders(phone, selectedPetId ?? undefined, "pending");
-      const today = new Date().toISOString().slice(0, 10);
-      const due = (remindersResp.data || []).filter((x) => x.due_date <= today);
-      setPendingCount(due.length);
+      setPendingCount((remindersResp.data || []).length); // 统计所有 pending 状态的提醒
     };
 
     run();

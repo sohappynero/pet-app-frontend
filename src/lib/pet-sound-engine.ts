@@ -340,7 +340,7 @@ function generateFeatureSummary(features: AudioFeatures): string {
 
   if (features.avgIntensity > 0.7) parts.push("响亮");
   else if (features.avgIntensity > 0.4) parts.push("中等音量");
-  else parts.append("较轻");
+  else parts.push("较轻");
 
   if (features.frequencyVariability > 0.4) parts.push("起伏大");
   else if (features.frequencyVariability < 0.2) parts.push("平稳");

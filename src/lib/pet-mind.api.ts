@@ -1,30 +1,24 @@
 /**
  * AI 宠物心声 API 服务层
  * 提供宠物聊天、照片心声、声音翻译、人话转宠物语的 AI 服务调用
- * 优先调用后端 API (/api/v1/ai/*)，支持降级到外部 OpenAI 兼容 API 或 Mock 模式
+ * 统一走后端 API (/api/v1/ai/*)，不再支持 Mock 模式
  */
 
-import type { 
-  Pet, 
-  PetEmotion, 
-  PhotoMindResult, 
+import type {
+  Pet,
+  PetEmotion,
+  PhotoMindResult,
   VoiceTranslateResult,
   HumanToPetResult,
-  PetPersonality 
+  PetPersonality
 } from "../types";
 import { getSessionToken } from "./session";
+import { fetchWithAITimeout } from "./api";
 
 // 后端 API 基础地址（与 api.ts 保持一致）
 const envBaseUrl = (import.meta as any)?.env?.VITE_API_BASE_URL || "";
 const BACKEND_API_URL = String(envBaseUrl).replace(/\/$/, "");
-import { 
-  buildPhotoMindPrompt, 
-  buildVoiceTranslatePrompt,
-  inferPersonality,
-  mockPhotoMindResult,
-  mockVoiceTranslateResult,
-  generateInteractionSuggestions
-} from "./pet-prompt";
+import { inferPersonality } from "./pet-prompt";
 import {
   analyzeEmotion,
   generateFeaturesForEmotion,
@@ -32,77 +26,8 @@ import {
   type EmotionAnalysisResult
 } from "./pet-sound-engine";
 
-// API 配置
-const AI_CHAT_API_URL = import.meta.env.VITE_AI_CHAT_API_URL || "";
-const AI_CHAT_API_KEY = import.meta.env.VITE_AI_CHAT_API_KEY || "";
-
-// 是否使用模拟数据（无 API 配置时）
-const USE_MOCK = !AI_CHAT_API_URL || !AI_CHAT_API_KEY;
-
 // ============================================================
-// 通用 AI 调用
-// ============================================================
-
-interface AIChatRequest {
-  model?: string;
-  messages: Array<{
-    role: "system" | "user" | "assistant";
-    content: string;
-  }>;
-  temperature?: number;
-  max_tokens?: number;
-}
-
-interface AIChatResponse {
-  success: boolean;
-  content?: string;
-  error?: string;
-}
-
-/**
- * 通用 AI 对话调用
- */
-async function callAIChat(request: AIChatRequest): Promise<AIChatResponse> {
-  if (USE_MOCK) {
-    // 模拟模式，稍作延迟
-    await delay(500 + Math.random() * 1000);
-    return { success: true, content: "" };
-  }
-
-  try {
-    const response = await fetch(`${AI_CHAT_API_URL}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${AI_CHAT_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: request.model || "gpt-3.5-turbo",
-        messages: request.messages,
-        temperature: request.temperature ?? 0.8,
-        max_tokens: request.max_tokens ?? 200,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`API 调用失败: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const content = data?.choices?.[0]?.message?.content?.trim() || "";
-    
-    return { success: true, content };
-  } catch (error) {
-    console.error("AI Chat API 调用失败:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "AI 服务暂时不可用"
-    };
-  }
-}
-
-// ============================================================
-// 后端 AI 聊天接口调用（优先使用）
+// 后端 AI 聊天接口调用
 // ============================================================
 
 interface BackendChatResponse {
@@ -132,7 +57,7 @@ export async function chatWithPet(
     const token = getSessionToken();
     const url = `${BACKEND_API_URL}/api/v1/ai/chat`;
     
-    const response = await fetch(url, {
+    const response = await fetchWithAITimeout(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -159,6 +84,10 @@ export async function chatWithPet(
     return { success: false, error: data.error || "返回数据异常" };
 
   } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      console.warn("[Backend Chat] 请求超时被中断");
+      return { success: false, error: "请求超时，请重试" };
+    }
     console.error("[Backend Chat] 请求异常:", error);
     return { success: false, error: error instanceof Error ? error.message : "网络请求失败" };
   }
@@ -207,7 +136,7 @@ export interface PhotoMindRequest {
 }
 
 /**
- * 上传宠物照片，获取心声解读
+ * 上传宠物照片，获取心声解读（POST /api/v1/ai/photo-mind）
  */
 export async function fetchPhotoMind(request: PhotoMindRequest): Promise<{
   success: boolean;
@@ -216,108 +145,74 @@ export async function fetchPhotoMind(request: PhotoMindRequest): Promise<{
   error?: string;
 }> {
   const { pet, imageFile, personality: customPersonality, onProgress } = request;
-  
+
   try {
     onProgress?.("正在上传照片...");
-    
-    // 1. 上传图片到服务器（如果有后端）
-    let photoUrl = "";
+
+    // 1. 转换图片为 base64
     const imageBase64 = await fileToBase64(imageFile);
-    photoUrl = base64ToDataUrl(imageBase64);
-    
-    // 如果有后端上传接口，可以使用以下代码
-    // const uploadResp = await post<{ url: string }>("/api/upload", {
-    //   file: imageBase64,
-    //   pet_id: pet.id
-    // });
-    // photoUrl = uploadResp.data?.url || photoUrl;
-    
-    onProgress?.("正在分析照片...");
-    await delay(500);
-    
+    const photoUrl = base64ToDataUrl(imageBase64);
+
     // 2. 获取宠物性格
     const personality = customPersonality || inferPersonality(pet.species, pet.breed);
-    
-    onProgress?.("正在生成宠物心声...");
-    
-    // 3. 调用 AI 生成心声
-    const prompt = buildPhotoMindPrompt(pet, personality);
-    
-    if (USE_MOCK) {
-      // 模拟模式：使用预设模板
-      await delay(800 + Math.random() * 1200);
-      const mockResult = mockPhotoMindResult(pet, personality);
-      return {
-        success: true,
-        result: mockResult,
-        photoUrl
-      };
-    }
-    
-    const aiResponse = await callAIChat({
-      messages: [
-        { role: "system", content: "你是一个宠物心理分析师，擅长用宠物的视角解读照片。" },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.85,
-      max_tokens: 150
+
+    onProgress?.("正在分析照片...");
+
+    // 3. 调用后端 AI 接口
+    const token = getSessionToken();
+    const response = await fetchWithAITimeout(`${BACKEND_API_URL}/api/v1/ai/photo-mind`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        pet_id: pet.id,
+        image_base64: imageBase64,
+      }),
     });
-    
-    if (!aiResponse.success || !aiResponse.content) {
-      // 如果 AI 失败，使用模拟结果
-      const mockResult = mockPhotoMindResult(pet, personality);
-      return {
-        success: true,
-        result: mockResult,
-        photoUrl
-      };
+
+    if (!response.ok) {
+      const errText = await response.text().catch(() => "");
+      console.error(`[PhotoMind] 后端 API 错误 ${response.status}:`, errText);
+      return { success: false, error: `照片分析失败（HTTP ${response.status}）` };
     }
-    
-    // 4. 解析 AI 响应，生成完整结果
-    const result = parsePhotoMindResponse(aiResponse.content, personality);
-    
+
+    const data = await response.json();
+
+    if (!data.success) {
+      return { success: false, error: data.error || "后端返回异常" };
+    }
+
+    // 4. 解析后端返回的数据为标准格式
+    const result: PhotoMindResult = {
+      expression: data.expression || "眯眼微笑",
+      posture: data.posture || "趴着",
+      mood: (data.mood || "happy") as PetEmotion,
+      moodScore: data.mood_score || 0.8,
+      mindOs: data.mind_os || data.internal_thoughts || "主人拍我的时候，我正在想...",
+      humorLevel: data.humor_level || "medium",
+    };
+
     onProgress?.("解读完成！");
-    
+
     return {
       success: true,
       result,
       photoUrl
     };
-    
+
   } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      console.warn("[PhotoMind] 请求超时被中断");
+      return { success: false, error: "请求超时，请重试" };
+    }
     console.error("照片心声生成失败:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "生成失败，请重试"
     };
   }
-}
-
-/**
- * 解析 AI 响应为标准格式
- */
-function parsePhotoMindResponse(content: string, personality: PetPersonality): PhotoMindResult {
-  const lines = content.split("\n").filter(l => l.trim());
-  const osText = lines[0] || content.trim();
-  
-  // 随机生成表情和姿态
-  const expressions = ["眯眼微笑", "呆萌眨眼", "歪头卖萌", "严肃脸", "惊讶表情", "犯困打哈欠"];
-  const postures = ["趴着", "坐着", "站着", "侧躺", "四脚朝天", "蜷缩"];
-  
-  // 根据 OS 内容推断情绪
-  let mood: PetEmotion = "neutral";
-  if (osText.includes("开心") || osText.includes("好")) mood = "happy";
-  else if (osText.includes("累") || osText.includes("困")) mood = "neutral";
-  else if (osText.includes("兴奋") || osText.includes("玩")) mood = "excited";
-  
-  return {
-    expression: expressions[Math.floor(Math.random() * expressions.length)],
-    posture: postures[Math.floor(Math.random() * postures.length)],
-    mood,
-    moodScore: 0.6 + Math.random() * 0.4,
-    mindOs: osText.substring(0, 50),
-    humorLevel: Math.random() > 0.7 ? "high" : Math.random() > 0.4 ? "medium" : "low"
-  };
 }
 
 // ============================================================
@@ -332,7 +227,7 @@ export interface VoiceTranslateRequest {
 }
 
 /**
- * 上传宠物声音，获取翻译结果
+ * 上传宠物声音，获取翻译结果（POST /api/v1/ai/voice-translate）
  */
 export async function fetchVoiceTranslate(request: VoiceTranslateRequest): Promise<{
   success: boolean;
@@ -341,41 +236,33 @@ export async function fetchVoiceTranslate(request: VoiceTranslateRequest): Promi
   error?: string;
 }> {
   const { pet, audioFile, personality: customPersonality, onProgress } = request;
-  
+
   try {
     onProgress?.("正在上传音频...");
-    
+
     // 1. 验证音频文件
     const validTypes = ["audio/mpeg", "audio/wav", "audio/mp3", "audio/m4a", "audio/x-m4a", "audio/ogg"];
     if (!validTypes.some(t => audioFile.type.includes(t.split("/")[1]))) {
       return { success: false, error: "不支持的音频格式，请上传 mp3、wav 或 m4a 文件" };
     }
-    
+
     if (audioFile.size > 10 * 1024 * 1024) {
       return { success: false, error: "音频文件不能超过 10MB" };
     }
-    
-    // 2. 上传音频（实际项目中需要上传到服务器）
+
+    // 2. 创建音频 URL 用于播放
     const audioUrl = URL.createObjectURL(audioFile);
-    
+
     onProgress?.("正在分析音频...");
-    await delay(500);
-    
-    // 3. 获取宠物性格
-    const personality = customPersonality || inferPersonality(pet.species, pet.breed);
-    
-    onProgress?.("正在识别情绪...");
-    await delay(800);
-    
-    // 4. 使用情绪规则引擎分析音频
-    let emotion: PetEmotion;
-    let emotionScore: number;
-    let emotionAnalysis: EmotionAnalysisResult | null = null;
-    
+
+    // 3. 使用前端情绪引擎分析音频（保留客户端分析能力）
+    let emotion: PetEmotion = "neutral";
+    let emotionScore: number = 0.5;
+
     try {
-      // 尝试真实音频分析
       const audioFeatures = await analyzeAudioBlob(audioFile);
-      emotionAnalysis = analyzeEmotion(audioFeatures, personality);
+      const personality = customPersonality || inferPersonality(pet.species, pet.breed);
+      const emotionAnalysis = analyzeEmotion(audioFeatures, personality);
       emotion = emotionAnalysis.primaryEmotion;
       emotionScore = emotionAnalysis.confidence;
       console.log("[SoundEngine] 音频特征:", audioFeatures);
@@ -385,59 +272,117 @@ export async function fetchVoiceTranslate(request: VoiceTranslateRequest): Promi
         rules: emotionAnalysis.matchedRules
       });
     } catch (error) {
-      // 降级为模拟分析
-      console.warn("[SoundEngine] 真实音频分析失败，使用模拟数据:", error);
+      console.warn("[SoundEngine] 音频分析失败，使用默认值:", error);
       const features = generateFeaturesForEmotion("neutral");
-      emotionAnalysis = analyzeEmotion(features, personality);
+      const personality = customPersonality || inferPersonality(pet.species, pet.breed);
+      const emotionAnalysis = analyzeEmotion(features, personality);
       emotion = emotionAnalysis.primaryEmotion;
       emotionScore = emotionAnalysis.confidence;
     }
-    
-    onProgress?.("正在生成宠物语言...");
-    
-    if (USE_MOCK) {
-      await delay(1000 + Math.random() * 1000);
-      const mockResult = mockVoiceTranslateResult(pet, personality);
-      return { success: true, result: mockResult, audioUrl };
-    }
-    
-    const prompt = buildVoiceTranslatePrompt(pet, personality, emotion, emotionScore);
-    
-    const aiResponse = await callAIChat({
-      messages: [
-        { role: "system", content: "你是一个宠物语言翻译专家，能准确翻译宠物的叫声含义。" },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.85,
-      max_tokens: 100
+
+    onProgress?.("正在生成翻译...");
+
+    // 4. 调用后端 AI 接口进行翻译
+    const token = getSessionToken();
+    const response = await fetchWithAITimeout(`${BACKEND_API_URL}/api/v1/ai/voice-translate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        pet_id: pet.id,
+        emotion,
+        emotion_score: emotionScore,
+      }),
     });
-    
-    if (!aiResponse.success || !aiResponse.content) {
-      const mockResult = mockVoiceTranslateResult(pet, personality);
-      // 使用真实分析的情绪替换模拟的随机情绪
-      return {
-        success: true,
-        result: {
-          ...mockResult,
-          emotion,
-          emotionScore
-        } as VoiceTranslateResult,
-        audioUrl
-      };
+
+    if (!response.ok) {
+      const errText = await response.text().catch(() => "");
+      console.error(`[VoiceTranslate] 后端 API 错误 ${response.status}:`, errText);
+      return { success: false, error: `声音翻译失败（HTTP ${response.status}）` };
     }
-    
-    const result: VoiceTranslateResult = {
-      emotion,
-      emotionScore,
-      aiLanguage: aiResponse.content.trim().substring(0, 50),
-      suggestions: generateInteractionSuggestions(emotion, personality)
+
+    const data = await response.json();
+
+    // 详细日志：打印完整后端响应用于排查
+    console.log("[VoiceTranslate] 后端完整响应:", JSON.stringify(data, null, 2));
+
+    if (!data.success) {
+      return { success: false, error: data.error || "后端返回异常" };
+    }
+
+    // 5. 解析后端返回的数据
+    // 动态 fallback：根据情绪 + 品种生成不同默认文案（兼容多种写法）
+    const speciesLower = (pet.species || "").toLowerCase();
+    const isCat = ["cat", "猫", "猫咪", "feline"].some(s => speciesLower.includes(s));
+
+    const emotionFallbacks: Record<string, { cat: string; dog: string }> = {
+      excited: {
+        cat: "喵喵！！（尾巴竖成天线，瞳孔放大）快看我快看我！我要玩！",
+        dog: "汪汪汪！！（疯狂摇屁股扭屁股）出去玩！球球！现在！",
+      },
+      happy: {
+        cat: "呼噜噜噜~（眯眼蹭你手心）嗯...这里好暖和...再挠挠下巴...",
+        dog: "汪汪~摇得屁股都在晃！（扑上来舔脸）你回来了！最好的！",
+      },
+      hungry: {
+        cat: "喵...（蹭腿，尾巴缠住脚踝）肚子空空的...那个罐罐的味道...",
+        dog: "汪...汪...（盯着食盆流口水）肉肉...闻到了...好香...",
+      },
+      lonely: {
+        cat: "...喵？（轻轻叫一声，耳朵转来转去）好安静啊...没人陪我踩奶...",
+        dog: "...汪（趴在门口鼻子贴门缝）主人...什么时候回来...我想出门...",
+      },
+      anxious: {
+        cat: "嘶——！（炸毛后退两步）刚才那个声音是什么？！",
+        dog: "汪！汪！（竖起耳朵来回踱步）有情况！不对劲！需要确认一下！",
+      },
+      angry: {
+        cat: "哈！！（飞机耳龇牙）够了！再过来我挠你了！",
+        dog: "嗷呜——！（低吼露牙）这太过分了！我不高兴了！走开！",
+      },
+      sleepy: {
+        cat: "呵...zzZ（身子一软瘫下来，眼皮粘在一起）这个阳光...正好睡觉...",
+        dog: "呵......（打个大哈欠腿一伸趴下）困了...就在这儿眯一会儿...",
+      },
+      playful: {
+        cat: "喵!!（突然从角落扑出来咬住脚踝）抓到啦！是我的了！",
+        dog: "汪!!（原地蹦三圈高叼着球跑过来）来追我！快！我准备好了！",
+      },
+      neutral: {
+        cat: "喵？（歪头，耳朵一抖一抖）嗯？叫我吗？",
+        dog: "汪？（歪头看着，尾巴慢慢摇起来）嗯？有什么好事？",
+      },
     };
-    
+
+    const resolvedEmotion = data.emotion || emotion;
+    const fallbackSet = emotionFallbacks[resolvedEmotion] || emotionFallbacks["neutral"];
+    const aiLanguage = data.ai_language?.trim()
+      || data.suggestions?.[0]?.text
+      || (isCat ? fallbackSet.cat : fallbackSet.dog);
+
+    // 如果使用了 fallback，打印警告
+    if (!data.ai_language?.trim()) {
+      console.warn(`[VoiceTranslate] 后端 ai_language 为空，使用 ${resolvedEmotion} 情绪 fallback:`, aiLanguage);
+    }
+
+    const result: VoiceTranslateResult = {
+      emotion: resolvedEmotion,
+      emotionScore: data.emotion_score || emotionScore,
+      aiLanguage: aiLanguage,
+      suggestions: data.suggestions || [],
+    };
+
     onProgress?.("翻译完成！");
-    
+
     return { success: true, result, audioUrl };
-    
+
   } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      console.warn("[VoiceTranslate] 请求超时被中断");
+      return { success: false, error: "请求超时，请重试" };
+    }
     console.error("声音翻译失败:", error);
     return {
       success: false,
@@ -502,7 +447,7 @@ export async function translateHumanToPet(request: HumanToPetRequest): Promise<{
     const token = getSessionToken();
     const url = `${BACKEND_API_URL}/api/v1/ai/human-to-pet`;
 
-    const response = await fetch(url, {
+    const response = await fetchWithAITimeout(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -519,6 +464,14 @@ export async function translateHumanToPet(request: HumanToPetRequest): Promise<{
       const data = await response.json();
 
       if (data.success && data.pet_language) {
+        // 校验：如果后端返回的内容看起来像规则/说明文字而非翻译，走降级
+        const badPatterns = ["规则", "根据规则", "翻译成", "能理解", "拟声词", "动作描述", "保持", "直接输出", "控制"];
+        const rawLang = data.pet_language.trim();
+        if (badPatterns.some(p => rawLang.includes(p)) || rawLang.length > 50) {
+          console.warn("[HumanToPet] 后端返回疑似规则文字，使用客户端降级");
+          return fallbackHumanToPet(pet, text, onProgress);
+        }
+
         onProgress?.("翻译完成！");
         return {
           success: true,
@@ -537,6 +490,10 @@ export async function translateHumanToPet(request: HumanToPetRequest): Promise<{
     return fallbackHumanToPet(pet, text, onProgress);
 
   } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      console.warn("[HumanToPet] 请求超时被中断，使用降级");
+      return fallbackHumanToPet(pet, text, onProgress);
+    }
     console.error("[HumanToPet] 请求异常:", error);
     // 网络错误时也使用降级策略
     return fallbackHumanToPet(pet, text, onProgress);
@@ -553,9 +510,9 @@ function fallbackHumanToPet(
 ): { success: true; result: HumanToPetResult } {
   onProgress?.("使用本地翻译规则...");
 
-  // 兼容中英文品种标识：猫/cat → isCat, 犬/dog/其他 → isDog
+  // 兼容中英文品种标识（统一判断）
   const speciesLower = (pet.species || "").toLowerCase();
-  const isCat = speciesLower === "猫" || speciesLower === "cat";
+  const isCat = ["cat", "猫", "猫咪", "feline"].some(s => speciesLower.includes(s));
   const call = isCat ? "喵" : "汪";
   const lowerText = text.toLowerCase();
 

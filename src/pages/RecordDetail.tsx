@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   Activity,
   ArrowLeft,
@@ -22,7 +22,7 @@ import {
   UserCheck,
   XCircle,
 } from "lucide-react";
-import { fetchRecords } from "../lib/api";
+import { fetchRecords, fetchWeights, fetchFeedings, fetchGroomings } from "../lib/api";
 import { useShell } from "../hooks/useShell";
 import type { HealthRecord } from "../types";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
@@ -69,6 +69,12 @@ function getRecordTypeInfo(record: HealthRecord): IconInfo {
     return { icon: <Sparkles size={24} />, bg: "#fff0f5", color: "#fd79a8", gradient: "linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%)", label: "美容医护" };
   if (record.record_type === "visit")
     return { icon: <Activity size={24} />, bg: "#fef0e8", color: "#e17055", gradient: "linear-gradient(135deg, #e17055 0%, #f6b93b 100%)", label: "就诊记录" };
+  if (record.record_type === "weight")
+    return { icon: <Scale size={24} />, bg: "#fef9e7", color: "#f0932b", gradient: "linear-gradient(135deg, #f9ca24 0%, #f0932b 100%)", label: "体重记录" };
+  if (record.record_type === "diet" || isDietRecord(record))
+    return { icon: <Heart size={24} />, bg: "#e8f8f0", color: "#00b894", gradient: "linear-gradient(135deg, #00b894 0%, #55efc4 100%)", label: "饮食记录" };
+  if (record.record_type === "external")
+    return { icon: <FileText size={24} />, bg: "#fef9e7", color: "#e17055", gradient: "linear-gradient(135deg, #fdcb6e 0%, #e17055 100%)", label: "外部记录" };
   if (record.weight_kg !== null && !Number.isNaN(Number(record.weight_kg)))
     return { icon: <Scale size={24} />, bg: "#fef9e7", color: "#f0932b", gradient: "linear-gradient(135deg, #f9ca24 0%, #f0932b 100%)", label: "体重记录" };
   if (isDietRecord(record))
@@ -136,8 +142,10 @@ function formatDateTime(dateStr: string): string {
 export default function RecordDetail() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const recordTypeFromUrl = searchParams.get("type") as RecordType | null; // 从URL获取记录类型
   const { phone, pets, selectedPetId } = useShell();
-  
+
   const [record, setRecord] = useState<HealthRecord | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -153,17 +161,107 @@ export default function RecordDetail() {
     return local ? { ...currentPet, image_url: local } : currentPet;
   }, [currentPet]);
 
-  // 加载记录详情
+  // 加载记录详情 — 根据 type 参数从正确的表查询
   useEffect(() => {
     if (!id) return;
+    const targetId = Number(id);
     setLoading(true);
-    fetchRecords(phone)
-      .then((res) => {
-        const found = (res.data || []).find((r: HealthRecord) => r.id === Number(id));
-        setRecord(found || null);
-      })
-      .finally(() => setLoading(false));
-  }, [id, phone]);
+
+    const petId = selectedPetId ?? (pets.length > 0 ? pets[0].id : null);
+
+    // 根据类型决定查询哪个表
+    const type = recordTypeFromUrl;
+
+    if (type === "weight" && petId) {
+      // 体重记录 → 查 pet_weight_records 表
+      fetchWeights(petId)
+        .then((res) => {
+          const found = (Array.isArray(res) ? res : []).find((r: any) => r.id === targetId);
+          if (found) {
+            const rawNotes = found.notes || "";
+            setRecord({
+              ...found,
+              record_type: "weight",
+              title: "体重记录",
+              note: rawNotes,
+              // 保存原始称重数据供详细信息区使用
+              _rawWeighingDevice: found.weighing_device || "",
+              _rawMeasurementContext: found.measurement_context || "",
+            } as HealthRecord);
+          } else {
+            setRecord(null);
+          }
+        })
+        .finally(() => setLoading(false));
+    } else if (type === "diet" && petId) {
+      // 饮食记录 → 查 pet_feeding_records 表
+      fetchFeedings(petId)
+        .then((res) => {
+          const found = (Array.isArray(res) ? res : []).find((r: any) => r.id === targetId);
+          if (found) {
+            setRecord({
+              ...found,
+              record_type: "diet",
+              record_date: found.feeding_date ? String(found.feeding_date).slice(0, 10) : "",
+              title: "饮食记录",
+              hospital: "",
+              cost: null,
+              weight_kg: null,
+              mood: "",
+              appetite: found.main_food_amount != null ? `${found.main_food_amount}g` : "",
+              note: found.notes || `${found.main_food_type || ''}${found.main_food_amount ? ` ${found.main_food_amount}g` : ''}`,
+              images: found.photo_urls || [],
+              // 保存原始食物数据供详细信息区使用
+              _rawFoodType: found.main_food_type || "",
+              _rawFoodAmount: found.main_food_amount ?? null,
+            } as HealthRecord);
+          } else {
+            setRecord(null);
+          }
+        })
+        .finally(() => setLoading(false));
+    } else if ((type === "beauty" || type === "grooming") && petId) {
+      // 美容记录 → 查 pet_grooming_records 表
+      fetchGroomings(petId)
+        .then((res) => {
+          const found = (Array.isArray(res) ? res : []).find((r: any) => r.id === targetId);
+          if (found) {
+            setRecord({
+              ...found,
+              id: found.id,
+              record_type: "beauty",
+              record_date: found.grooming_date ? String(found.grooming_date).slice(0, 10) : "",
+              title: found.services_performed?.length ? String(found.services_performed[0]) : "美容护理",
+              hospital: found.provider_name || "",
+              cost: found.cost ?? null,
+              note: found.notes || "",
+              images: found.before_photos || [],
+            } as HealthRecord);
+          } else {
+            setRecord(null);
+          }
+        })
+        .finally(() => setLoading(false));
+    } else {
+      // 其他类型（vaccine/deworm/checkup/visit/observation）→ 查通用 health_records 表
+      fetchRecords(phone)
+        .then((res) => {
+          const found = (res.data || []).find((r: HealthRecord) => r.id === targetId);
+          setRecord(found || null);
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [id, phone, recordTypeFromUrl, selectedPetId, pets]);
+
+  // 安全处理 images 字段：后端可能返回JSON字符串而非数组（必须在条件返回之前，遵守Hooks规则）
+  const safeImages = useMemo((): string[] => {
+    const raw = record?.images;
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw === "string" && raw.trim()) {
+      try { return JSON.parse(raw); } catch { return []; }
+    }
+    return [];
+  }, [record?.images]);
 
   if (loading) {
     return (
@@ -218,7 +316,7 @@ export default function RecordDetail() {
               <button 
                 type="button" 
                 className="rd-action-btn rd-edit-btn"
-                onClick={() => navigate(`/app/add-record?edit=${record.id}`)}
+                onClick={() => navigate(`/app/add-record?edit=${record.id}&type=${record.record_type}`)}
                 title="编辑记录"
               >
                 <Edit3 size={18} />
@@ -236,7 +334,7 @@ export default function RecordDetail() {
           </div>
 
           <h1 className="rd-title">
-            {record.title || getRecordTitle(record)}
+            {typeInfo.label}
           </h1>
 
           <div className="rd-date-row">
@@ -385,6 +483,85 @@ export default function RecordDetail() {
               </>
             )}
 
+            {/* ══ 饮食记录专用字段 ══ */}
+            {(record.record_type === "diet" || isDietRecord(record)) && (
+              <>
+                {/* 食物类型 */}
+                {(record as any)._rawFoodType && (
+                  <DetailField
+                    icon={<Heart size={16} />}
+                    label="食物类型"
+                    value={(record as any)._rawFoodType}
+                    color="#00b894"
+                  />
+                )}
+                {/* 喂食量 */}
+                {record.appetite?.trim() && (
+                  <DetailField
+                    icon={<Heart size={16} />}
+                    label="喂食量"
+                    value={record.appetite}
+                    color="#55efc4"
+                  />
+                )}
+                {/* 食欲状态（从 note 提取） */}
+                {record.note?.match(/(正常|良好|较差|旺盛|下降)/) && (() => {
+                  const m = record.note.match(/(正常|良好|较差|旺盛|下降)/);
+                  return m ? (
+                    <DetailField
+                      icon={<Droplet size={16} />}
+                      label="食欲状态"
+                      value={m[1]}
+                      color="#00cec9"
+                    />
+                  ) : null;
+                })()}
+              </>
+            )}
+
+            {/* ══ 体重记录专用字段 ══ */}
+            {record.record_type === "weight" && (
+              <>
+                {/* 体重值 — 大字强调显示 */}
+                {record.weight_kg != null && !Number.isNaN(Number(record.weight_kg)) && (
+                  <DetailField
+                    icon={<Scale size={16} />}
+                    label="体重值"
+                    value={`${Number(record.weight_kg).toFixed(1)} kg`}
+                    color="#f0932b"
+                    fullWidth
+                  />
+                )}
+                {/* 称重设备/方式 */}
+                {(record as any)._rawWeighingDevice && (
+                  <DetailField
+                    icon={<Activity size={16} />}
+                    label="称重设备"
+                    value={(record as any)._rawWeighingDevice}
+                    color="#e17055"
+                  />
+                )}
+                {/* 测量上下文（如"空腹"、"晨起称重"）— 从 notes 或 measurement_context 提取 */}
+                {(() => {
+                  const ctx = (record as any)._rawMeasurementContext || "";
+                  const notes = record.note || "";
+                  // 如果 notes 不是自动模板，则显示为测量备注
+                  const autoTemplate = new RegExp(`^体重\\s+${record.weight_kg}`);
+                  const userNote = !autoTemplate.test(notes) ? notes.split('\n')[0].trim() : "";
+                  const displayText = userNote || ctx;
+                  return displayText ? (
+                    <DetailField
+                      icon={<Star size={16} />}
+                      label="测量备注"
+                      value={displayText}
+                      color="#fdcb6e"
+                      fullWidth
+                    />
+                  ) : null;
+                })()}
+              </>
+            )}
+
             {/* ══ 观察记录专用字段 ══ */}
             {record.record_type === "observation" && (
               <>
@@ -449,8 +626,8 @@ export default function RecordDetail() {
               />
             )}
 
-            {/* 体重 */}
-            {record.weight_kg != null && !Number.isNaN(Number(record.weight_kg)) && (
+            {/* 体重 — 仅非 weight 类型显示（weight 已在专用区域显示） */}
+            {record.weight_kg != null && !Number.isNaN(Number(record.weight_kg)) && record.record_type !== "weight" && (
               <DetailField
                 icon={<Scale size={16} />}
                 label="体重"
@@ -459,8 +636,8 @@ export default function RecordDetail() {
               />
             )}
 
-            {/* 心情状态 - 仅观察记录显示 */}
-            {record.mood?.trim() && record.record_type === "observation" && (
+            {/* 心情状态 - 观察记录和体重记录显示 */}
+            {record.mood?.trim() && (record.record_type === "observation" || record.record_type === "weight") && (
               <DetailField
                 icon={<Heart size={16} />}
                 label="精神状态"
@@ -476,8 +653,8 @@ export default function RecordDetail() {
               />
             )}
 
-            {/* 食欲状况 - 仅观察记录显示 */}
-            {record.appetite?.trim() && record.record_type === "observation" && (
+            {/* 食欲状况 - 观察记录、体重和饮食记录显示 */}
+            {record.appetite?.trim() && (record.record_type === "observation" || record.record_type === "weight" || record.record_type === "diet") && (
               <DetailField
                 icon={<Heart size={16} />}
                 label="食欲状况"
@@ -494,14 +671,14 @@ export default function RecordDetail() {
             )}
 
             {/* ══ 图片附件展示 ══ */}
-            {record.images && record.images.length > 0 && (
+            {safeImages.length > 0 && (
               <div className="rd-images-section">
                 <div className="rd-images-header">
                   <Camera size={14} />
-                  <span>图片附件 ({record.images.length})</span>
+                  <span>图片附件 ({safeImages.length})</span>
                 </div>
                 <div className="rd-images-grid">
-                  {record.images.map((imgUrl: string, idx: number) => (
+                  {safeImages.map((imgUrl: string, idx: number) => (
                     <div key={idx} className="rd-image-item">
                       <a href={imgUrl} target="_blank" rel="noopener noreferrer">
                         <img src={imgUrl} alt={`附件${idx + 1}`} onError={(e) => {
@@ -533,18 +710,32 @@ export default function RecordDetail() {
             )}
           </div>
 
-          {/* 备注 - 始终显示在最底部 */}
-          {(record.note?.trim()) && (
-            <div className="rd-note-section">
-              <div className="rd-note-header">
-                <FileText size={14} />
-                <span>备注信息</span>
+          {/* 备注 - 仅显示用户真实填写的备注，过滤自动生成的模板 */}
+          {(() => {
+            const rawNote = record.note?.trim() || "";
+            if (!rawNote) return null;
+            // 过滤自动生成的模板备注（非用户真实输入）
+            // 体重模板: "体重 X.Xkg" 或 "体重 X.Xkg (xxx)"
+            if (record.record_type === "weight" && new RegExp(`^体重\\s+${record.weight_kg}kg`).test(rawNote)) return null;
+            // 饮食模板: "牛肉3000g" / "饮食记录：牛肉3000g 正常"
+            if (record.record_type === "diet") {
+              // 如果 note 完全等于食物名+数量（自动生成），则不显示
+              const foodTemplate = `${(record as any)._rawFoodType || ''}${(record as any)._rawFoodAmount ? ` ${(record as any)._rawFoodAmount}g` : ''}`;
+              if (rawNote === foodTemplate || rawNote.startsWith(`饮食记录：`)) return null;
+            }
+            // 有真实内容才渲染
+            return (
+              <div className="rd-note-section">
+                <div className="rd-note-header">
+                  <FileText size={14} />
+                  <span>备注信息</span>
+                </div>
+                <div className="rd-note-content">
+                  {parseBeautyNote(record.note)}
+                </div>
               </div>
-              <div className="rd-note-content">
-                {parseBeautyNote(record.note)}
-              </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </section>
 
@@ -553,7 +744,7 @@ export default function RecordDetail() {
         <button
           type="button"
           className="rd-primary-btn"
-          onClick={() => navigate(`/app/add-record?edit=${record!.id}`)}
+          onClick={() => navigate(`/app/add-record?edit=${record!.id}&type=${record!.record_type}`)}
         >
           <Edit3 size={18} />
           <span>编辑此记录</span>
@@ -577,7 +768,12 @@ function getRecordTitle(record: HealthRecord): string {
     visit: "就诊记录",
     beauty: "美容护理",
     observation: "日常观察",
+    weight: "体重记录",
+    diet: "饮食记录",
   };
+  // 体重/饮食类型优先显示
+  if (record.record_type === "weight") return record.title || `体重 ${record.weight_kg}kg`;
+  if (record.record_type === "diet") return record.title || "饮食记录";
   return map[record.record_type] || "健康记录";
 }
 

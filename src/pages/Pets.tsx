@@ -16,7 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { useShell } from "../hooks/useShell";
-import { fetchReminders, fetchRecords } from "../lib/api";
+import { fetchReminders, fetchRecords, fetchWeights, getLocalToday, fetchAnalysisDashboard } from "../lib/api";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
 import { Generate3DButton } from "../components/Pet3DAvatarGenerator";
 import { handleAvatarUpload as unifiedHandleUpload, getLocalAvatar, handleAvatarFileUpload, clearLocalAvatar } from "../lib/pet-avatar";
@@ -67,6 +67,7 @@ export default function Pets() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [weightRecords, setWeightRecords] = useState(0);
   const [healthScore, setHealthScore] = useState(0);
+  const [scoreGrade, setScoreGrade] = useState("");
 
   const currentPet = useMemo(() => selectedPet || pets[0] || null, [selectedPet, pets]);
 
@@ -99,36 +100,50 @@ export default function Pets() {
     const run = async () => {
       try {
         const remindersResp = await fetchReminders(phone, currentPet.id, "pending");
-        const today = new Date().toISOString().slice(0, 10);
-        const due = (remindersResp.data || []).filter((x: any) => x.due_date <= today);
-        setPendingCount(due.length);
+        setPendingCount((remindersResp.data || []).length); // 统计所有 pending 状态的提醒
       } catch { /* ignore */ }
     };
     run();
   }, [phone, currentPet?.id]);
 
-  // 获取健康概览统计数据（总记录数、体重记录、健康评分）
+  // 获取健康概览统计数据（总记录数、体重记录[pet_weight_records表]、健康评分）
   useEffect(() => {
     if (!currentPet || !phone) return;
     const run = async () => {
+      // 总记录数
       try {
         const resp = await fetchRecords(phone, currentPet.id, "all");
-        const records: any[] = resp.data || [];
-        setTotalRecords(records.length);
-        // 统计体重记录（observation 类型中包含 weight_kg 字段的）
-        const weightCount = records.filter(
-          (r) => r.weight_kg != null && String(r.weight_kg).trim() !== ""
-        ).length;
-        setWeightRecords(weightCount);
-        // 简单健康评分算法：基础60分 + 记录数量加权 + 多样性加成
-        if (records.length === 0) { setHealthScore(0); return; }
-        let score = 60;
-        score = Math.min(100, score + Math.min(20, records.length * 2));
-        const types = new Set(records.map((r: any) => r.record_type || r.type));
-        score = Math.min(100, score + (types.size - 1) * 5);
-        if (weightCount > 0) score = Math.min(100, score + 5);
-        setHealthScore(score);
+        setTotalRecords(resp.data?.length || 0);
       } catch { /* ignore */ }
+
+      // 体重数据：使用独立的 pet_weight_records 表（fetchWeights API）
+      try {
+        const wResp = await fetchWeights(currentPet.id);
+        const wList: any[] = wResp?.data || wResp || [];
+        setWeightRecords(wList.length);
+      } catch { /* weight 获取失败不影响其他统计 */ }
+
+      // ★ 健康评分：优先使用后端6维度加权评分引擎
+      try {
+        const analysisData = await fetchAnalysisDashboard(currentPet.id);
+        setHealthScore(analysisData.overall_score || 0);
+        setScoreGrade(analysisData.score_grade || "");
+      } catch {
+        // 降级兜底：后端不可用时使用前端简单算法
+        try {
+          const resp = await fetchRecords(phone, currentPet.id, "all");
+          const records: any[] = resp.data || [];
+          if (records.length === 0) { setHealthScore(0); return; }
+          let score = 60;
+          score = Math.min(100, score + Math.min(20, records.length * 2));
+          const types = new Set(records.map((r: any) => r.record_type || r.type));
+          score = Math.min(100, score + (types.size - 1) * 5);
+          // 有体重记录时加分
+          if (weightRecords > 0) score = Math.min(100, score + 5);
+          setHealthScore(score);
+          setScoreGrade("");
+        } catch { /* ignore */ }
+      }
     };
     run();
   }, [phone, currentPet?.id]);
@@ -330,7 +345,7 @@ export default function Pets() {
         </div>
         
         <div className="ph3d-quick-grid">
-          <button type="button" className="ph3d-quick-item" onClick={() => navigate(`/app/add-record?type=observation&default_title=体重记录&pet_id=${currentPet?.id}`)}>
+          <button type="button" className="ph3d-quick-item" onClick={() => navigate(`/app/add-record?type=weight&pet_id=${currentPet?.id}`)}>
             <div className="ph3d-quick-icon ph3d-qi-weight">⚖️</div>
             <div className="ph3d-quick-text">
               <strong>体重记录</strong>
@@ -366,7 +381,7 @@ export default function Pets() {
             <ChevronRight size={14} className="ph3d-arrow" />
           </button>
 
-          <button type="button" className="ph3d-quick-item" onClick={() => navigate(`/app/add-record?type=observation&default_title=饮食记录&pet_id=${currentPet?.id}`)}>
+          <button type="button" className="ph3d-quick-item" onClick={() => navigate(`/app/add-record?type=diet&pet_id=${currentPet?.id}`)}>
             <div className="ph3d-quick-icon ph3d-qi-diet">🍖</div>
             <div className="ph3d-quick-text">
               <strong>饮食记录</strong>
@@ -380,6 +395,15 @@ export default function Pets() {
             <div className="ph3d-quick-text">
               <strong>美容医护</strong>
               <span>日常护理记录</span>
+            </div>
+            <ChevronRight size={14} className="ph3d-arrow" />
+          </button>
+
+          <button type="button" className="ph3d-quick-item" onClick={() => navigate(`/app/add-record?type=observation&pet_id=${currentPet?.id}`)}>
+            <div className="ph3d-quick-icon ph3d-qi-obs">💚</div>
+            <div className="ph3d-quick-text">
+              <strong>日常观察</strong>
+              <span>记录生活状态与健康观察</span>
             </div>
             <ChevronRight size={14} className="ph3d-arrow" />
           </button>

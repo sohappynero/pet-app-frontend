@@ -18,9 +18,14 @@ import {
   TrendingUp,
   Minus,
 } from "lucide-react";
-import { fetchRecords } from "../lib/api";
+import { 
+  fetchGroomings, fetchWeights, fetchFeedings,
+  fetchDewormings, fetchVaccines, fetchCheckups, fetchMedicals,
+  getLocalToday 
+} from "../lib/api";
+import type { FeedingRecord } from "../types";
 import { useShell } from "../hooks/useShell";
-import type { HealthRecord, RecordType } from "../types";
+import type { GroomingRecord, HealthRecord, RecordType, WeightRecord } from "../types";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
 import { getLocalAvatar } from "../lib/pet-avatar";
 
@@ -65,86 +70,115 @@ function isBeautyRecord(record: HealthRecord) {
 }
 
 function getRecordTitle(record: HealthRecord) {
-  if (record.title?.trim()) return record.title;
-  // 🔧 修复：优先识别美容记录（beauty数据存入observation表，但应显示为"美容护理"）
+  // 统一显示类型名称作为标题（与体重记录一致），不使用原始 record.title
   if (isBeautyRecord(record)) return "美容护理";
   const map: Record<string, string> = {
     vaccine: "疫苗接种",
-    deworm: "驱虫记录",
+    deworm: "驱虫护理",
     checkup: "体检记录",
     visit: "就诊记录",
     beauty: "美容护理",
     observation: "日常观察",
+    external: "外部记录",
+    weight: "体重记录",
+    diet: "饮食记录",
   };
   return map[record.record_type] || "健康记录";
 }
 
 function getRecordSub(record: HealthRecord) {
-  // 🔧 优化：按记录类型返回更有意义的摘要信息，过滤无意义的数字/ID
+  // 统一副标题逻辑：备注(note) 优先，没有再显示其他字段（与体重记录一致）
   
-  // 工具函数：判断文本是否有意义（不是纯数字或短ID）
+  // 工具函数：判断文本是否有意义（不是纯数字/ID/无意义关键字）
   const isMeaningfulText = (text?: string | null): boolean => {
     if (!text || !text.trim()) return false;
     const trimmed = text.trim();
-    // 过滤纯数字、短数字ID（1-3位）
     if (/^\d{1,3}$/.test(trimmed)) return false;
-    // 过滤 "机构:11" 这种格式中的数字部分
     if (/^机构:\s*\d+$/.test(trimmed)) return false;
-    // 过滤 "费用:0元|费用:11元" 但保留有意义的内容
     if (/^(费用|机构):\s*\d+(元)?$/.test(trimmed)) return false;
+    // 过滤无意义关键字及 "external · 数字" 格式
+    if (/^(external|internal|raw)$/i.test(trimmed)) return false;
+    // 用更宽泛的匹配：包含 external/internal 后跟数字/符号就过滤
+    if (/^(external|internal)\s*[\s·\-:_]\s*\d+/i.test(trimmed)) return false;
+    // 过滤与类型名完全相同的内容（避免副标题重复标题）
+    const typeLabels = ["疫苗接种", "驱虫护理", "体检记录", "就诊记录",
+      "美容护理", "日常观察", "外部记录", "体重记录", "饮食记录"];
+    if (typeLabels.includes(trimmed)) return false;
     return true;
   };
 
-  // 美容记录特殊处理：解析结构化notes
+  // ══════════════════════════
+  // 第1优先级：体重记录（特殊逻辑：重量值或自定义备注）
+  // ══════════════════════════
+  if (record.weight_kg !== null && !Number.isNaN(Number(record.weight_kg))
+      && record.record_type !== "beauty" && !isBeautyRecord(record) && !isDietRecord(record)) {
+    const notes = record.note || "";
+    const autoTemplate = new RegExp(`^体重\\s+${record.weight_kg}kg`);
+    if (notes && !autoTemplate.test(notes) && isMeaningfulText(notes))
+      return notes.split('\n')[0].trim();
+    return `${Number(record.weight_kg).toFixed(1)}kg`;
+  }
+
+  // ══════════════════════════
+  // 第2优先级：饮食记录（解析食物+数量）
+  // ══════════════════════════
+  if (isDietRecord(record)) {
+    const parts: string[] = [];
+    if (record.note) {
+      const foodMatch = record.note.match(/^([^\d]+)/);
+      if (foodMatch && foodMatch[1].trim()) parts.push(foodMatch[1].trim());
+    }
+    if (record.appetite) parts.push(record.appetite);
+    return parts.length > 0 ? parts.join(" ") : "";
+  }
+
+  // ══════════════════════════
+  // 第3优先级：美容记录（解析 [美容] 结构化 notes）
+  // ══════════════════════════
   if (record.record_type === "beauty" || isBeautyRecord(record)) {
-    // 从 notes 中提取服务项目名称（[美容] 后面的第一个内容）
     if (record.note?.includes("[美容]")) {
       const match = record.note.match(/\[美容\]\s*(.+?)(?:\s*[\|]|$)/);
       if (match && isMeaningfulText(match[1])) return match[1].trim();
     }
     if (isMeaningfulText(record.hospital)) return record.hospital!.trim();
-    return "美容护理";  // 兜底显示友好文案
+    return "美容护理";
   }
-  
-  // 驱虫记录
-  if (record.record_type === "deworm") {
-    if (record.deworm_type && isMeaningfulText(record.hospital)) 
-      return `${record.deworm_type} · ${record.hospital!.trim()}`;
-    if (record.deworm_type) return `${record.deworm_type}护理`;
-    if (isMeaningfulText(record.hospital)) return record.hospital!.trim();
-    return "驱虫护理";
+
+  // ══════════════════════════
+  // 通用逻辑：所有其他类型统一为 note → hospital → symptom → ...
+  // ══════════════════════════
+
+  // 统一第1优先级：备注(note)
+  if (isMeaningfulText(record.note)) {
+    const sub = record.note!.split('\n')[0].trim();
+    // 驱虫记录：如果 note 是驱虫类型名，拼接医院信息
+    if (record.record_type === "deworm" && record.deworm_type && sub === record.deworm_type) {
+      if (isMeaningfulText(record.hospital)) return `${sub} · ${record.hospital!.trim()}`;
+    }
+    return sub;
   }
-  
-  // 疫苗记录
-  if (record.record_type === "vaccine") {
-    if (isMeaningfulText(record.hospital)) return record.hospital!.trim();
-    // 尝试从title提取有用信息
-    if (isMeaningfulText(record.title)) return record.title!;
-    return "";  // 不显示无意义的内容
+
+  // 第2优先级：医院/机构(hospital)
+  if (isMeaningfulText(record.hospital)) {
+    const h = record.hospital!.trim();
+    // 驱虫记录加前缀
+    if (record.record_type === "deworm" && record.deworm_type)
+      return `${record.deworm_type} · ${h}`;
+    return h;
   }
-  
-  // 就诊记录
-  if (record.record_type === "visit") {
-    if (isMeaningfulText(record.hospital)) return record.hospital!.trim();
-    if (isMeaningfulText(record.symptom)) return record.symptom!.trim();
-    if (isMeaningfulText(record.treatment)) return record.treatment!.split("\n")[0];
-    return "";
-  }
-  
-  // 体检记录
-  if (record.record_type === "checkup") {
-    if (record.medical_result && isMeaningfulText(record.medical_result)) 
-      return record.medical_result.split("\n")[0];
-    if (isMeaningfulText(record.hospital)) return record.hospital!.trim();
-    if (isMeaningfulText(record.note)) return record.note!.split("\n")[0];
-    return "";
-  }
-  
-  // 默认逻辑：observation等
-  if (isMeaningfulText(record.note)) return record.note!.split("\n")[0];
-  if (isMeaningfulText(record.hospital)) return record.hospital!.trim();
+
+  // 第3优先级：按类型显示特定字段
+  if (record.record_type === "deworm" && record.deworm_type)
+    return `${record.deworm_type}护理`;
+  if (record.medical_result && isMeaningfulText(record.medical_result))
+    return record.medical_result.split("\n")[0];
+  if (isMeaningfulText(record.symptom)) return record.symptom!.trim();
+  if (isMeaningfulText(record.treatment)) return record.treatment!.split("\n")[0];
+
+  // 兜底：有 weight 但前面没匹配到
   if (record.weight_kg != null && !Number.isNaN(Number(record.weight_kg)))
-    return `${Number(record.weight_kg).toFixed(1)} kg`;
+    return `${Number(record.weight_kg).toFixed(1)}kg`;
+
   return "";
 }
 
@@ -168,6 +202,8 @@ function getIconInfo(record: HealthRecord): IconInfo {
     return { icon: <Heart size={20} />, bg: "#e8f8f0", color: "#00b894", gradient: "linear-gradient(135deg, #00b894 0%, #55efc4 100%)" };
   if (record.record_type === "observation")
     return { icon: <Heart size={20} />, bg: "#e8f8f0", color: "#00b894", gradient: "linear-gradient(135deg, #00cec9 0%, #81ecec 100%)" };
+  if (record.record_type === "external")
+    return { icon: <FileText size={20} />, bg: "#fef9e7", color: "#e17055", gradient: "linear-gradient(135deg, #fdcb6e 0%, #e17055 100%)" };
   return { icon: <FileText size={20} />, bg: "#f5f0eb", color: "#8b7355", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" };
 }
 
@@ -192,8 +228,140 @@ export default function Records() {
 
   useEffect(() => {
     setLoading(true);
-    fetchRecords(phone, selectedPetId ?? undefined, "all")
-      .then((res) => setRecords(res.data || []))
+    const petId = selectedPetId ?? undefined;
+    // 加载所有专用表数据（美容 + 体重 + 饮食 + 驱虫 + 疫苗 + 体检 + 就诊）
+    Promise.all([
+      petId ? fetchGroomings(petId).catch(() => []) : Promise.resolve([]),
+      petId ? fetchWeights(petId).catch(() => []) : Promise.resolve([]),
+      petId ? fetchFeedings(petId).catch(() => []) : Promise.resolve([]),
+      petId ? fetchDewormings(petId).catch(() => []) : Promise.resolve([]),
+      petId ? fetchVaccines(petId).catch(() => []) : Promise.resolve([]),
+      petId ? fetchCheckups(petId).catch(() => []) : Promise.resolve([]),
+      petId ? fetchMedicals(petId).catch(() => []) : Promise.resolve([]),
+    ])
+      .then(([groomingRecsRaw, weightRecsRaw, feedingRecsRaw, dewormRecsRaw, vaccineRecsRaw, checkupRecsRaw, medicalRecsRaw]) => {
+        // 统一解构：疫苗API返回分页对象{list}，其余返回裸数组
+        const groomingRecs = Array.isArray(groomingRecsRaw) ? groomingRecsRaw : [];
+        const weightRecs = Array.isArray(weightRecsRaw) ? weightRecsRaw : [];
+        const feedingRecs = Array.isArray(feedingRecsRaw) ? feedingRecsRaw : [];
+        const dewormRecs = Array.isArray(dewormRecsRaw) ? dewormRecsRaw : [];
+        // 疫苗API返回 PagedVaccineRecords = {total, list, page, page_size}
+        const vaccineRecs = Array.isArray(vaccineRecsRaw)
+          ? vaccineRecsRaw
+          : ((vaccineRecsRaw && vaccineRecsRaw.list) ? vaccineRecsRaw.list : []);
+        const checkupRecs = Array.isArray(checkupRecsRaw) ? checkupRecsRaw : [];
+        const medicalRecs = Array.isArray(medicalRecsRaw) ? medicalRecsRaw : [];
+        // 1. 映射 GroomingRecord → HealthRecord
+        const groomings: HealthRecord[] = (groomingRecs as GroomingRecord[]).map((g) => ({
+          id: g.id,
+          record_type: "beauty" as RecordType,
+          record_date: g.grooming_date ? String(g.grooming_date).slice(0, 10) : getLocalToday(),
+          title: g.services_performed?.length ? String(g.services_performed[0]) : "美容护理",
+          hospital: g.provider_name || "",
+          doctor: "", symptom: "", treatment: "",
+          cost: g.cost ?? null,
+          weight_kg: null, mood: "", appetite: "",
+          note: g.notes || `${g.provider_name || "美容机构"} | ${g.cost ? g.cost + "元" : ""}`,
+          images: g.before_photos || [],
+        }));
+
+        // 2. 映射 WeightRecord → HealthRecord
+        // 标题固定为"体重记录"，用户自定义标题（如"空腹"）显示在副标题行
+        const weights: HealthRecord[] = (weightRecs as WeightRecord[]).map((w) => ({
+          id: w.id,
+          record_type: "weight" as RecordType,
+          record_date: w.record_date || getLocalToday(),
+          title: "体重记录",
+          hospital: w.weighing_device || "",
+          doctor: "", symptom: "", treatment: "",
+          cost: null,
+          weight_kg: Number(w.weight_kg),
+          mood: "", appetite: "",
+          note: w.notes || `体重 ${w.weight_kg}kg${w.measurement_context ? ` (${w.measurement_context})` : ""}`,
+          images: w.photo_urls || [],
+        }));
+
+        // 3. 映射 FeedingRecord → HealthRecord（diet 类型）
+        // 标题固定为"饮食记录"，食物名+数量显示在副标题行
+        const feedings: HealthRecord[] = (feedingRecs as FeedingRecord[]).map((f) => ({
+          id: f.id,
+          record_type: "diet" as RecordType,
+          record_date: f.feeding_date ? String(f.feeding_date).slice(0, 10) : getLocalToday(),
+          title: "饮食记录",
+          hospital: "",
+          doctor: "", symptom: "", treatment: "",
+          cost: null,
+          weight_kg: null, mood: "", appetite: f.main_food_amount ? String(f.main_food_amount) + 'g' : "",
+          note: f.notes || `${f.main_food_type || ''}${f.main_food_amount ? ` ${f.main_food_amount}g` : ''}`,
+          images: f.photo_urls || [],
+        }));
+
+        // 4. 映射 DewormingRecord → HealthRecord（deworm 类型）
+        const dewormings: HealthRecord[] = (dewormRecs as any[]).map((d) => ({
+          id: d.id,
+          record_type: "deworm" as RecordType,
+          record_date: d.deworming_date ? String(d.deworming_date).slice(0, 10) : getLocalToday(),
+          title: d.medication_name || "驱虫记录",
+          hospital: d.pet_hospital || "",
+          doctor: "",
+          deworm_type: d.deworming_type || "",
+          symptom: "", treatment: "",
+          cost: d.cost ?? null,
+          weight_kg: null, mood: "", appetite: "",
+          note: d.notes || `${d.medication_name || '驱虫'}${d.pet_hospital ? ` | ${d.pet_hospital}` : ''}${d.cost ? ` | ${d.cost}元` : ''}`,
+          images: d.photo_urls || [],
+        }));
+
+        // 5. 映射 VaccineRecord → HealthRecord（vaccine 类型）
+        const vaccines: HealthRecord[] = (vaccineRecs as any[]).map((v) => ({
+          id: v.id,
+          record_type: "vaccine" as RecordType,
+          record_date: v.vaccine_date ? String(v.vaccine_date).slice(0, 10) : getLocalToday(),
+          title: v.vaccine_name || "疫苗接种",
+          hospital: v.pet_hospital || "",
+          doctor: v.veterinarian || "",
+          symptom: "", treatment: "",
+          cost: null,
+          weight_kg: null, mood: "", appetite: "",
+          note: v.notes || `${v.vaccine_name || '疫苗'}${v.pet_hospital ? ` | ${v.pet_hospital}` : ''}`,
+          images: v.photo_urls || [],
+        }));
+
+        // 6. 映射 CheckUpRecord → HealthRecord（checkup 类型）
+        const checkups: HealthRecord[] = (checkupRecs as any[]).map((c) => ({
+          id: c.id,
+          record_type: "checkup" as RecordType,
+          record_date: c.check_up_date ? String(c.check_up_date).slice(0, 10) : getLocalToday(),
+          title: "体检记录",
+          hospital: c.pet_hospital || "",
+          doctor: c.veterinarian || "",
+          symptom: "", treatment: "",
+          cost: null,
+          medical_result: c.check_up_result || c.medical_result || null,
+          weight_kg: null, mood: "", appetite: "",
+          note: c.notes || `${c.pet_hospital || '体检机构'} | ${c.doctor_advice || c.check_up_result || ''}`,
+          images: c.check_up_photo_urls || [],
+        }));
+
+        // 7. 映射 MedicalRecord → HealthRecord（visit 类型）
+        const medicals: HealthRecord[] = (medicalRecs as any[]).map((m) => ({
+          id: m.id,
+          record_type: "visit" as RecordType,
+          record_date: m.medical_date ? String(m.medical_date).slice(0, 10) : getLocalToday(),
+          title: m.chief_complaint || "就诊记录",
+          hospital: m.pet_hospital || "",
+          doctor: "",
+          symptom: Array.isArray(m.symptoms) ? (m.symptoms as any[])?.map((s: any) => s.name || s).join(', ') : (m.chief_complaint || ""),
+          treatment: m.treatment_plan || m.prescription || "",
+          cost: m.medical_amount ?? null,
+          weight_kg: null, mood: "", appetite: "",
+          note: m.notes || `${m.diagnosis || m.chief_complaint || '就诊'}${m.medical_amount ? ` | ${m.medical_amount}元` : ''}`,
+          images: m.medical_case_photo_urls || [],
+        }));
+
+        // 合并所有专用表数据
+        setRecords([...groomings, ...weights, ...feedings, ...dewormings, ...vaccines, ...checkups, ...medicals]);
+      })
       .finally(() => setLoading(false));
   }, [phone, selectedPetId]);
 
@@ -455,9 +623,9 @@ export default function Records() {
               const sub = getRecordSub(record);
               return (
                 <button
-                  key={record.id}
+                  key={`${record.id}-${record.record_type}`}
                   className="h3d-record-item"
-                  onClick={() => navigate(`/app/record/${record.id}`)}
+                  onClick={() => navigate(`/app/record/${record.id}?type=${record.record_type}`)}
                 >
                   <div className="h3d-record-icon" style={{ background: bg }}>
                     <div className="h3d-record-icon-inner" style={{ background: gradient }}>

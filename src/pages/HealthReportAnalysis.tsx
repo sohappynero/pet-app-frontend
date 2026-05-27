@@ -14,7 +14,7 @@ import {
   Clock,
 } from "lucide-react";
 import { useShell } from "../hooks/useShell";
-import { fetchRecords, fetchAnalysisDashboard, type AnalysisDashboardData } from "../lib/api";
+import { fetchRecords, fetchAnalysisDashboard, getLocalToday, type AnalysisDashboardData } from "../lib/api";
 import type { HealthRecord, RecordType } from "../types";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
 import { getLocalAvatar } from "../lib/pet-avatar";
@@ -352,7 +352,7 @@ export default function HealthReportAnalysis() {
           </button>
           <h1 className="hr-header-title">健康报告</h1>
           <p className="hr-header-sub">
-            {currentPet?.name || "宠物"} · 综合体检报告 · {new Date().toISOString().slice(0, 10)}
+            {currentPet?.name || "宠物"} · 综合体检报告 · {getLocalToday()}
           </p>
         </div>
 

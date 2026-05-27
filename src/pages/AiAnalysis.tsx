@@ -14,7 +14,7 @@ import {
   AlertCircle,
   Clock,
 } from "lucide-react";
-import { fetchRecords, fetchAnalysisDashboard, type AnalysisDashboardData } from "../lib/api";
+import { fetchRecords, fetchAnalysisDashboard, getLocalToday, type AnalysisDashboardData } from "../lib/api";
 import { useShell } from "../hooks/useShell";
 import type { HealthRecord, RecordType } from "../types";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
@@ -264,7 +264,7 @@ export default function AiAnalysis() {
         {isCardVisible("health") && isCardVisibleBySearch("health") && (
           <AnalysisCard category="health">
             <CardHeader icon={<Heart size={20} />} title="综合健康评分"
-              date={analysisData?.generated_at?.slice(0,10) || new Date().toISOString().slice(0,10)}
+              date={analysisData?.generated_at?.slice(0,10) || getLocalToday()}
               score={overallScore} />
             <CardSummary text={
               analysisLoading ? "正在从数据库加载分析数据..." :
@@ -296,7 +296,7 @@ export default function AiAnalysis() {
         {isCardVisible("trend") && isCardVisibleBySearch("trend") && (
           <AnalysisCard category="trend">
             <CardHeader icon={<TrendingUp size={20} />} title="体重趋势分析"
-              date={new Date().toISOString().slice(0,10)} score={weightScore} />
+              date={getLocalToday()} score={weightScore} />
             <CardSummary text={
               !analysisLoading && wd
                 ? wd.status === "no_data" ? "暂无足够体重数据进行趋势分析"
@@ -340,7 +340,7 @@ export default function AiAnalysis() {
         {isCardVisible("diet") && isCardVisibleBySearch("diet") && (
           <AnalysisCard category="diet">
             <CardHeader icon={<UtensilsCrossed size={20} />} title="饮食建议"
-              date={new Date().toISOString().slice(0,10)} score={dietScore} />
+              date={getLocalToday()} score={dietScore} />
             <CardSummary text={!analysisLoading
               ? dietScore >= 75 ? "营养摄入状态良好，继续保持均衡饮食" : dietScore >= 55 ? "营养摄入一般，建议优化饮食结构" : "需要关注宝贝的饮食情况"
               : "加载中..."} />
@@ -375,7 +375,7 @@ export default function AiAnalysis() {
         {isCardVisible("exercise") && isCardVisibleBySearch("exercise") && (
           <AnalysisCard category="exercise">
             <CardHeader icon={<Dumbbell size={20} />} title="运动建议"
-              date={new Date().toISOString().slice(0,10)} score={exerciseScore} />
+              date={getLocalToday()} score={exerciseScore} />
             <CardSummary text={!analysisLoading
               ? exerciseScore >= 75 ? "运动状态活跃，精力充沛！" : exerciseScore >= 55 ? "运动量适中，可以适当加强锻炼" : "运动量偏少，建议增加活动时间"
               : "加载中..."} />
@@ -400,7 +400,7 @@ export default function AiAnalysis() {
         {isCardVisible("vaccine") && isCardVisibleBySearch("vaccine") && (
           <AnalysisCard category="vaccine">
             <CardHeader icon={<Syringe size={20} />} title="疫苗提醒"
-              date={new Date().toISOString().slice(0,10)} score={vaccineScore} />
+              date={getLocalToday()} score={vaccineScore} />
             <CardSummary text={!analysisLoading
               ? vacAlerts.some(v => v.status === "overdue") ? "有疫苗已过期，请尽快补种！"
                 : vacAlerts.some(v => v.status === "approaching") ? "有疫苗即将到期，请注意安排接种"
@@ -440,7 +440,7 @@ export default function AiAnalysis() {
         {isCardVisible("beauty") && isCardVisibleBySearch("beauty") && (
           <AnalysisCard category="beauty">
             <CardHeader icon={<Scissors size={20} />} title="美容毛发分析"
-              date={new Date().toISOString().slice(0,10)} score={beautyScore} />
+              date={getLocalToday()} score={beautyScore} />
             <CardSummary text={!analysisLoading
               ? beautyScore >= 75 ? "毛发整体状态良好！" : beautyScore >= 55 ? "毛发状态一般，建议加强日常护理" : "需要关注毛发健康"
               : "加载中..."} />

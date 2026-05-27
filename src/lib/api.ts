@@ -12,9 +12,32 @@ import type {
   CheckUpRecord,
   MedicalRecord,
   ObservationRecord,
+  GroomingRecord,
+  WeightRecord,
 } from "../types";
 import { getLocalAvatar } from "./pet-avatar";
 import { getSessionToken, setSessionUser, getSessionUser } from "./session";
+
+// ═════════════════════════════════════
+// 本地时区工具函数（避免 UTC 偏移导致日期错误）
+// ═════════════════════════════════════
+
+/** 获取本地时区的今天 YYYY-MM-DD */
+export function getLocalToday(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+/** 获取本地时区的当前时间 HH:mm:ss */
+export function getLocalTime(): string {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+}
+
+/** 获取本地时区完整日期时间 YYYY-MM-DDTHH:mm:ss */
+export function getLocalNow(): string {
+  return `${getLocalToday()}T${getLocalTime()}`;
+}
 
 
 const envBaseUrl = (import.meta as any)?.env?.VITE_API_BASE_URL || "";
@@ -24,7 +47,7 @@ const API_BASE_URL = String(envBaseUrl).replace(/\/$/, "");
 // 请求超时配置
 // ============================================================
 
-const FETCH_TIMEOUT_MS = 15000; // 15秒超时
+const FETCH_TIMEOUT_MS = 30000; // 30秒超时（AI接口需要更长时间）
 
 /** 创建带超时的 fetch（防止后端无响应时永久挂起） */
 function fetchWithTimeout(url: string, options?: RequestInit, timeoutMs = FETCH_TIMEOUT_MS): Promise<Response> {
@@ -35,6 +58,11 @@ function fetchWithTimeout(url: string, options?: RequestInit, timeoutMs = FETCH_
     ...options,
     signal: controller.signal,
   }).finally(() => clearTimeout(timer));
+}
+
+/** AI 接口专用超时（60秒，LLM调用可能较慢） */
+export function fetchWithAITimeout(url: string, options?: RequestInit): Promise<Response> {
+  return fetchWithTimeout(url, options, 60000);
 }
 
 
@@ -202,11 +230,15 @@ async function request<T = unknown>(url: string, init?: RequestInit): Promise<T>
         ...init,
       });
     } catch (refreshError) {
-      // 刷新失败，跳转到登录页
-      const user = getSessionUser();
-      if (user) {
-        // 可以在这里添加跳转到登录页的逻辑
-        // window.location.href = '/login';
+      // 刷新失败，清除所有认证信息并跳转到登录页
+      console.error("🔑 Token 刷新失败，需要重新登录:", refreshError);
+      try {
+        localStorage.removeItem("pet_user_v1");
+        localStorage.removeItem("pet_refresh_token_v1");
+      } catch {}
+      // 跳转到登录页（仅在浏览器环境中）
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
       }
       throw new Error("会话已过期，请重新登录");
     } finally {
@@ -571,7 +603,6 @@ export function fetchRecords(phone: string, petId?: number, recordType?: RecordT
       appetite: r.appetite || "",
       note: r.note || "",
       images: r.images || [],
-      next_due_date: r.next_due_date ?? null,
     }));
     return {
       ok: true,
@@ -595,10 +626,9 @@ export function createRecord(payload: {
   weight_kg: number | null;
   mood: string;
   appetite: string;
-  note: string;
-  images: string[];
-  next_due_date: string | null;
-}) {
+    note: string;
+    images: string[];
+  }) {
   return request<ApiResp<HealthRecord>>("/api/v1/health/records", {
     method: "POST",
     body: JSON.stringify({ ...payload, type: payload.record_type }),
@@ -621,7 +651,6 @@ export function updateRecord(
     appetite: string;
     note: string;
     images: string[];
-    next_due_date: string | null;
   },
   phone: string
 ) {
@@ -902,6 +931,77 @@ export function createObservation(payload: Omit<ObservationRecord, "id" | "creat
 
 export function deleteObservation(id: number) {
   return request<ApiResp>(`/api/v1/health/observations/${id}`, { method: "DELETE" });
+}
+
+
+// ============================================================
+// 美容医护记录 API (Grooming Records) - 专用表 pet_grooming_records
+// ============================================================
+
+export function fetchGroomings(petId: number) {
+  return request<any[]>(`/api/v1/health/groomings?pet_id=${petId}`);
+}
+
+export function createGrooming(payload: Omit<GroomingRecord, "id" | "created_at" | "updated_at" | "grooming_score" | "ai_analysis">) {
+  return request<GroomingRecord>("/api/v1/health/groomings", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteGrooming(id: number) {
+  return request<ApiResp>(`/api/v1/health/groomings/${id}`, { method: "DELETE" });
+}
+
+
+// ============================================================
+// 体重记录 API (Weight Records) - 专用表 pet_weight_records
+// ============================================================
+
+export function fetchWeights(petId: number) {
+  return request<any[]>(`/api/v1/health/weights?pet_id=${petId}`);
+}
+
+export function createWeight(payload: Omit<WeightRecord, "id" | "created_at" | "bmi_value" | "ideal_weight_min" | "ideal_weight_max" | "weight_trend" | "trend_score">) {
+  return request<WeightRecord>("/api/v1/health/weights", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteWeight(id: number) {
+  return request<ApiResp>(`/api/v1/health/weights/${id}`, { method: "DELETE" });
+}
+
+
+// ============================================================
+// 饮食记录 API (Feeding Records) - 专用表 pet_feeding_records
+// ============================================================
+
+export function fetchFeedings(petId: number) {
+  return request<any[]>(`/api/v1/health/feedings?pet_id=${petId}`);
+}
+
+export function createDiet(payload: Omit<FeedingRecord, "id" | "created_at" | "nutrition_score" | "ai_notes">) {
+  // 前端简化字段映射：title → main_food_type, appetite → main_food_amount
+  const feedingPayload = {
+    pet_id: payload.pet_id,
+    feeding_date: payload.feeding_date || new Date().toISOString().slice(0, 10),
+    meal_type: payload.meal_type || 'snack',
+    feeding_time: payload.feeding_time,
+    main_food_type: payload.main_food_type,
+    main_food_amount: payload.main_food_amount ? Number(payload.main_food_amount) : undefined,
+    notes: payload.notes,
+    photo_urls: payload.photo_urls,
+  };
+  return request<FeedingRecord>("/api/v1/health/feedings", {
+    method: "POST",
+    body: JSON.stringify(feedingPayload),
+  });
+}
+
+export function deleteFeeding(id: number) {
+  return request<ApiResp>(`/api/v1/health/feedings/${id}`, { method: "DELETE" });
 }
 
 

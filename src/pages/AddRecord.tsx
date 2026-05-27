@@ -21,8 +21,9 @@ import {
 } from "lucide-react";
 import {
   createVaccine, createDeworming, createCheckup,
-  createMedical, createObservation,
-  fetchRecords,
+  createMedical, createObservation, createGrooming, createWeight,
+  createDiet,
+  fetchRecords, fetchWeights, fetchFeedings, fetchGroomings, getLocalToday,
 } from "../lib/api";
 import { useShell } from "../hooks/useShell";
 import type { RecordType } from "../types";
@@ -56,6 +57,8 @@ const recordTypes = [
   { value: "checkup" as RecordType, label: "体检", icon: <Stethoscope size={14} />, color: "#74b9ff", bg: "#e8f4ff" },
   { value: "visit" as RecordType, label: "就诊", icon: <Hospital size={14} />, color: "#e17055", bg: "#fef0e8" },
   { value: "beauty" as RecordType, label: "美容", icon: <Droplet size={14} />, color: "#fd79a8", bg: "#fff0f5" },
+  { value: "weight" as RecordType, label: "体重", icon: <Scale size={14} />, color: "#f0932b", bg: "#fef9e7" },
+  { value: "diet" as RecordType, label: "饮食", icon: <Heart size={14} />, color: "#E8590C", bg: "#FFF4EC" },
   { value: "observation" as RecordType, label: "日常观察", icon: <Heart size={14} />, color: "#00b894", bg: "#e8f8f0" },
 ];
 
@@ -121,9 +124,6 @@ const typeConfig: Record<RecordType, {
     titlePh: "",
     titleLabel: "疫苗名称",
     dateLabel: "接种日期",
-    showNextDue: true,
-    nextDuePh: "如 2026-08-26",
-    nextDueLabel: "下次接种日期",
     hospital: true, hospitalPh: "接种医院/诊所", hospitalLabel: "接种机构",
     doctor: false, doctorPh: "",
     cost: false, costPh: "",
@@ -152,12 +152,9 @@ const typeConfig: Record<RecordType, {
     titlePh: "",
     titleLabel: "药品名称",
     dateLabel: "驱虫日期",
-    showNextDue: true,
-    nextDuePh: "如 2026-08-26",
-    nextDueLabel: "下次驱虫日期",
     hospital: true, hospitalPh: "驱虫地点", hospitalLabel: "机构/地点",
     doctor: false, doctorPh: "",
-    cost: false, costPh: "",
+    cost: true, costPh: "费用（元）",
     weight: false,
     mood: false,
     appetite: false,
@@ -258,30 +255,79 @@ const typeConfig: Record<RecordType, {
     imagePh: "粘贴图片链接，每行一个\n• 美容前照片\n• 美容后效果照",
   },
 
-  // ─── 日常观察 ───
-  observation: {
-   pageTitle: "添加日常观察",
-    heroDesc: "记录宠物的日常生活状态与健康观察",
-    titlePh: "如：今日精神不错",
-    titleLabel: "观察摘要",
-    dateLabel: "记录日期",
+  // ─── 体重记录 ───
+  weight: {
+    pageTitle: "添加体重记录",
+    heroDesc: "记录宠物体重变化，追踪健康趋势",
+    titlePh: "体重记录",
+    titleLabel: "记录标题（可选）",
+    dateLabel: "称重日期",
     showNextDue: false,
     nextDuePh: "", nextDueLabel: "",
     hospital: false, hospitalPh: "", hospitalLabel: "",
     doctor: false, doctorPh: "",
     cost: false, costPh: "",
     weight: true,
-    mood: true,
-    appetite: true,
-    symptom: true, symptomPh: "异常表现（可选）",
+    mood: false,
+    appetite: false,
+    symptom: false, symptomPh: "",
     treatment: false, treatmentPh: "",
-    notePh: "其他想记录的内容...",
+    notePh: "如：空腹/饭后、称重设备等备注",
     showImages: true,
     imageLabel: "🖼️ 图片附件",
-    imagePh: "粘贴图片链接，每行一个\n• 今日生活照\n• 排便情况\n• 异常留证",
-    // 后端专用
+    imagePh: "粘贴图片链接，每行一个\n• 体重秤读数照片\n• 宠物体型对比照",
+  },
+
+  // ─── 饮食记录（与日常观察完全不同的字段集）──
+  diet: {
+    pageTitle: "添加饮食记录",
+    heroDesc: "记录宠物的每日饮食情况与营养摄入",
+    titlePh: "如：早餐狗粮100g + 鸡胸肉50g",
+    titleLabel: "食物名称 / 内容",
+    dateLabel: "喂食日期",
+    showNextDue: false,
+    nextDuePh: "", nextDueLabel: "",
+    hospital: false, hospitalPh: "", hospitalLabel: "",
+    doctor: false, doctorPh: "",
+    cost: false, costPh: "",
+    weight: false,
+    mood: false,
+    appetite: true,
+    symptom: true, symptomPh: "食量(g)或份量（如：150g / 半碗 / 一包）",
+    treatment: false, treatmentPh: "",
+    notePh: "如：喂食时间、零食奖励、饮水情况、是否吃完等",
+    showImages: true,
+    imageLabel: "🖼️ 图片附件",
+    imagePh: "粘贴图片链接，每行一次\n• 食物照片\n• 餐后状态",
+  },
+
+  // ─── 日常观察（对应 observation_records 表）──
+  // DB: id, pet_id, observation_date(DATETIME必填),
+  //     bowel_movements(ENUM正常/软便/便血/便秘), notes(TEXT)
+  //     (精神状态→饮食记录、食欲→饮食记录、体重→体重记录、医院→不需要)
+  observation: {
+   pageTitle: "添加日常观察",
+    heroDesc: "记录宠物每日排便等健康观察",
+    titlePh: "",
+    titleLabel: "观察摘要（可选）",
+    dateLabel: "记录日期",
+    showNextDue: false,
+    nextDuePh: "", nextDueLabel: "",
+    hospital: false, hospitalPh: "", hospitalLabel: "",   // 不需要医院
+    doctor: false, doctorPh: "",
+    cost: false, costPh: "",
+    weight: false,
+    mood: false,           // → 饮食记录已覆盖
+    appetite: false,       // → 饮食记录已覆盖
+    symptom: false, symptomPh: "",  // 已有专用排便字段
+    treatment: false, treatmentPh: "",
+    notePh: "其他备注...",
+    showImages: true,
+    imageLabel: "🖼️ 图片附件",
+    imagePh: "粘贴图片链接，每行一个\n• 排便照片\n• 异常留证",
+    // 后端专用 — 只保留排便
     bowelMovement: true,
-    bowelMovementPh: "排便情况（正常/稀便/便秘/软便等）",
+    bowelMovementPh: "排便情况（正常/稀便/便秘/软便/便血等）",
   },
 };
 
@@ -294,7 +340,14 @@ const emptyForm = {
   record_type: "vaccine" as RecordType,
   // 通用字段
   title: "",              // 疫苗名称 / 药品名称 / 标题
-  record_date: new Date().toISOString().slice(0, 10),
+  // 使用本地时区获取默认日期和时间
+  ...(() => {
+    const now = new Date();
+    return {
+      record_date: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
+      record_time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
+    };
+  })(),
   hospital: "",           // → pet_hospital
   doctor: "",             // → doctor_advice (体检/就诊)
   symptom: "",            // → medical_result (就诊) / bowel_movements (观察)
@@ -305,7 +358,6 @@ const emptyForm = {
   appetite: "",           // → appetite_status (观察)
   note: "",               // → notes
   images_text: "",        // → photo_urls / check_up_photo_urls / medical_case_photo_urls
-  next_due_date: "",
   // ── 后端专用字段 ──
   vaccine_name: "",       // 疫苗名称
   vaccine_batch_number: "", // 疫苗批号
@@ -386,67 +438,126 @@ export default function AddRecord() {
     if (Object.keys(updates).length > 0) setForm((s) => ({ ...s, ...updates }));
   }, [petIdParam, typeParam, defaultTitle, pets, selectedPetId]);
 
-  // 编辑模式回填
+  // 编辑模式回填 — 支持所有专用表（体重/饮食/美容/通用表）
   useEffect(() => {
-    if (!editId || !phone) return;
+    if (!editId) return;
 
-    fetchRecords(phone)
-      .then((res) => {
-        const row = (res.data || []).find((x: any) => x.id === editId);
-        if (!row) return;
+    const typeFromUrl = params.get("type") as RecordType | null;
+    const petId = selectedPetId ?? (pets.length > 0 ? pets[0].id : null);
 
-        // 根据记录类型提取专用字段
-        const rt = row.record_type || "observation";
+    // 根据类型从对应表查询
+    if ((typeFromUrl === "weight") && petId) {
+      fetchWeights(petId)
+        .then((res) => {
+          const row = (Array.isArray(res) ? res : []).find((x: any) => x.id === editId);
+          if (!row) return;
+          setForm({
+            ...emptyForm,
+            pet_id: String(row.pet_id),
+            record_type: "weight",
+            title: `体重 ${row.weight_kg}kg`,
+            record_date: row.record_date ? String(row.record_date).slice(0, 10) : getLocalToday(),
+            weight_kg: String(row.weight_kg),
+            note: row.notes || "",
+          });
+        })
+        .catch(() => {});
+    } else if ((typeFromUrl === "diet") && petId) {
+      fetchFeedings(petId)
+        .then((res) => {
+          const row = (Array.isArray(res) ? res : []).find((x: any) => x.id === editId);
+          if (!row) return;
+          setForm({
+            ...emptyForm,
+            pet_id: String(row.pet_id),
+            record_type: "diet",
+            title: row.main_food_type || "",
+            record_date: row.feeding_date ? String(row.feeding_date).slice(0, 10) : getLocalToday(),
+            appetite: row.main_food_amount != null ? String(row.main_food_amount) : "",
+            note: row.notes || "",
+          });
+        })
+        .catch(() => {});
+    } else if ((typeFromUrl === "beauty" || typeFromUrl === "grooming") && petId) {
+      fetchGroomings(petId)
+        .then((res) => {
+          const row = (Array.isArray(res) ? res : []).find((x: any) => x.id === editId);
+          if (!row) return;
+          setForm({
+            ...emptyForm,
+            pet_id: String(row.pet_id),
+            record_type: "beauty",
+            title: row.services_performed?.length ? row.services_performed[0] : "美容护理",
+            record_date: row.grooming_date ? String(row.grooming_date).slice(0, 10) : getLocalToday(),
+            hospital: row.provider_name || "",
+            cost: row.cost != null ? String(row.cost) : "",
+            note: row.notes || "",
+          });
+        })
+        .catch(() => {});
+    } else if (phone) {
+      // 其他类型（vaccine/deworm/checkup/visit/observation）→ 查通用表
+      fetchRecords(phone)
+        .then((res) => {
+          const row = (res.data || []).find((x: any) => x.id === editId);
+          if (!row) return;
 
-        setForm({
-          // ── 通用字段 ──
-          pet_id: String(row.pet_id),
-          record_type: rt,
-          title: row.title || "",
-          record_date: row.record_date ? String(row.record_date).slice(0, 10) : new Date().toISOString().slice(0, 10),
-          hospital: row.hospital || "",
-          doctor: row.doctor || "",
-          symptom: row.symptom || "",
-          treatment: row.treatment || "",
-          cost: row.cost != null ? String(row.cost) : "",
-          weight_kg: row.weight_kg != null ? String(row.weight_kg) : "",
-          mood: row.mood || "",
-          appetite: row.appetite || "",
-          note: row.note || "",
-          images_text: Array.isArray(row.images) ? (row.images as string[]).join("\n") : (row.images || ""),
-          next_due_date: row.next_due_date || "",
+          // 根据记录类型提取专用字段
+          const rt = row.record_type || "observation";
 
-          // ── 疫苗专用 ──
-          vaccine_name: row.title || row.vaccine_name || "",
-          vaccine_batch_number: row.vaccine_batch_number || row.batch_number || "",
+          setForm({
+            // ── 通用字段 ──
+            pet_id: String(row.pet_id),
+            record_type: rt,
+            title: row.title || "",
+            record_date: row.record_date ? String(row.record_date).slice(0, 10) : getLocalToday(),
+            hospital: row.hospital || "",
+            doctor: row.doctor || "",
+            symptom: row.symptom || "",
+            treatment: row.treatment || "",
+            cost: row.cost != null ? String(row.cost) : "",
+            weight_kg: row.weight_kg != null ? String(row.weight_kg) : "",
+            mood: row.mood || "",
+            appetite: row.appetite || "",
+            note: row.note || "",
+            images_text: Array.isArray(row.images) ? (row.images as string[]).join("\n") : (row.images || ""),
 
-          // ── 驱虫专用 ──
-          deworming_type: row.deworm_type || row.deworming_type || "",
+            // ── 疫苗专用 ──
+            vaccine_name: row.title || row.vaccine_name || "",
+            vaccine_batch_number: row.vaccine_batch_number || row.batch_number || "",
 
-          // ── 体检专用 ──
-          check_up_projects: row.title || row.check_up_projects || row.checkup_projects || "",
-          check_up_result: row.check_up_result || row.result || row.checkup_result || "",
+            // ── 驱虫专用 ──
+            deworming_type: row.deworm_type || row.deworming_type || "",
 
-          // ── 就诊专用 ──
-          medical_result: row.medical_result || row.diagnosis || "",
+            // ── 体检专用 ──
+            check_up_projects: row.title || row.check_up_projects || row.checkup_projects || "",
+            check_up_result: row.check_up_result || row.result || row.checkup_result || "",
 
-          // ── 观察专用 ──
-          bowel_movements: row.bowel_movements || row.symptom || "",
-        });
-      })
-      .catch(() => {});
-  }, [editId, phone]);
+            // ── 就诊专用 ──
+            medical_result: row.medical_result || row.diagnosis || "",
+
+            // ── 观察专用 ──
+            bowel_movements: row.bowel_movements || row.symptom || "",
+          });
+        })
+        .catch(() => {});
+    }
+  }, [editId, phone, selectedPetId, pets]);
 
   // 提交 — 按记录类型调用专用后端API
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.pet_id) return;
 
-    // 疫苗/驱虫/体检/就诊/观察 需要标题或核心字段
-    if (!["observation"].includes(form.record_type) && !form.title.trim()) return;
-    // 观察至少填一个字段
+    // 疫苗/驱虫/体检/就诊 需要标题或核心字段；体重只需weight_kg；饮食需要食物名/食量；观察至少填一个字段
+    if (!["observation", "weight", "diet"].includes(form.record_type) && !form.title.trim()) return;
+    // 体重记录必须填写体重数值
+    if (form.record_type === "weight" && !form.weight_kg?.trim()) return;
+    // 饮食记录需要填写食物名称或食量
+    if (form.record_type === "diet" && !form.title?.trim() && !form.appetite?.trim() && !form.symptom?.trim()) return;
+    // 观察至少填排便或备注
     if (form.record_type === "observation" &&
-        !form.mood?.trim() && !form.appetite?.trim() && !form.symptom?.trim() && !form.note?.trim()) return;
+        !form.bowel_movements?.trim() && !form.note?.trim()) return;
 
     setSaving(true);
     setMessage("");
@@ -458,15 +569,17 @@ export default function AddRecord() {
         : form.images_text.split("\n").map((x) => x.trim()).filter(Boolean);
 
     try {
+      // 纯日期（所有后端字段都是 date 类型，不接受时间部分）
+      const recordDate = form.record_date || getLocalToday();
+
       switch (form.record_type) {
         case "vaccine": {
           await createVaccine({
             pet_id: pid,
             vaccine_name: form.title.trim() || form.vaccine_name.trim(),
-            vaccine_date: form.record_date || undefined,
+            vaccine_date: recordDate,
             pet_hospital: form.hospital.trim() || undefined,
             vaccine_batch_number: form.vaccine_batch_number.trim() || undefined,
-            next_vaccine_date: form.next_due_date || undefined,
             photo_urls: parseImages(),
             notes: form.note.trim() || undefined,
           });
@@ -475,11 +588,11 @@ export default function AddRecord() {
         case "deworm": {
           await createDeworming({
             pet_id: pid,
-            deworming_medication_name: form.title.trim(),
-            deworming_date: form.record_date || undefined,
+            medication_name: form.title.trim(),  // 与后端Schema对齐
+            deworming_date: recordDate,
             deworming_type: (form.deworming_type as any) || undefined,
             pet_hospital: form.hospital.trim() || undefined,
-            next_deworming_date: form.next_due_date || undefined,
+            cost: form.cost ? Number(form.cost) : undefined,
             photo_urls: parseImages(),
             notes: form.note.trim() || undefined,
           });
@@ -488,7 +601,7 @@ export default function AddRecord() {
         case "checkup": {
           await createCheckup({
             pet_id: pid,
-            check_up_date: form.record_date ? `${form.record_date}T10:00:00` : undefined,
+            check_up_date: recordDate,
             pet_hospital: form.hospital.trim() || undefined,
             doctor_advice: form.doctor.trim() || undefined,
             check_up_projects: form.check_up_projects.trim() || undefined,
@@ -501,7 +614,7 @@ export default function AddRecord() {
         case "visit": {
           await createMedical({
             pet_id: pid,
-            medical_date: form.record_date ? `${form.record_date}T10:00:00` : undefined,
+            medical_date: recordDate,
             pet_hospital: form.hospital.trim() || undefined,
             medical_amount: form.cost ? Number(form.cost) : undefined,
             medical_result: form.medical_result.trim() || form.symptom.trim() || undefined,
@@ -512,26 +625,59 @@ export default function AddRecord() {
           break;
         }
         case "beauty": {
-          // 美容记录 → 通过观察记录接口存储（后端FRONTEND_TYPE_MAP映射beauty→observation）
-          // 修复：原错误使用createMedical导致存入就诊表，页面显示"就诊记录"
-          await createObservation({
+          await createGrooming({
             pet_id: pid,
-            observation_date: form.record_date ? `${form.record_date}T12:00:00` : undefined,
-            mental_status: "happy",  // 美容后通常心情好
-            appetite_status: "normal",
-            weight: undefined,
-            notes: `[美容] ${form.title.trim() || "美容护理"} | 机构:${form.hospital.trim() || "未填写"} | 费用:${form.cost || "0"}元 | ${form.note.trim()}`.trim(),
+            grooming_date: recordDate,
+            grooming_type: "bath",
+            provider_name: form.hospital.trim() || undefined,
+            cost: form.cost ? Number(form.cost) : undefined,
+            services_performed: form.title.trim() ? [form.title.trim()] : ["洗澡"],
+            before_photos: parseImages(),
+            notes: form.note.trim() || `${form.title.trim() || "美容护理"} | 费用:${form.cost || "0"}元`,
           });
           break;
         }
+        case "weight": {
+          // 体重记录 → 使用专用 weight API 存入 pet_weight_records 表（不再混入 observation）
+          if (!form.weight_kg) {
+            throw new Error("请输入体重数值");
+          }
+          const wPayload = {
+            pet_id: pid,
+            record_date: form.record_date || getLocalToday(),  // 体重记录只需纯日期
+            weight_kg: Number(form.weight_kg),
+            body_condition_score: undefined,
+            notes: form.note.trim() || `体重记录 ${form.weight_kg}kg`,
+            photo_urls: parseImages(),
+          };
+          console.log("[Weight] 提交体重记录:", JSON.stringify(wPayload));
+          const wResult = await createWeight(wPayload);
+          console.log("[Weight] 创建成功:", wResult);
+          break;
+        }
+        case "diet": {
+          // 饮食记录 → 存入 pet_feeding_records 表（独立表，不再混入 observation）
+          if (!form.title.trim() && !form.appetite?.trim()) {
+            throw new Error("请填写食物名称或食量");
+          }
+          await createDiet({
+            pet_id: pid,
+            feeding_date: form.record_date || getLocalToday(),
+            feeding_time: form.record_time || undefined,
+            meal_type: 'snack',  // 默认为零食/加餐
+            main_food_type: form.title.trim() || undefined,
+            main_food_amount: form.appetite ? parseFloat(form.appetite) : undefined,
+            notes: form.note.trim() || `饮食记录：${form.title.trim() || ""}${form.appetite ? ` ${form.appetite}` : ""}`,
+            photo_urls: parseImages(),
+          } as any);
+          break;
+        }
         case "observation": {
+          // 日常观察 → 只记录排便情况 + 备注
           await createObservation({
             pet_id: pid,
-            observation_date: form.record_date ? new Date().toISOString() : undefined,
-            appetite_status: form.appetite.trim() || undefined,
-            mental_status: form.mood.trim() || undefined,
-            bowel_movements: form.bowel_movements.trim() || form.symptom.trim() || undefined,
-            weight: form.weight_kg ? Number(form.weight_kg) : undefined,
+            observation_date: recordDate,
+            bowel_movements: form.bowel_movements.trim() || undefined,
             notes: form.note.trim() || undefined,
           });
           break;
@@ -542,7 +688,9 @@ export default function AddRecord() {
       setForm(s => ({ ...emptyForm, pet_id: s.pet_id }));
       setTimeout(() => navigate("/app/records"), 800);
     } catch (err) {
-      setMessage((err as Error).message);
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error("[AddRecord] 提交失败:", err);
+      setMessage(errMsg);
     } finally {
       setSaving(false);
     }
@@ -732,10 +880,10 @@ export default function AddRecord() {
               </div>
             ) : (
               <div className="ar-field-group">
-                <label className="ar-label"><ClipboardList size={13} /> {c.titleLabel || "标题"} {!["beauty","observation"].includes(form.record_type) && <span className="ar-required">*</span>}</label>
+                <label className="ar-label"><ClipboardList size={13} /> {c.titleLabel || "标题"} {!["beauty","observation","weight","diet"].includes(form.record_type) && <span className="ar-required">*</span>}</label>
                 <input className="ar-input" placeholder={c.titlePh || "填写记录标题"} value={form.title}
                   onChange={(e) => updateField("title", e.target.value)}
-                  required={!["beauty","observation"].includes(form.record_type)} />
+                  required={!["beauty","observation","weight","diet"].includes(form.record_type)} />
               </div>
             )}
 
@@ -765,31 +913,57 @@ export default function AddRecord() {
             )}
           </div>
 
-          {/* ── 时间与费用/机构 ── */}
-          {(c.showNextDue || c.cost || c.hospital || c.doctor) && (
+          {/* ── 记录时间（所有类型通用）── */}
+          <div className="ar-card">
+            <div className="ar-card-header">
+              <div className="ar-card-tag ar-tag-medical"><CalendarDays size={12} />{form.record_type === "deworm" ? "驱虫信息" : "记录时间"}</div>
+            </div>
+
+            {/* 日期 + 时间（并排） */}
+            <div className="ar-grid-row">
+              <div className="ar-field-group flex-1">
+                <label className="ar-label"><CalendarDays size={13} /> {c.dateLabel} <span className="ar-required">*</span></label>
+                <input className="ar-input" type="date" value={form.record_date}
+                  onChange={(e) => updateField("record_date", e.target.value)} required />
+              </div>
+              <div className="ar-field-group flex-1">
+                <label className="ar-label">🕐 时间</label>
+                <input className="ar-input" type="time" value={form.record_time}
+                  onChange={(e) => updateField("record_time", e.target.value)}
+                  placeholder="如 14:30" />
+              </div>
+            </div>
+
+            {/* 驱虫：机构/地点合并到此卡片 */}
+            {form.record_type === "deworm" && c.hospital && (
+              <div className="ar-field-group" style={{ marginTop: 12 }}>
+                <label className="ar-label"><Hospital size={13} /> {c.hospitalLabel || "机构/地点"}</label>
+                <input className="ar-input" placeholder={c.hospitalPh} value={form.hospital}
+                  onChange={(e) => updateField("hospital", e.target.value)} />
+              </div>
+            )}
+          </div>
+
+          {/* ── 费用与机构（仅医疗/美容类记录需要，排除驱虫等只有一个字段的类型）── */}
+          {(c.showNextDue || c.cost || c.doctor || (c.hospital && ["checkup", "visit", "beauty", "vaccine"].includes(form.record_type))) && (
             <div className="ar-card">
               <div className="ar-card-header">
-                <div className="ar-card-tag ar-tag-medical"><CalendarDays size={12} />时间与费用</div>
+                <div className="ar-card-tag ar-tag-detail"><FileText size={12} />费用与机构</div>
               </div>
 
-              {/* 日期行 + 花费（并排） */}
+              {/* 花费 + 医院（并排） */}
               <div className="ar-grid-row">
-                <div className="ar-field-group flex-1">
-                  <label className="ar-label"><CalendarDays size={13} /> {c.dateLabel} <span className="ar-required">*</span></label>
-                  <input className="ar-input" type="date" value={form.record_date}
-                    onChange={(e) => updateField("record_date", e.target.value)} required />
-                </div>
                 {c.cost && (
                   <div className="ar-field-group flex-1">
-                    <label className="ar-label"><FileText size={13} /> 花费（元）</label>
+                    <label className="ar-label">💰 花费（元）</label>
                     <input className="ar-input" type="number" step="0.01" placeholder={c.costPh}
                       value={form.cost} onChange={(e) => updateField("cost", e.target.value)} />
                   </div>
                 )}
               </div>
 
-              {/* 医院/机构 */}
-              {c.hospital && (
+              {/* 医院/机构（排除驱虫，驱虫已在"驱虫信息"卡片单独展示） */}
+              {c.hospital && ["checkup", "visit", "beauty", "vaccine"].includes(form.record_type) && (
                 <div className="ar-field-group">
                   <label className="ar-label"><Hospital size={13} /> {c.hospitalLabel || "机构"}</label>
                   <input className="ar-input" placeholder={c.hospitalPh} value={form.hospital}
@@ -805,15 +979,6 @@ export default function AddRecord() {
                     placeholder={form.record_type === "checkup" ? "医生的建议与意见" : c.doctorPh}
                     value={form.doctor}
                     onChange={(e) => updateField("doctor", e.target.value)} />
-                </div>
-              )}
-
-              {/* 下次日期 — 疫苗/驱动专用 */}
-              {c.showNextDue && (
-                <div className="ar-field-group">
-                  <label className="ar-label"><CalendarDays size={13} /> {c.nextDueLabel || "下次日期"} </label>
-                  <input className="ar-input" type="date" placeholder={c.nextDuePh}
-                    value={form.next_due_date} onChange={(e) => updateField("next_due_date", e.target.value)} />
                 </div>
               )}
             </div>

@@ -1,14 +1,14 @@
 /**
  * AI 宠物聊天页面
- * 融合四大功能：宠物聊天、照片心声、声音翻译(宠物→人)、人话转宠物语(人→宠物)
+ * 融合三大功能：AI 宠物聊天、照片心声解读、双向翻译器(宠物语↔人话)
  */
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import {
   MessageCircle, Send, Mic, PawPrint, Sparkles, Heart,
-  Image, Loader2, X, ChevronDown, Volume2,
+  Image, Loader2, X, ChevronDown, ChevronRight, Volume2,
   Square, Play, Pause, Radio, Camera, Settings,
-  Zap, Languages
+  Zap, Languages, ArrowLeftRight
 } from "lucide-react";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
 import { PetPhotoUploader, type PhotoUploadResult } from "../components/PetPhotoUploader";
@@ -97,20 +97,12 @@ const QUICK_ACTIONS: QuickAction[] = [
     description: "选照片，看心声"
   },
   {
-    id: "voice-translate",
-    icon: Volume2,
-    label: "声音翻译",
-    color: "#4DB8E8",
-    gradient: "linear-gradient(135deg, #4DB8E8, #7DD3FC)",
-    description: "宠物叫声→人话"
-  },
-  {
-    id: "human-to-pet",
-    icon: Languages,
-    label: "人话转宠语",
-    color: "#4ADE80",
-    gradient: "linear-gradient(135deg, #4ADE80, #22C55E)",
-    description: "人话→宠物语言"
+    id: "translator",  // 统一的双向翻译入口
+    icon: ArrowLeftRight,
+    label: "双向翻译",
+    color: "#6366F1",
+    gradient: "linear-gradient(135deg, #6366F1, #818CF8)",
+    description: "宠物语 ↔ 人话"
   },
 ];
 
@@ -194,8 +186,35 @@ export default function PetChat() {
   const [voiceMode, setVoiceMode] = useState<VoiceMode>("pet-to-human");
   const [humanInputText, setHumanInputText] = useState("");
 
-  // 人话转宠物语结果
+  // 人话转宠物语结果（最新一条，用于内联展示）
   const [humanToPetResult, setHumanToPetResult] = useState<HumanToPetResult | null>(null);
+
+  // ============================================================
+  // 分区结果列表（各功能独立存储，不混入聊天消息）
+  // ============================================================
+  
+  /** 照片心声结果列表 */
+  const [photoResults, setPhotoResults] = useState<Array<{
+    id: number;
+    result: PhotoMindResult;
+    photoUrl: string;
+    time: string;
+  }>>([]);
+  
+  /** 声音翻译结果列表（宠物叫→人话） */
+  const [voiceResults, setVoiceResults] = useState<Array<{
+    id: number;
+    result: VoiceTranslateResult;
+    audioUrl?: string;
+    time: string;
+  }>>([]);
+  
+  /** 人话转宠物语结果列表 */
+  const [humanToPetResults, setHumanToPetResults] = useState<Array<{
+    id: number;
+    result: HumanToPetResult;
+    time: string;
+  }>>([]);
 
   // TTS 语音播放状态：记录正在播放的卡片 key（"inline" 或消息 id）
   const [ttsPlayingId, setTtsPlayingId] = useState<string | null>(null);
@@ -414,24 +433,19 @@ export default function PetChat() {
       setAnalysisStep(1);
       
       if (result.success && result.result) {
-        // 4. 添加消息到聊天列表（使用新的 PhotoMindResultCard 组件渲染）
-        const mindMsg: ChatMessage = {
+        // 4. 添加到照片结果列表（分区显示，不混入聊天消息）
+        const photoItem = {
           id: Date.now(),
-          type: "pet",
-          text: result.result.mindOs,
-          emoji: EMOTION_EMOJIS[result.result.mood],
+          result: result.result,
+          photoUrl: result.photoUrl || "",
           time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
-          source: "ai_photo_mind",
-          photoMind: result.result,
-          photoUrl: result.photoUrl,
         };
-        setMessages((prev) => [...prev, mindMsg]);
+        setPhotoResults((prev) => [photoItem, ...prev]);
         
         // 记录到记忆系统
-        memoryContext?.addMessage(mindMsg as StoredChatMessage);
         memoryContext?.recordEvent({ type: "photo_uploaded", details: { hasResult: true } });
         
-        // 关闭上传面板
+        // 关闭上传面板（保留面板可见以查看结果）
         setShowPhotoUploader(false);
       }
     } catch (error) {
@@ -507,37 +521,45 @@ export default function PetChat() {
   /** 处理音频上传 */
   const handleAudioUpload = async (file: File) => {
     if (!selectedPet) return;
-    
+
     setIsLoading(true);
     setLoadingText("正在分析声音...");
-    
+
     try {
+      console.log("[VoiceUpload] 开始处理音频文件:", file.name, file.type, `${(file.size / 1024).toFixed(1)}KB`);
+
       const result = await fetchVoiceTranslate({
         pet: selectedPet,
         audioFile: file,
-        onProgress: setLoadingText,
+        onProgress: (status) => {
+          console.log("[VoiceUpload] 进度:", status);
+          setLoadingText(status);
+        },
       });
-      
+
+      console.log("[VoiceUpload] API 返回结果:", result);
+
       if (result.success && result.result) {
-        // 添加消息到聊天列表
-        const voiceMsg: ChatMessage = {
+        // ✅ 成功：添加到声音翻译结果列表（分区显示）
+        const voiceItem = {
           id: Date.now(),
-          type: "pet",
-          text: result.result.aiLanguage,
-          emoji: EMOTION_EMOJIS[result.result.emotion],
-          time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
-          source: "ai_voice",
-          voiceResult: result.result,
+          result: result.result,
           audioUrl: result.audioUrl,
+          time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
         };
-        setMessages((prev) => [...prev, voiceMsg]);
-        
+        console.log("[VoiceUpload] 添加到声音结果列表:", voiceItem);
+        setVoiceResults((prev) => [voiceItem, ...prev]);
+
         // 记录到记忆系统
-        memoryContext?.addMessage(voiceMsg as StoredChatMessage);
         memoryContext?.recordEvent({ type: "voice_recorded" });
+      } else {
+        // ❌ 失败：显示错误提示
+        console.error("[VoiceUpload] API 返回失败:", result.error);
+        alert(`声音翻译失败: ${result.error || "未知错误"}`);
       }
     } catch (error) {
-      console.error("声音翻译失败:", error);
+      console.error("[VoiceUpload] 异常:", error);
+      alert(`声音翻译异常: ${error instanceof Error ? error.message : "请检查网络连接"}`);
     } finally {
       setIsLoading(false);
       setShowVoiceUploader(false);
@@ -608,19 +630,13 @@ export default function PetChat() {
       if (result.success && result.result) {
         setHumanToPetResult(result.result);
 
-        // 添加翻译结果消息到聊天列表
-        const petLangMsg: ChatMessage = {
+        // 添加到人话转宠语结果列表（分区显示）
+        const h2pItem = {
           id: Date.now(),
-          type: "pet_translate",
-          text: result.result.petLanguage,
-          emoji: result.result.emoji,
+          result: result.result,
           time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
-          source: "human_to_pet",
-          humanToPetResult: result.result,
         };
-
-        setMessages((prev) => [...prev, petLangMsg]);
-        memoryContext?.addMessage(petLangMsg as StoredChatMessage);
+        setHumanToPetResults((prev) => [h2pItem, ...prev]);
         memoryContext?.recordEvent({ type: "human_to_pet_translated", details: { text: originalText } });
       }
     } catch (error) {
@@ -822,14 +838,10 @@ export default function PetChat() {
                       setActiveTab("photo");
                       setShowPhotoUploader(true);
                       setShowVoiceUploader(false);
-                    } else if (action.id === "voice-translate") {
+                    } else if (action.id === "translator") {
+                      // 统一翻译入口：打开双向翻译面板
                       setActiveTab("voice");
-                      setVoiceMode("pet-to-human");
-                      setShowVoiceUploader(true);
-                      setShowPhotoUploader(false);
-                    } else if (action.id === "human-to-pet") {
-                      setActiveTab("voice");
-                      setVoiceMode("human-to-pet");
+                      // 默认显示上一次使用的模式，或默认 pet-to-human
                       setShowVoiceUploader(true);
                       setShowPhotoUploader(false);
                     }
@@ -940,220 +952,370 @@ export default function PetChat() {
         isActive={isAnalyzing}
       />
       
-      {/* 照片上传面板 */}
-      {showPhotoUploader && activeTab === "photo" && (
-        <div className="chat-feature-panel">
-          <div className="chat-panel-header">
-            <span className="chat-panel-title">📸 照片心声</span>
-            <button className="chat-panel-close" onClick={() => setShowPhotoUploader(false)}>
-              <ChevronDown size={20} />
-            </button>
-          </div>
-          <p className="chat-panel-desc">上传宠物照片，AI 解读它此刻的内心 OS~</p>
-          <PetPhotoUploader
-            onUploadComplete={handlePhotoUpload}
-            onProgress={setLoadingText}
-            onCancel={() => setShowPhotoUploader(false)}
-            disabled={isLoading}
-            showCameraButton={true}
-          />
-        </div>
+      {/* ====== 照片心声区域（上传面板 + 结果列表） ====== */}
+      {activeTab === "photo" && (
+        <>
+          {/* 上传面板 */}
+          {showPhotoUploader && (
+            <div className="chat-feature-panel">
+              <div className="chat-panel-header">
+                <span className="chat-panel-title">📸 照片心声</span>
+                <button className="chat-panel-close" onClick={() => setShowPhotoUploader(false)}>
+                  <ChevronDown size={20} />
+                </button>
+              </div>
+              <p className="chat-panel-desc">上传宠物照片，AI 解读它此刻的内心 OS~</p>
+              <PetPhotoUploader
+                onUploadComplete={handlePhotoUpload}
+                onProgress={setLoadingText}
+                onCancel={() => setShowPhotoUploader(false)}
+                disabled={isLoading}
+                showCameraButton={true}
+              />
+            </div>
+          )}
+
+          {/* 照片分析结果列表（分区显示） */}
+          {photoResults.length > 0 && !showPhotoUploader && (
+            <div className="chat-feature-results">
+              <div className="chat-results-header">
+                <span className="chat-results-title">📸 心声解读记录</span>
+                <span className="chat-results-count">{photoResults.length} 条</span>
+              </div>
+              {photoResults.map((item) => (
+                <div key={item.id} className="chat-result-item chat-result-photo">
+                  <PhotoMindResultCard
+                    result={item.result}
+                    photoUrl={item.photoUrl}
+                    petName={selectedPet?.name || "宝贝"}
+                    petSpecies={selectedPet?.species || "dog"}
+                    expandable={true}
+                    onClose={() => setPhotoResults(prev => prev.filter(r => r.id !== item.id))}
+                    onShare={() => {}}
+                    onRetake={() => {
+                      setActiveTab("photo");
+                      setShowPhotoUploader(true);
+                    }}
+                  />
+                  <span className="chat-result-time">{item.time}</span>
+                </div>
+              ))}
+              
+              {/* 快捷重新上传按钮 */}
+              <button
+                className="chat-reupload-btn"
+                onClick={() => setShowPhotoUploader(true)}
+                style={{ background: "linear-gradient(135deg, #F59E0B, #FBBF24)" }}
+              >
+                <Image size={14} />
+                再解读一张
+              </button>
+            </div>
+          )}
+
+          {/* 空状态提示 */}
+          {photoResults.length === 0 && !showPhotoUploader && (
+            <div className="chat-empty-hint" onClick={() => setShowPhotoUploader(true)}>
+              <Image size={32} style={{ color: "#F59E0B", opacity: 0.5 }} />
+              <p>点击上传宠物照片，AI 帮你读懂它的内心~</p>
+              <span className="chat-empty-action">开始解读</span>
+            </div>
+          )}
+        </>
       )}
       
-      {/* 声音面板（双模式：宠物→人 / 人→宠物） */}
-      {showVoiceUploader && activeTab === "voice" && (
-        <div className="chat-feature-panel">
-          <div className="chat-panel-header">
-            <span className="chat-panel-title">
-              {voiceMode === "pet-to-human" ? "🎤 声音翻译" : "💬 人话转宠语"}
-            </span>
-            <button className="chat-panel-close" onClick={() => setShowVoiceUploader(false)}>
-              <ChevronDown size={20} />
-            </button>
-          </div>
-          <p className="chat-panel-desc">
-            {voiceMode === "pet-to-human"
-              ? "录制或上传宠物叫声，AI 翻译它想说的话~"
-              : "输入你想对宠物说的话，翻译成它听得懂的语言~"}
-          </p>
+      {/* ====== 双向翻译区域（操作面板 + 结果列表） ====== */}
+      {activeTab === "voice" && (
+        <>
+          {/* 操作面板 */}
+          {showVoiceUploader && (
+            <div className="chat-feature-panel">
+              <div className="chat-panel-header">
+                <span className="chat-panel-title">
+                  🔄 双向翻译
+                </span>
+                <button className="chat-panel-close" onClick={() => setShowVoiceUploader(false)}>
+                  <ChevronDown size={20} />
+                </button>
+              </div>
+              <p className="chat-panel-desc">
+                {voiceMode === "pet-to-human"
+                  ? "🎤 录制宠物叫声，AI 翻译它想表达的意思"
+                  : "💬 输入你的话，翻译成宠物能理解的语言"}
+              </p>
 
-          {/* 模式切换 */}
-          <div className="chat-voice-mode-switch">
-            <button
-              className={`chat-voice-mode-btn ${voiceMode === "pet-to-human" ? "active" : ""}`}
-              onClick={() => setVoiceMode("pet-to-human")}
-            >
-              <Volume2 size={15} />
-              宠物叫声 🐕
-            </button>
-            <button
-              className={`chat-voice-mode-btn ${voiceMode === "human-to-pet" ? "active" : ""}`}
-              onClick={() => setVoiceMode("human-to-pet")}
-            >
-              <Languages size={15} />
-              人话 💬
-            </button>
-          </div>
+              {/* 模式切换 */}
+              <div className="chat-voice-mode-switch">
+                <button
+                  className={`chat-voice-mode-btn ${voiceMode === "pet-to-human" ? "active" : ""}`}
+                  onClick={() => setVoiceMode("pet-to-human")}
+                >
+                  <Volume2 size={15} />
+                  宠物叫声 🐱🐶
+                </button>
+                <button
+                  className={`chat-voice-mode-btn ${voiceMode === "human-to-pet" ? "active" : ""}`}
+                  onClick={() => setVoiceMode("human-to-pet")}
+                >
+                  <Languages size={15} />
+                  人话 💬
+                </button>
+              </div>
 
-          {voiceMode === "pet-to-human" ? (
-            /* ====== 模式A: 宠物叫声 → 人话（保留原有录音/上传） ====== */
-            <>
-              {/* 录音区域 */}
-              <div className="chat-voice-record-area">
-                <div className="chat-voice-record-main">
-                  {isRecording ? (
-                    <div className="chat-voice-recording">
-                      <div className="chat-voice-record-btn recording">
-                        <div className="chat-voice-record-dot" />
-                      </div>
-                      <span className="chat-voice-record-time">{formatDuration(recordingDuration)}</span>
-                      <button className="chat-voice-stop-btn" onClick={stopRecording}>
-                        <Square size={16} fill="currentColor" />
-                      </button>
+              {voiceMode === "pet-to-human" ? (
+                /* ====== 模式A: 宠物叫声 → 人话 ====== */
+                <>
+                  {/* 录音区域 */}
+                  <div className="chat-voice-record-area">
+                    <div className="chat-voice-record-main">
+                      {isRecording ? (
+                        <div className="chat-voice-recording">
+                          <div className="chat-voice-record-btn recording">
+                            <div className="chat-voice-record-dot" />
+                          </div>
+                          <span className="chat-voice-record-time">{formatDuration(recordingDuration)}</span>
+                          <button className="chat-voice-stop-btn" onClick={stopRecording}>
+                            <Square size={16} fill="currentColor" />
+                          </button>
+                        </div>
+                      ) : recordedBlob ? (
+                        <div className="chat-voice-recorded">
+                          <button className="chat-voice-play-btn" onClick={playRecordedAudio}>
+                            {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                          </button>
+                          <div className="chat-voice-wave-mini">
+                            {Array.from({ length: 12 }).map((_, i) => (
+                              <div
+                                key={i}
+                                className="chat-voice-bar-mini"
+                                style={{ animationDelay: `${i * 0.05}s` }}
+                              />
+                            ))}
+                          </div>
+                          <button className="chat-voice-send-btn" onClick={sendRecordedAudio} disabled={isLoading}>
+                            <Send size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button className="chat-voice-record-btn" onClick={startRecording}>
+                          <Radio size={24} />
+                        </button>
+                      )}
                     </div>
-                  ) : recordedBlob ? (
-                    <div className="chat-voice-recorded">
-                      <button className="chat-voice-play-btn" onClick={playRecordedAudio}>
-                        {isPlaying ? <Pause size={20} /> : <Play size={20} />}
-                      </button>
-                      <div className="chat-voice-wave-mini">
+
+                    <p className="chat-voice-record-hint">
+                      {isRecording ? "正在录音... 点击停止" : recordedBlob ? "播放预览" : "点击开始录音"}
+                    </p>
+
+                    <div className="chat-voice-divider"><span>或</span></div>
+
+                    {/* 上传区域 */}
+                    <div className="chat-voice-upload-area" onClick={triggerAudioUpload}>
+                      <input
+                        ref={audioInputRef}
+                        type="file"
+                        accept="audio/*,.mp3,.wav,.m4a"
+                        onChange={handleAudioFileChange}
+                        className="hidden"
+                      />
+                      {isLoading ? (
+                        <div className="chat-voice-uploading">
+                          <Loader2 size={28} className="animate-spin" style={{ color: "#4DB8E8" }} />
+                          <span>{loadingText}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <Image size={28} style={{ color: "#4DB8E8" }} />
+                          <span>上传音频文件</span>
+                          <span className="chat-voice-hint">支持 mp3、wav、m4a 格式</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* ====== 模式B: 人话 → 宠物语 ====== */
+                <div className="chat-human-input-area">
+                  {/* 文字输入 */}
+                  <div className="chat-human-textarea-wrap">
+                    <textarea
+                      className="chat-human-textarea"
+                      placeholder={`对${selectedPet?.name || "宝贝"}说点什么...`}
+                      value={humanInputText}
+                      onChange={(e) => setHumanInputText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleHumanToPetTranslate();
+                        }
+                      }}
+                      maxLength={200}
+                    />
+                    <p style={{ fontSize: "11px", color: "#A69076", textAlign: "right", margin: "4px 0 0" }}>
+                      {humanInputText.length}/200
+                    </p>
+                  </div>
+
+                  {/* 翻译按钮 */}
+                  <button
+                    className="chat-human-translate-btn"
+                    onClick={handleHumanToPetTranslate}
+                    disabled={!humanInputText.trim() || isLoading}
+                  >
+                    <Languages size={16} />
+                    翻译成宠物语言
+                  </button>
+
+                  <p className="chat-hint">按 Enter 快速翻译 | 支持中英文输入</p>
+                </div>
+              )}
+
+              {/* 人话转宠语内联结果（最新一条） */}
+              {voiceMode === "human-to-pet" && humanToPetResult && (
+                <div className="chat-human-to-pet-card">
+                  <div className="chat-human-to-pet-header">
+                    <span className="chat-human-to-pet-label">
+                      <Languages size={12} /> 最新翻译
+                    </span>
+                    <span className="chat-human-to-pet-original">"{humanToPetResult.originalText}"</span>
+                  </div>
+                  <div className="chat-human-to-pet-text">{humanToPetResult.petLanguage}</div>
+
+                  {/* TTS 语音播放器 */}
+                  <button
+                    className={`chat-tts-player ${ttsPlayingId === "inline" ? "chat-tts-playing" : ""}`}
+                    onClick={() => handlePlayTtsVoice(humanToPetResult.emotion, "inline")}
+                  >
+                    <span className="chat-tts-play-icon">
+                      {ttsPlayingId === "inline"
+                        ? <Pause size={16} fill="currentColor" />
+                        : <Play size={14} fill="currentColor" />}
+                    </span>
+                    <span className="chat-tts-waveform">
+                      {Array.from({ length: 12 }).map((_, i) => (
+                        <i
+                          key={i}
+                          className="chat-tts-bar"
+                          style={{
+                            animationDelay: ttsPlayingId === "inline" ? `${i * 0.06}s` : "0s",
+                            height: ttsPlayingId === "inline"
+                              ? `${20 + Math.sin(i * 0.8) * 60 + Math.random() * 20}%`
+                              : `${30 + (i % 3) * 15}%`,
+                          }}
+                        />
+                      ))}
+                    </span>
+                    <span className="chat-tts-duration">
+                      {petTtsEngine.formatDuration(petTtsEngine.getEstimatedDuration(
+                        toTtsSpecies(selectedPet?.species), humanToPetResult.emotion
+                      ))}
+                    </span>
+                  </button>
+
+                  <div className="chat-human-to-pet-footer">
+                    <span className="chat-human-to-pet-emotion">
+                      {humanToPetResult.emoji} {EMOTION_LABELS[humanToPetResult.emotion] || humanToPetResult.emotion}
+                    </span>
+                    <span className="chat-tts-hint">点击播放宠物叫声</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ====== 翻译历史结果列表（分区显示） ====== */}
+          {(voiceResults.length > 0 || humanToPetResults.length > 0) && !showVoiceUploader && (
+            <div className="chat-feature-results">
+              <div className="chat-results-header">
+                <span className="chat-results-title">🔄 翻译记录</span>
+                <span className="chat-results-count">{voiceResults.length + humanToPetResults.length} 条</span>
+              </div>
+
+              {/* 宠物叫→人话 翻译记录 */}
+              {voiceResults.map((item) => (
+                <div key={item.id} className="chat-result-item chat-result-voice">
+                  <PetVoiceBubble
+                    result={item.result}
+                    audioUrl={item.audioUrl}
+                    expanded={false}
+                  />
+                  <span className="chat-result-time">{item.time}</span>
+                </div>
+              ))}
+
+              {/* 人话→宠语 翻译记录 */}
+              {humanToPetResults.map((item) => (
+                <div key={item.id} className="chat-result-item chat-result-h2p">
+                  <div className="chat-human-to-pet-card">
+                    <div className="chat-human-to-pet-header">
+                      <span className="chat-human-to-pet-label">
+                        <Languages size={12} /> 人话转宠语
+                      </span>
+                      <span className="chat-human-to-pet-original">"{item.result.originalText}"</span>
+                    </div>
+                    <div className="chat-human-to-pet-text">{item.result.petLanguage}</div>
+
+                    <button
+                      className={`chat-tts-player ${ttsPlayingId === String(item.id) ? "chat-tts-playing" : ""}`}
+                      onClick={() => handlePlayTtsVoice(item.result.emotion, String(item.id))}
+                    >
+                      <span className="chat-tts-play-icon">
+                        {ttsPlayingId === String(item.id)
+                          ? <Pause size={16} fill="currentColor" />
+                          : <Play size={14} fill="currentColor" />}
+                      </span>
+                      <span className="chat-tts-waveform">
                         {Array.from({ length: 12 }).map((_, i) => (
-                          <div
+                          <i
                             key={i}
-                            className="chat-voice-bar-mini"
-                            style={{ animationDelay: `${i * 0.05}s` }}
+                            className="chat-tts-bar"
+                            style={{
+                              animationDelay: ttsPlayingId === String(item.id) ? `${i * 0.06}s` : "0s",
+                              height: ttsPlayingId === String(item.id)
+                                ? `${20 + Math.sin(i * 0.8) * 60 + Math.random() * 20}%`
+                                : `${30 + (i % 3) * 15}%`,
+                            }}
                           />
                         ))}
-                      </div>
-                      <button className="chat-voice-send-btn" onClick={sendRecordedAudio} disabled={isLoading}>
-                        <Send size={16} />
-                      </button>
-                    </div>
-                  ) : (
-                    <button className="chat-voice-record-btn" onClick={startRecording}>
-                      <Radio size={24} />
+                      </span>
+                      <span className="chat-tts-duration">
+                        {petTtsEngine.formatDuration(petTtsEngine.getEstimatedDuration(
+                          toTtsSpecies(selectedPet?.species), item.result.emotion
+                        ))}
+                      </span>
                     </button>
-                  )}
-                </div>
 
-                <p className="chat-voice-record-hint">
-                  {isRecording ? "正在录音... 点击停止" : recordedBlob ? "播放预览" : "点击开始录音"}
-                </p>
-
-                <div className="chat-voice-divider"><span>或</span></div>
-
-                {/* 上传区域 */}
-                <div className="chat-voice-upload-area" onClick={triggerAudioUpload}>
-                  <input
-                    ref={audioInputRef}
-                    type="file"
-                    accept="audio/*,.mp3,.wav,.m4a"
-                    onChange={handleAudioFileChange}
-                    className="hidden"
-                  />
-                  {isLoading ? (
-                    <div className="chat-voice-uploading">
-                      <Loader2 size={28} className="animate-spin" style={{ color: "#4DB8E8" }} />
-                      <span>{loadingText}</span>
+                    <div className="chat-human-to-pet-footer">
+                      <span className="chat-human-to-pet-emotion">
+                        {item.result.emoji} {EMOTION_LABELS[item.result.emotion] || item.result.emotion}
+                      </span>
+                      <span className="chat-result-time">{item.time}</span>
                     </div>
-                  ) : (
-                    <>
-                      <Image size={28} style={{ color: "#4DB8E8" }} />
-                      <span>上传音频文件</span>
-                      <span className="chat-voice-hint">支持 mp3、wav、m4a 格式</span>
-                    </>
-                  )}
+                  </div>
                 </div>
-              </div>
-            </>
-          ) : (
-            /* ====== 模式B: 人话 → 宠物语（新增） ====== */
-            <div className="chat-human-input-area">
-              {/* 文字输入 */}
-              <div className="chat-human-textarea-wrap">
-                <textarea
-                  className="chat-human-textarea"
-                  placeholder={`对${selectedPet?.name || "宝贝"}说点什么...`}
-                  value={humanInputText}
-                  onChange={(e) => setHumanInputText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleHumanToPetTranslate();
-                    }
-                  }}
-                  maxLength={200}
-                />
-                <p style={{ fontSize: "11px", color: "#A69076", textAlign: "right", margin: "4px 0 0" }}>
-                  {humanInputText.length}/200
-                </p>
-              </div>
+              ))}
 
-              {/* 翻译按钮 */}
+              {/* 快捷重新翻译按钮 */}
               <button
-                className="chat-human-translate-btn"
-                onClick={handleHumanToPetTranslate}
-                disabled={!humanInputText.trim() || isLoading}
+                className="chat-reupload-btn"
+                onClick={() => setShowVoiceUploader(true)}
+                style={{ background: "linear-gradient(135deg, #6366F1, #818CF8)" }}
               >
-                <Languages size={16} />
-                翻译成宠物语言
+                <ArrowLeftRight size={14} />
+                再翻译一次
               </button>
-
-              <p className="chat-hint">按 Enter 快速翻译 | 支持中英文输入</p>
             </div>
           )}
 
-          {/* 人话转宠语结果展示 */}
-          {voiceMode === "human-to-pet" && humanToPetResult && (
-            <div className="chat-human-to-pet-card">
-              <div className="chat-human-to-pet-header">
-                <span className="chat-human-to-pet-label">
-                  <Languages size={12} /> 翻译结果
-                </span>
-                <span className="chat-human-to-pet-original">"{humanToPetResult.originalText}"</span>
-              </div>
-              <div className="chat-human-to-pet-text">{humanToPetResult.petLanguage}</div>
-
-              {/* TTS 语音播放器（微信语音消息风格） */}
-              <button
-                className={`chat-tts-player ${ttsPlayingId === "inline" ? "chat-tts-playing" : ""}`}
-                onClick={() => handlePlayTtsVoice(humanToPetResult.emotion, "inline")}
-              >
-                <span className="chat-tts-play-icon">
-                  {ttsPlayingId === "inline"
-                    ? <Pause size={16} fill="currentColor" />
-                    : <Play size={14} fill="currentColor" />}
-                </span>
-                <span className="chat-tts-waveform">
-                  {Array.from({ length: 12 }).map((_, i) => (
-                    <i
-                      key={i}
-                      className="chat-tts-bar"
-                      style={{
-                        animationDelay: ttsPlayingId === "inline" ? `${i * 0.06}s` : "0s",
-                        height: ttsPlayingId === "inline"
-                          ? `${20 + Math.sin(i * 0.8) * 60 + Math.random() * 20}%`
-                          : `${30 + (i % 3) * 15}%`,
-                      }}
-                    />
-                  ))}
-                </span>
-                <span className="chat-tts-duration">
-                  {petTtsEngine.formatDuration(petTtsEngine.getEstimatedDuration(
-                    toTtsSpecies(selectedPet?.species), humanToPetResult.emotion
-                  ))}
-                </span>
-              </button>
-
-              <div className="chat-human-to-pet-footer">
-                <span className="chat-human-to-pet-emotion">
-                  {humanToPetResult.emoji} {EMOTION_LABELS[humanToPetResult.emotion] || humanToPetResult.emotion}
-                </span>
-                <span className="chat-tts-hint">点击播放宠物叫声</span>
-              </div>
+          {/* 空状态提示 */}
+          {voiceResults.length === 0 && humanToPetResults.length === 0 && !showVoiceUploader && (
+            <div className="chat-empty-hint" onClick={() => setShowVoiceUploader(true)}>
+              <Volume2 size={32} style={{ color: "#6366F1", opacity: 0.5 }} />
+              <p>录制宠物叫声或输入文字，AI 帮你翻译~</p>
+              <span className="chat-empty-action">开始翻译</span>
             </div>
           )}
-        </div>
+        </>
       )}
 
       {/* 加载提示 */}
@@ -1164,204 +1326,88 @@ export default function PetChat() {
         </div>
       )}
       
-      {/* 聊天消息区域 - 仅聊天 Tab 显示 */}
+      {/* AI 功能引导面板 - 未选择功能时展示 */}
       {activeTab === "chat" && (
-      <section className="chat-messages">
-        <div className="chat-bubble-line" />
-        
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`chat-msg-row ${msg.type === "pet" ? "chat-msg-pet" : "chat-msg-human"}`}
-          >
-            {msg.type === "human" && (
-              <div className="chat-msg-avatar chat-msg-avatar-human">
-                <span>😊</span>
+        <section className="chat-ai-guide">
+          <div className="chat-guide-header">
+            <div className="chat-guide-icon">🤖</div>
+            <h2 className="chat-guide-title">AI 宠物助手</h2>
+            <p className="chat-guide-subtitle">选择下方任一功能，开启与毛孩子的智能互动</p>
+          </div>
+
+          <div className="chat-guide-cards">
+            {/* 拍照解读 */}
+            <div
+              className="chat-guide-card"
+              onClick={() => {
+                setActiveTab("photo");
+                setShowPhotoUploader(true);
+                setShowVoiceUploader(false);
+              }}
+              style={{ "--card-accent": "#9B7EDE", "--card-gradient": "linear-gradient(135deg, rgba(155,126,222,0.08), rgba(184,160,232,0.04))" } as React.CSSProperties}
+            >
+              <div className="chat-guide-card-icon" style={{ background: "linear-gradient(135deg, #9B7EDE, #B8A0E8)" }}>
+                <Camera size={22} />
               </div>
-            )}
-            
-            <div className="chat-msg-content">
-              {/* 照片心声卡片 - 使用新组件渲染 */}
-              {msg.source === "ai_photo_mind" && msg.photoMind && (
-                <PhotoMindResultCard
-                  result={msg.photoMind}
-                  photoUrl={msg.photoUrl}
-                  petName={selectedPet?.name || "宝贝"}
-                  petSpecies={selectedPet?.species || "dog"}
-                  expandable={true}
-                  onClose={() => {
-                    // 可选：从列表中移除该消息
-                  }}
-                  onShare={() => {
-                    // 分享到聊天（可以复制文本或生成分享卡片）
-                  }}
-                  onRetake={() => {
-                    // 重新打开上传面板
-                    setActiveTab("photo");
-                    setShowPhotoUploader(true);
-                  }}
-                />
-              )}
-              
-              {/* 声音翻译卡片 - 使用新组件 PetVoiceBubble */}
-              {msg.source === "ai_voice" && msg.voiceResult && (
-                <PetVoiceBubble
-                  result={msg.voiceResult}
-                  audioUrl={msg.audioUrl}
-                  expanded={false}
-                />
-              )}
-
-              {/* 人话转宠物语卡片 */}
-              {msg.source === "human_to_pet" && msg.humanToPetResult && (
-                <div className="chat-human-to-pet-card">
-                  <div className="chat-human-to-pet-header">
-                    <span className="chat-human-to-pet-label">
-                      <Languages size={12} /> 人话转宠语
-                    </span>
-                    <span className="chat-human-to-pet-original">"{msg.humanToPetResult.originalText}"</span>
-                  </div>
-                  <div className="chat-human-to-pet-text">{msg.humanToPetResult.petLanguage}</div>
-
-                  {/* TTS 语音播放器（微信语音消息风格） */}
-                  <button
-                    className={`chat-tts-player ${ttsPlayingId === String(msg.id) ? "chat-tts-playing" : ""}`}
-                    onClick={() => handlePlayTtsVoice(msg.humanToPetResult!.emotion, String(msg.id))}
-                  >
-                    <span className="chat-tts-play-icon">
-                      {ttsPlayingId === String(msg.id)
-                        ? <Pause size={16} fill="currentColor" />
-                        : <Play size={14} fill="currentColor" />}
-                    </span>
-                    <span className="chat-tts-waveform">
-                      {Array.from({ length: 12 }).map((_, i) => (
-                        <i
-                          key={i}
-                          className="chat-tts-bar"
-                          style={{
-                            animationDelay: ttsPlayingId === String(msg.id) ? `${i * 0.06}s` : "0s",
-                            height: ttsPlayingId === String(msg.id)
-                              ? `${20 + Math.sin(i * 0.8) * 60 + Math.random() * 20}%`
-                              : `${30 + (i % 3) * 15}%`,
-                          }}
-                        />
-                      ))}
-                    </span>
-                    <span className="chat-tts-duration">
-                      {petTtsEngine.formatDuration(petTtsEngine.getEstimatedDuration(
-                        toTtsSpecies(selectedPet?.species), msg.humanToPetResult.emotion
-                      ))}
-                    </span>
-                  </button>
-
-                  <div className="chat-human-to-pet-footer">
-                    <span className="chat-human-to-pet-emotion">
-                      {msg.humanToPetResult.emoji} {EMOTION_LABELS[msg.humanToPetResult.emotion] || msg.humanToPetResult.emotion}
-                    </span>
-                    <span className="chat-tts-hint">点击播放宠物叫声</span>
-                  </div>
-                </div>
-              )}
-              
-              {/* 消息气泡 */}
-              <div className={`chat-bubble ${msg.type === "pet" || msg.type === "pet_translate" ? "chat-bubble-pet" : "chat-bubble-human"}`}>
-                {msg.type === "pet_translate" && (
-                  <div className="chat-translate-label">
-                    <span>🐾 翻译给宠物听</span>
-                  </div>
-                )}
-                <p className="chat-bubble-text">{msg.text}</p>
-                {msg.type === "human" && (
-                  <button 
-                    className="chat-translate-btn"
-                    onClick={() => handleTranslateToPet(msg.id, msg.text)}
-                    title="翻译成宠物语言"
-                  >
-                    🐾 翻译
-                  </button>
-                )}
+              <div className="chat-guide-card-body">
+                <h3>📸 拍照解读</h3>
+                <p>直接拍摄宠物照片，AI 实时分析它的表情和姿态，解读此刻的内心活动、情绪状态和想法。</p>
+                <span className="chat-guide-card-tag">实时 · 表情识别</span>
               </div>
-              
-              {/* 情绪标签（仅 AI 功能显示） */}
-              {(msg.source === "ai_photo_mind" || msg.source === "ai_voice") && 
-               msg.voiceResult?.suggestions && msg.voiceResult.suggestions.length > 0 && (
-                <div className="chat-suggestions">
-                  {msg.voiceResult.suggestions.slice(0, 2).map((s, i) => (
-                    <span key={i} className="chat-suggestion-tag">
-                      {s.icon} {s.action}
-                    </span>
-                  ))}
-                </div>
-              )}
+              <ChevronRight size={16} className="chat-guide-arrow" />
+            </div>
 
-              {/* 消息元信息 */}
-              <div className="chat-msg-meta">
-                <span className="chat-msg-time">{msg.time}</span>
-                {(msg.type === "pet" || msg.type === "pet_translate") && selectedPet && (
-                  <div className="chat-msg-avatar chat-msg-avatar-pet chat-msg-pet-avatar">
-                    {selectedPet.image_url || getLocalAvatar(selectedPet.id) ? (
-                      <img
-                        src={selectedPet.image_url || getLocalAvatar(selectedPet.id)!}
-                        alt={selectedPet.name}
-                        className="chat-pet-avatar-small"
-                      />
-                    ) : (
-                      <div className="chat-emoji-icon chat-name-circle-wrapper">
-                        <PetNameCircle name={selectedPet.name} size={32} />
-                      </div>
-                    )}
-                  </div>
-                )}
+            {/* 选图解读 */}
+            <div
+              className="chat-guide-card"
+              onClick={() => {
+                setActiveTab("photo");
+                setShowPhotoUploader(true);
+                setShowVoiceUploader(false);
+              }}
+              style={{ "--card-accent": "#F59E0B", "--card-gradient": "linear-gradient(135deg, rgba(245,158,11,0.08), rgba(251,191,36,0.04))" } as React.CSSProperties}
+            >
+              <div className="chat-guide-card-icon" style={{ background: "linear-gradient(135deg, #F59E0B, #FBBF24)" }}>
+                <Image size={22} />
               </div>
+              <div className="chat-guide-card-body">
+                <h3>🖼️ 选图解读</h3>
+                <p>从相册选择宠物照片，AI 深度分析图片中的细节，生成完整的心声报告，包括心情、需求和健康提示。</p>
+                <span className="chat-guide-card-tag">深度分析 · 心声报告</span>
+              </div>
+              <ChevronRight size={16} className="chat-guide-arrow" />
+            </div>
+
+            {/* 双向翻译 */}
+            <div
+              className="chat-guide-card"
+              onClick={() => {
+                setActiveTab("voice");
+                setShowVoiceUploader(true);
+                setShowPhotoUploader(false);
+              }}
+              style={{ "--card-accent": "#6366F1", "--card-gradient": "linear-gradient(135deg, rgba(99,102,241,0.08), rgba(129,140,248,0.04))" } as React.CSSProperties}
+            >
+              <div className="chat-guide-card-icon" style={{ background: "linear-gradient(135deg, #6366F1, #818CF8)" }}>
+                <ArrowLeftRight size={22} />
+              </div>
+              <div className="chat-guide-card-body">
+                <h3>🔄 双向翻译</h3>
+                <p>录制宠物叫声翻译成人类语言（🐱喵/🐶汪→人话），或将你的话翻译成宠物语言（人话→喵/汪），支持语音播放。目前支持猫咪和狗狗。</p>
+                <span className="chat-guide-card-tag">双向互译 · 语音播放</span>
+              </div>
+              <ChevronRight size={16} className="chat-guide-arrow" />
             </div>
           </div>
-        ))}
-        
-        <div ref={messagesEndRef} />
-      </section>
+
+          <div className="chat-guide-tips">
+            <Sparkles size={14} />
+            <span>所有 AI 功能均由 GLM 智能模型驱动，数据安全加密保护 🛡️</span>
+          </div>
+        </section>
       )}
       
-      {/* ====== 新底部操作区 ====== */}
-      <footer className="chat-footer">
-        <div className="chat-footer-inner">
-          {/* 语音输入按钮 */}
-          <button
-            className={`chat-voice-btn ${isVoiceInputting ? "voice-active" : ""}`}
-            onClick={handleVoiceInput}
-            title="语音输入"
-          >
-            <Mic size={18} />
-          </button>
-          
-          {/* 相册/图片按钮 - 触发照片心声 */}
-          <button
-            className="chat-gallery-btn"
-            onClick={() => {
-              setActiveTab("photo");
-              setShowPhotoUploader(true);
-              setShowVoiceUploader(false);
-            }}
-            title="上传照片解读心声"
-          >
-            <Image size={18} />
-          </button>
-          
-          {/* 输入框区域 */}
-          <div className="chat-input-wrap">
-            <input
-              type="text"
-              className="chat-input"
-              placeholder="对宝贝说点什么..."
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            />
-            <button className="chat-send-btn" onClick={handleSend} disabled={!inputText.trim()}>
-              <Send size={16} />
-            </button>
-          </div>
-        </div>
-      </footer>
+      {/* 底部操作区 - 已移除，功能通过各Tab内部入口访问 */}
     </main>
   );
 }
