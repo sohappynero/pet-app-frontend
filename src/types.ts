@@ -248,14 +248,22 @@ export interface MedicalRecord {
   created_at?: string;
 }
 
-/** 观察记录 */
+/** 观察记录 - 后端 observation_records 表 */
 export interface ObservationRecord {
   id: number;
   pet_id: number;
   observation_date?: string | null;
+  /** 食欲: excellent/good/normal/decreased/absent */
   appetite_status?: string | null;
+  /** 情绪: happy/calm/anxious/aggressive/depressed/excited/fearful */
   mental_status?: string | null;
-  bowel_movements?: string | null;
+  /** 便便性状(布里斯托): normal/soft/loose/watery/constipated/blood_present */
+  stool_consistency?: string | null;
+  /** 排便次数/天 */
+  stool_frequency?: number | null;
+  /** 精力活跃度: very_high/high/normal/low/very_low */
+  energy_level?: string | null;
+  /** 当日体重(kg) */
   weight?: number | null;
   notes?: string | null;
   created_at?: string;

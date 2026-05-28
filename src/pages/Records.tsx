@@ -5,6 +5,7 @@ import {
   Bell,
   CalendarDays,
   Droplet,
+  Eye,
   FileText,
   Heart,
   PawPrint,
@@ -21,9 +22,10 @@ import {
 import { 
   fetchGroomings, fetchWeights, fetchFeedings,
   fetchDewormings, fetchVaccines, fetchCheckups, fetchMedicals,
+  fetchObservations,
   getLocalToday 
 } from "../lib/api";
-import type { FeedingRecord } from "../types";
+import type { FeedingRecord, ObservationRecord } from "../types";
 import { useShell } from "../hooks/useShell";
 import type { GroomingRecord, HealthRecord, RecordType, WeightRecord } from "../types";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
@@ -46,7 +48,7 @@ function PetNameCircle({ name, size = 36 }: { name: string; size?: number }) {
   );
 }
 
-type HealthFilter = "all" | "weight" | "vaccine" | "deworm" | "diet" | "checkup" | "beauty";
+type HealthFilter = "all" | "weight" | "vaccine" | "deworm" | "diet" | "checkup" | "beauty" | "observation";
 
 const filterItems: { key: HealthFilter; label: string; icon: React.ReactNode; color: string; bg: string }[] = [
   { key: "all", label: "全部", icon: <Sparkles size={14} />, color: "#667eea", bg: "rgba(102,126,234,0.12)" },
@@ -56,6 +58,7 @@ const filterItems: { key: HealthFilter; label: string; icon: React.ReactNode; co
   { key: "diet", label: "饮食", icon: <Heart size={14} />, color: "#00b894", bg: "rgba(0,184,148,0.12)" },
   { key: "checkup", label: "体检", icon: <Stethoscope size={14} />, color: "#74b9ff", bg: "rgba(116,185,255,0.12)" },
   { key: "beauty", label: "美容", icon: <Sparkles size={14} />, color: "#fd79a8", bg: "rgba(253,121,168,0.12)" },
+  { key: "observation", label: "日常观察", icon: <Eye size={14} />, color: "#6c5ce7", bg: "rgba(108,92,231,0.12)" },
 ];
 
 function isDietRecord(record: HealthRecord) {
@@ -145,6 +148,17 @@ function getRecordSub(record: HealthRecord) {
   }
 
   // ══════════════════════════
+  // 第3.5优先级：日常观察（显示简短摘要 or 排便情况）
+  // ══════════════════════════
+  if (record.record_type === "observation") {
+    // 优先显示用户填写的备注/摘要(note)
+    if (isMeaningfulText(record.note)) return record.note!.split('\n')[0].trim().split(' | ')[0];
+    // 没有备注时，用排便情况(symptom)代替（如"软便"、"便秘"）
+    if (isMeaningfulText(record.symptom)) return record.symptom!.trim();
+    return "";
+  }
+
+  // ══════════════════════════
   // 通用逻辑：所有其他类型统一为 note → hospital → symptom → ...
   // ══════════════════════════
 
@@ -201,7 +215,7 @@ function getIconInfo(record: HealthRecord): IconInfo {
   if (isDietRecord(record))
     return { icon: <Heart size={20} />, bg: "#e8f8f0", color: "#00b894", gradient: "linear-gradient(135deg, #00b894 0%, #55efc4 100%)" };
   if (record.record_type === "observation")
-    return { icon: <Heart size={20} />, bg: "#e8f8f0", color: "#00b894", gradient: "linear-gradient(135deg, #00cec9 0%, #81ecec 100%)" };
+    return { icon: <Eye size={20} />, bg: "#f0e8ff", color: "#6c5ce7", gradient: "linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%)" };
   if (record.record_type === "external")
     return { icon: <FileText size={20} />, bg: "#fef9e7", color: "#e17055", gradient: "linear-gradient(135deg, #fdcb6e 0%, #e17055 100%)" };
   return { icon: <FileText size={20} />, bg: "#f5f0eb", color: "#8b7355", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" };
@@ -229,7 +243,7 @@ export default function Records() {
   useEffect(() => {
     setLoading(true);
     const petId = selectedPetId ?? undefined;
-    // 加载所有专用表数据（美容 + 体重 + 饮食 + 驱虫 + 疫苗 + 体检 + 就诊）
+    // 加载所有专用表数据（美容 + 体重 + 饮食 + 驱虫 + 疫苗 + 体检 + 就诊 + 日常观察）
     Promise.all([
       petId ? fetchGroomings(petId).catch(() => []) : Promise.resolve([]),
       petId ? fetchWeights(petId).catch(() => []) : Promise.resolve([]),
@@ -238,8 +252,9 @@ export default function Records() {
       petId ? fetchVaccines(petId).catch(() => []) : Promise.resolve([]),
       petId ? fetchCheckups(petId).catch(() => []) : Promise.resolve([]),
       petId ? fetchMedicals(petId).catch(() => []) : Promise.resolve([]),
+      petId ? fetchObservations(petId).catch(() => []) : Promise.resolve([]),
     ])
-      .then(([groomingRecsRaw, weightRecsRaw, feedingRecsRaw, dewormRecsRaw, vaccineRecsRaw, checkupRecsRaw, medicalRecsRaw]) => {
+      .then(([groomingRecsRaw, weightRecsRaw, feedingRecsRaw, dewormRecsRaw, vaccineRecsRaw, checkupRecsRaw, medicalRecsRaw, observationRecsRaw]) => {
         // 统一解构：疫苗API返回分页对象{list}，其余返回裸数组
         const groomingRecs = Array.isArray(groomingRecsRaw) ? groomingRecsRaw : [];
         const weightRecs = Array.isArray(weightRecsRaw) ? weightRecsRaw : [];
@@ -251,6 +266,7 @@ export default function Records() {
           : ((vaccineRecsRaw && vaccineRecsRaw.list) ? vaccineRecsRaw.list : []);
         const checkupRecs = Array.isArray(checkupRecsRaw) ? checkupRecsRaw : [];
         const medicalRecs = Array.isArray(medicalRecsRaw) ? medicalRecsRaw : [];
+        const observationRecs = Array.isArray(observationRecsRaw) ? observationRecsRaw : [];
         // 1. 映射 GroomingRecord → HealthRecord
         const groomings: HealthRecord[] = (groomingRecs as GroomingRecord[]).map((g) => ({
           id: g.id,
@@ -359,8 +375,43 @@ export default function Records() {
           images: m.medical_case_photo_urls || [],
         }));
 
+        // 8. 映射 ObservationRecord → HealthRecord（observation 类型）
+        // 后端字段: stool_consistency(便便性状) / stool_frequency(排便次数) / energy_level(精力) / mental_status(情绪)
+        const observations: HealthRecord[] = (observationRecs as ObservationRecord[]).map((o) => {
+          // 直接使用用户填写的 notes，不做过滤
+          const displayNote = (o as any).notes?.trim() || "";
+
+          // 翻译后端枚举值为中文
+          const cMap: Record<string, string> = { normal: "正常", soft: "偏软", loose: "稀", watery: "水样", constipated: "便秘", blood_present: "带血" };
+          const stoolText = (() => {
+            const c = (o as any).stool_consistency;
+            const f = (o as any).stool_frequency;
+            if (!c && f == null) return "";
+            const parts: string[] = [];
+            if (c) parts.push(cMap[c] || c);
+            if (f != null) parts.push(`${f}次/天`);
+            return parts.join("，");
+          })();
+
+          return {
+            id: o.id,
+            record_type: "observation" as RecordType,
+            record_date: o.observation_date ? String(o.observation_date).slice(0, 10) : getLocalToday(),
+            title: "日常观察",
+            hospital: "", doctor: "",
+            symptom: stoolText || "",
+            treatment: "",
+            cost: null,
+            weight_kg: o.weight ?? null,
+            mood: (o as any).mental_status || "",
+            appetite: o.appetite_status || "",
+            note: displayNote,
+            images: [],
+          };
+        });
+
         // 合并所有专用表数据
-        setRecords([...groomings, ...weights, ...feedings, ...dewormings, ...vaccines, ...checkups, ...medicals]);
+        setRecords([...groomings, ...weights, ...feedings, ...dewormings, ...vaccines, ...checkups, ...medicals, ...observations]);
       })
       .finally(() => setLoading(false));
   }, [phone, selectedPetId]);
@@ -402,6 +453,13 @@ export default function Records() {
     return { vaccine, deworm, checkup, beauty, total: records.length };
   }, [records]);
 
+  // XSS 安全清理：过滤 HTML 标签，只保留纯文本
+  const sanitizeText = (text: string | null | undefined): string => {
+    if (!text || !text.trim()) return "";
+    // 移除所有 HTML/JS 标签和实体编码的尖括号
+    return text.replace(/<[^>]*>/g, "").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").trim();
+  };
+
   // 过滤后排序
   const filteredRecords = useMemo(() => {
     const filtered = records.filter((record) => {
@@ -413,6 +471,7 @@ export default function Records() {
       if (activeFilter === "checkup") return record.record_type === "checkup";
       if (activeFilter === "diet") return isDietRecord(record);
       if (activeFilter === "beauty") return isBeautyRecord(record);
+      if (activeFilter === "observation") return record.record_type === "observation";
       return true;
     });
     return [...filtered].sort((a, b) => b.record_date.localeCompare(a.record_date));
@@ -634,8 +693,8 @@ export default function Records() {
                   </div>
 
                   <div className="h3d-record-content">
-                    <strong className="h3d-record-title">{getRecordTitle(record)}</strong>
-                    {sub && <span className="h3d-record-sub">{sub}</span>}
+                    <strong className="h3d-record-title">{sanitizeText(getRecordTitle(record))}</strong>
+                    {sub && <span className="h3d-record-sub">{sanitizeText(sub)}</span>}
                     <div className="h3d-record-date">
                       <CalendarDays size={12} className="h3d-record-date-icon" />
                       {record.record_date}

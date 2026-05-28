@@ -12270,6 +12270,14 @@ body::before {
   background: #fff;
   box-shadow: 0 0 0 4px rgba(102,126,234,0.08);
 }
+.ar-input-error {
+  border-color: #e74c3c !important;
+  background: #fef5f5;
+}
+.ar-input-error:focus {
+  border-color: #e74c3c !important;
+  box-shadow: 0 0 0 4px rgba(231,76,60,0.12) !important;
+}
 
 /* 下拉选择 */
 .ar-select-wrap { position: relative; }

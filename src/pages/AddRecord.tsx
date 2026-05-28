@@ -62,6 +62,13 @@ const recordTypes = [
   { value: "observation" as RecordType, label: "日常观察", icon: <Heart size={14} />, color: "#00b894", bg: "#e8f8f0" },
 ];
 
+// 排便情况合法值（与后端枚举 + 提示文案对齐）
+const VALID_STOOL_VALUES = [
+  "正常", "偏软", "软便",
+  "稀", "稀便", "水样",
+  "便秘", "带血", "便血",
+];
+
 // ═══════════════════════════════════════════
 // 每种类型的字段配置：可见性 + 占位符文案
 // ═══════════════════════════════════════════
@@ -309,7 +316,7 @@ const typeConfig: Record<RecordType, {
    pageTitle: "添加日常观察",
     heroDesc: "记录宠物每日排便等健康观察",
     titlePh: "",
-    titleLabel: "观察摘要（可选）",
+    titleLabel: "简短摘要（可选）",
     dateLabel: "记录日期",
     showNextDue: false,
     nextDuePh: "", nextDueLabel: "",
@@ -327,7 +334,7 @@ const typeConfig: Record<RecordType, {
     imagePh: "粘贴图片链接，每行一个\n• 排便照片\n• 异常留证",
     // 后端专用 — 只保留排便
     bowelMovement: true,
-    bowelMovementPh: "排便情况（正常/稀便/便秘/软便/便血等）",
+    bowelMovementPh: "排便情况（正常/稀便/便秘/软便/便血）",
   },
 };
 
@@ -673,13 +680,41 @@ export default function AddRecord() {
           break;
         }
         case "observation": {
-          // 日常观察 → 只记录排便情况 + 备注
+          // 日常观察 → 后端 observation schema 字段：
+          //   bowel_movements(排便) / notes(简短摘要+备注)
+          // 注意：后端没有独立 title 字段，摘要存入 notes
+          if (!form.title.trim()) {
+            throw new Error("请填写简短摘要");
+          }
+          if (!form.bowel_movements.trim()) {
+            throw new Error("请填写排便情况");
+          }
+          if (!VALID_STOOL_VALUES.includes(form.bowel_movements.trim())) {
+            throw new Error("排便情况请选择标准值：正常 / 稀便 / 便秘 / 软便 / 便血 等");
+          }
+
+          // 排便情况：中文描述 → 后端枚举值
+          const stoolMap: Record<string, string> = {
+            "正常": "normal", "偏软": "soft", "软便": "soft",
+            "稀": "loose", "稀便": "loose", "水样": "watery",
+            "便秘": "constipated", "带血": "blood_present", "便血": "blood_present",
+          };
+          const rawStool = form.bowel_movements.trim();
+          const stoolValue = stoolMap[rawStool] || rawStool;
+
+          // 组合摘要：用户填的简短摘要 + 备注拼接为 notes
+          let summaryNotes = "";
+          if (form.title.trim()) summaryNotes += form.title.trim();
+          if (form.note.trim()) {
+            summaryNotes += (summaryNotes ? " | " : "") + form.note.trim();
+          }
+
           await createObservation({
             pet_id: pid,
             observation_date: recordDate,
-            bowel_movements: form.bowel_movements.trim() || undefined,
-            notes: form.note.trim() || undefined,
-          });
+            bowel_movements: stoolValue,
+            notes: summaryNotes || undefined,
+          } as any);
           break;
         }
       }
@@ -874,16 +909,16 @@ export default function AddRecord() {
               </div>
             ) : form.record_type === "observation" ? (
               <div className="ar-field-group">
-                <label className="ar-label"><Heart size={13} /> 观察摘要</label>
-                <input className="ar-input" placeholder="如：今日精神不错，排便正常" value={form.title}
-                  onChange={(e) => updateField("title", e.target.value)} />
+                <label className="ar-label"><Heart size={13} /> 简短摘要 <span className="ar-required">*</span></label>
+                <input className="ar-input" placeholder="如：今天状态不错，一切正常" value={form.title}
+                  onChange={(e) => updateField("title", e.target.value)} required />
               </div>
             ) : (
               <div className="ar-field-group">
-                <label className="ar-label"><ClipboardList size={13} /> {c.titleLabel || "标题"} {!["beauty","observation","weight","diet"].includes(form.record_type) && <span className="ar-required">*</span>}</label>
+                <label className="ar-label"><ClipboardList size={13} /> {c.titleLabel || "标题"} {!["beauty","weight","diet"].includes(form.record_type) && <span className="ar-required">*</span>}</label>
                 <input className="ar-input" placeholder={c.titlePh || "填写记录标题"} value={form.title}
                   onChange={(e) => updateField("title", e.target.value)}
-                  required={!["beauty","observation","weight","diet"].includes(form.record_type)} />
+                  required={!["beauty","weight","diet"].includes(form.record_type)} />
               </div>
             )}
 
@@ -1007,7 +1042,7 @@ export default function AddRecord() {
             </div>
           )}
 
-          {/* ── 健康指标 — 体检/日常观察专用 ── */}
+          {/* ── 健康指标 — 体重/体检专用（observation 不走这里）── */}
           {(c.weight || c.mood || c.appetite) && (
             <div className="ar-card">
               <div className="ar-card-header">
@@ -1037,15 +1072,29 @@ export default function AddRecord() {
                     value={form.appetite} onChange={(e) => updateField("appetite", e.target.value)} />
                 </div>
               )}
+            </div>
+          )}
 
-              {/* 观察：排便情况 */}
-              {form.record_type === "observation" && c.bowelMovement && (
-                <div className="ar-field-group">
-                  <label className="ar-label">💩 排便情况</label>
-                  <input className="ar-input" placeholder={c.bowelMovementPh}
-                    value={form.bowel_movements} onChange={(e) => updateField("bowel_movements", e.target.value)} />
-                </div>
-              )}
+          {/* ── 日常观察专用字段（独立卡片，不受 weight/mood/appetite 限制）── */}
+          {form.record_type === "observation" && c.bowelMovement && (
+            <div className="ar-card">
+              <div className="ar-card-header">
+                <div className="ar-card-tag ar-tag-status"><Heart size={12} />健康观察</div>
+              </div>
+
+              {/* 排便情况 */}
+              <div className="ar-field-group">
+                <label className="ar-label">💩 排便情况 <span className="ar-required">*</span></label>
+                <input className={`ar-input ${form.bowel_movements.trim() && !VALID_STOOL_VALUES.includes(form.bowel_movements.trim()) ? 'ar-input-error' : ''}`}
+                  placeholder={c.bowelMovementPh}
+                  value={form.bowel_movements} onChange={(e) => updateField("bowel_movements", e.target.value)} />
+                {form.bowel_movements.trim() && !VALID_STOOL_VALUES.includes(form.bowel_movements.trim()) && (
+                  <p style={{ fontSize: 11, color: '#e74c3c', marginTop: 4 }}>⚠️ 请选择标准选项：正常 / 稀便 / 便秘 / 软便 / 便血</p>
+                )}
+                {!form.bowel_movements.trim() || VALID_STOOL_VALUES.includes(form.bowel_movements.trim()) ? (
+                  <p style={{ fontSize: 11, color: '#999', marginTop: 4 }}>提示：正常 / 稀便 / 便秘 / 软便 / 便血</p>
+                ) : null}
+              </div>
             </div>
           )}
 

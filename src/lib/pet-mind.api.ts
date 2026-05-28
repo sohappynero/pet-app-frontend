@@ -23,7 +23,9 @@ import {
   analyzeEmotion,
   generateFeaturesForEmotion,
   analyzeAudioBlob,
-  type EmotionAnalysisResult
+  generateMockAudioFeatures,
+  type EmotionAnalysisResult,
+  type PetSpecies,
 } from "./pet-sound-engine";
 
 // ============================================================
@@ -259,23 +261,31 @@ export async function fetchVoiceTranslate(request: VoiceTranslateRequest): Promi
     let emotion: PetEmotion = "neutral";
     let emotionScore: number = 0.5;
 
+    // 解析宠物物种
+    const speciesLower = (pet.species || "").toLowerCase();
+    const petSpecies: PetSpecies =
+      ["cat", "猫", "猫咪", "feline"].some(s => speciesLower.includes(s)) ? "cat" :
+      ["dog", "狗", "犬", " canine"].some(s => speciesLower.includes(s)) ? "dog" : "other";
+
     try {
       const audioFeatures = await analyzeAudioBlob(audioFile);
       const personality = customPersonality || inferPersonality(pet.species, pet.breed);
-      const emotionAnalysis = analyzeEmotion(audioFeatures, personality);
+      // 核心：传入 species 参数，使用对应物种的情绪规则
+      const emotionAnalysis = analyzeEmotion(audioFeatures, { species: petSpecies, personality });
       emotion = emotionAnalysis.primaryEmotion;
       emotionScore = emotionAnalysis.confidence;
-      console.log("[SoundEngine] 音频特征:", audioFeatures);
+      console.log("[SoundEngine] 物种:", petSpecies, "音频特征:", audioFeatures);
       console.log("[SoundEngine] 情绪分析:", {
         primary: emotion,
         confidence: Math.round(emotionScore * 100) + "%",
-        rules: emotionAnalysis.matchedRules
+        rules: emotionAnalysis.matchedRules,
+        detected: emotionAnalysis.detectedSpecies,
       });
     } catch (error) {
       console.warn("[SoundEngine] 音频分析失败，使用默认值:", error);
-      const features = generateFeaturesForEmotion("neutral");
+      const features = generateFeaturesForEmotion("neutral", petSpecies);
       const personality = customPersonality || inferPersonality(pet.species, pet.breed);
-      const emotionAnalysis = analyzeEmotion(features, personality);
+      const emotionAnalysis = analyzeEmotion(features, { species: petSpecies, personality });
       emotion = emotionAnalysis.primaryEmotion;
       emotionScore = emotionAnalysis.confidence;
     }
@@ -314,7 +324,7 @@ export async function fetchVoiceTranslate(request: VoiceTranslateRequest): Promi
 
     // 5. 解析后端返回的数据
     // 动态 fallback：根据情绪 + 品种生成不同默认文案（兼容多种写法）
-    const speciesLower = (pet.species || "").toLowerCase();
+    // speciesLower 已在上面第 265 行声明
     const isCat = ["cat", "猫", "猫咪", "feline"].some(s => speciesLower.includes(s));
 
     const emotionFallbacks: Record<string, { cat: string; dog: string }> = {
@@ -393,19 +403,21 @@ export async function fetchVoiceTranslate(request: VoiceTranslateRequest): Promi
 
 /**
  * 分析音频特征，返回情绪和置信度
- * 使用情绪规则引擎进行专业分析
+ * 使用情绪规则引擎进行专业分析（物种感知版）
  */
-function analyzeAudioEmotion(audioBlob?: Blob, personality?: PetPersonality): { emotion: PetEmotion; score: number } {
+function analyzeAudioEmotion(
+  audioBlob?: Blob,
+  personality?: PetPersonality,
+  species: PetSpecies = "dog"
+): { emotion: PetEmotion; score: number } {
   if (audioBlob) {
-    // 使用真实音频分析（异步）
-    // 这里返回一个基于分析的初始结果
-    // 实际分析在 fetchVoiceTranslate 中异步执行
+    // 使用真实音频分析（异步）——实际分析在 fetchVoiceTranslate 中异步执行
     return { emotion: "neutral", score: 0.5 };
   }
-  
-  // 无真实数据时使用模拟
-  const features = generateFeaturesForEmotion("neutral");
-  const analysis = analyzeEmotion(features, personality);
+
+  // 无真实数据时使用模拟（传入 species）
+  const features = generateFeaturesForEmotion("neutral", species);
+  const analysis = analyzeEmotion(features, { species });
   return { emotion: analysis.primaryEmotion, score: analysis.confidence };
 }
 

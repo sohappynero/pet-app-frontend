@@ -9,6 +9,7 @@ import {
   Clock,
   Droplet,
   Edit3,
+  Eye,
   FileText,
   Heart,
   Hospital,
@@ -22,7 +23,7 @@ import {
   UserCheck,
   XCircle,
 } from "lucide-react";
-import { fetchRecords, fetchWeights, fetchFeedings, fetchGroomings } from "../lib/api";
+import { fetchRecords, fetchWeights, fetchFeedings, fetchGroomings, fetchObservations } from "../lib/api";
 import { useShell } from "../hooks/useShell";
 import type { HealthRecord } from "../types";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
@@ -73,6 +74,8 @@ function getRecordTypeInfo(record: HealthRecord): IconInfo {
     return { icon: <Scale size={24} />, bg: "#fef9e7", color: "#f0932b", gradient: "linear-gradient(135deg, #f9ca24 0%, #f0932b 100%)", label: "体重记录" };
   if (record.record_type === "diet" || isDietRecord(record))
     return { icon: <Heart size={24} />, bg: "#e8f8f0", color: "#00b894", gradient: "linear-gradient(135deg, #00b894 0%, #55efc4 100%)", label: "饮食记录" };
+  if (record.record_type === "observation")
+    return { icon: <Eye size={24} />, bg: "#f0e8ff", color: "#6c5ce7", gradient: "linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%)", label: "日常观察" };
   if (record.record_type === "external")
     return { icon: <FileText size={24} />, bg: "#fef9e7", color: "#e17055", gradient: "linear-gradient(135deg, #fdcb6e 0%, #e17055 100%)", label: "外部记录" };
   if (record.weight_kg !== null && !Number.isNaN(Number(record.weight_kg)))
@@ -236,6 +239,47 @@ export default function RecordDetail() {
               cost: found.cost ?? null,
               note: found.notes || "",
               images: found.before_photos || [],
+            } as HealthRecord);
+          } else {
+            setRecord(null);
+          }
+        })
+        .finally(() => setLoading(false));
+    } else if (type === "observation" && petId) {
+      // 日常观察 → 查 observation_records 表
+      fetchObservations(petId)
+        .then((res) => {
+          const rawData = Array.isArray(res) ? res : (res?.list ? res.list : []);
+          const found = rawData.find((r: any) => r.id === targetId);
+          if (found) {
+            // 后端可能返回 bowel_movements(API层) 或 stool_consistency(DB列)，兼容两者
+            const rawStool = found.bowel_movements || found.stool_consistency || "";
+
+            // 排便情况翻译
+            let stoolText = "";
+            if (rawStool) {
+              const cMap: Record<string, string> = { normal: "正常", soft: "偏软", loose: "稀", watery: "水样", constipated: "便秘", blood_present: "带血" };
+              stoolText = cMap[rawStool] || rawStool;
+            }
+
+            // notes 直接显示用户输入内容（包含摘要+备注）
+            const displayNote = found.notes?.trim() || "";
+
+            setRecord({
+              ...found,
+              id: found.id,
+              record_type: "observation",
+              record_date: found.observation_date ? String(found.observation_date).slice(0, 10) : "",
+              title: "日常观察",
+              hospital: "", doctor: "",
+              symptom: stoolText,
+              treatment: "",
+              cost: null,
+              weight_kg: found.weight != null ? Number(found.weight) : null,
+              mood: "",
+              appetite: "",
+              note: displayNote,
+              images: [],
             } as HealthRecord);
           } else {
             setRecord(null);
@@ -565,23 +609,23 @@ export default function RecordDetail() {
             {/* ══ 观察记录专用字段 ══ */}
             {record.record_type === "observation" && (
               <>
-                {/* 观察摘要 (title) */}
-                {record.title?.trim() && (
-                  <DetailField
-                    icon={<FileText size={16} />}
-                    label="观察摘要"
-                    value={record.title}
-                    color="#00b894"
-                    fullWidth
-                  />
-                )}
-                {/* 排便情况 (symptom 映射) */}
-                {record.symptom?.trim() && (
+                {/* 排便情况 — 始终显示（用户填了就展示） */}
+                {(record as any).symptom && (
                   <DetailField
                     icon={<Activity size={16} />}
                     label="排便情况"
-                    value={record.symptom}
-                    color="#55efc4"
+                    value={(record as any).symptom}
+                    color="#a29bfe"
+                  />
+                )}
+                {/* 简短摘要 / 备注 */}
+                {record.note?.trim() && (
+                  <DetailField
+                    icon={<FileText size={16} />}
+                    label="备注"
+                    value={record.note}
+                    color="#6c5ce7"
+                    fullWidth
                   />
                 )}
               </>
@@ -636,8 +680,8 @@ export default function RecordDetail() {
               />
             )}
 
-            {/* 心情状态 - 观察记录和体重记录显示 */}
-            {record.mood?.trim() && (record.record_type === "observation" || record.record_type === "weight") && (
+            {/* 心情状态 - 仅体重记录显示（观察记录已在专用区域展示） */}
+            {record.mood?.trim() && record.record_type === "weight" && (
               <DetailField
                 icon={<Heart size={16} />}
                 label="精神状态"
@@ -653,8 +697,8 @@ export default function RecordDetail() {
               />
             )}
 
-            {/* 食欲状况 - 观察记录、体重和饮食记录显示 */}
-            {record.appetite?.trim() && (record.record_type === "observation" || record.record_type === "weight" || record.record_type === "diet") && (
+            {/* 食欲状况 - 仅体重和饮食记录显示（观察记录已在专用区域展示） */}
+            {record.appetite?.trim() && (record.record_type === "weight" || record.record_type === "diet") && (
               <DetailField
                 icon={<Heart size={16} />}
                 label="食欲状况"
