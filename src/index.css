@@ -38,7 +38,7 @@ body,
 }
 
 body {
-  font-family: "Inter", "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  font-family: 'ZCOOL KuaiLe', cursive;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
   min-height: 100dvh;
   color: var(--text);
@@ -1200,7 +1200,7 @@ body::before {
   75%      { transform: rotate(10deg) translateY(-1px); }
 }
 
-/* ═══ 中间凸起宠物聊天按钮 ═══ */
+/* ═══ 中间凸起宠物心声按钮 ═══ */
 .tab-chat-center {
   display: flex;
   align-items: flex-end;
@@ -4845,7 +4845,7 @@ body::before {
   background: linear-gradient(180deg, #fdf2f8 0%, #faf5ff 40%, #f5f3ff 100%);
   display: flex;
   flex-direction: column;
-  font-family: "PingFang SC", sans-serif;
+  font-family: 'ZCOOL KuaiLe', cursive;
   padding-bottom: 80px;
 }
 
@@ -5275,7 +5275,7 @@ body::before {
   background: #fff7fb;
   display: flex;
   flex-direction: column;
-  font-family: "PingFang SC", sans-serif;
+  font-family: 'ZCOOL KuaiLe', cursive;
   position: relative;
 }
 
@@ -5430,10 +5430,11 @@ body::before {
   color: #1f2d46;
   resize: none;
   outline: none;
-  font-family: "PingFang SC", sans-serif;
+  font-family: 'ZCOOL KuaiLe', cursive;
   box-sizing: border-box;
   transition: border-color 0.18s;
 }
+
 
 .fc-textarea::placeholder {
   color: #FF82B9;
@@ -5493,7 +5494,7 @@ body::before {
   font-size: 14px;
   color: #1f2d46;
   outline: none;
-  font-family: "PingFang SC", sans-serif;
+  font-family: 'ZCOOL KuaiLe', cursive;
   box-sizing: border-box;
   transition: border-color 0.18s;
 }
@@ -9419,226 +9420,483 @@ body::before {
   50% { opacity: 0.5; transform: scale(1.3); }
 }
 
-/* ═══ 快速记录区 - 高端精致风格（参考 jilu.png 横向布局）═══ */
-.ph3d-quick-section {
-  padding: 20px 16px 0;
+/* ═══ 快速记录区域 - 宫崎骏吉卜力手绘治愈风 ═══ */
+.ghibi-quick-section {
+  padding: 24px 16px 8px;
 }
 
-.ph3d-section-sub {
+.ghibi-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.ghibi-section-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: #2D3436;
+  letter-spacing: -0.3px;
+  margin: 0;
+  /* 手写风格字体栈 */
+  font-family: 'ZCOOL KuaiLe', cursive;
+}
+
+
+.ghibi-section-sub {
   font-size: 13px;
-  color: #a0a0a0;
+  color: #A0ABB0;
   font-weight: 500;
+  font-style: italic; /* 手写斜体效果 */
 }
 
-.ph3d-quick-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+/* 列表容器：单列纵向排列，温暖间距 */
+.ghibi-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 10px;
 }
 
-.ph3d-quick-item {
-  background: #fff;
-  border-radius: 14px;
-  padding: 12px 10px;
+/* ============================================================ */
+/* ===== 宫崎骏手绘治愈卡片核心样式 ===== */
+/* ============================================================ */
+
+.ghibi-card {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  border: 1px solid rgba(0,0,0,0.06);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  overflow: hidden;
-  min-width: 0;
+  gap: 16px;
+  padding: 18px 20px 18px 16px;
+  background: #FFFAF0; /* 花粉白 — 温暖底色 */
+  border-radius: 20px 22px 20px 22px; /* 不规则圆角 — 手绘感 */
+  border: 1.5px solid rgba(180, 170, 155, 0.20); /* 实线+低透明度 — 手绘描边感 */
   cursor: pointer;
-  text-align: left;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: visible;
-}
-
-.ph3d-quick-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.7), transparent);
-  pointer-events: none;
-  border-radius: 18px 18px 0 0;
-}
-
-.ph3d-quick-item:hover {
-  transform: translateY(-2px);
+  transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow:
-    0 6px 20px rgba(139,90,43,0.08),
-    0 2px 6px rgba(0,0,0,0.04);
-  border-color: rgba(200,180,160,0.25);
+    0 2px 12px rgba(120, 100, 80, 0.06),
+    0 1px 4px rgba(120, 100, 80, 0.03),
+    inset 0 1px 0 rgba(255,255,255,0.7);
+  width: 100%;
+  text-align: left;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.ph3d-quick-item:active { transform: translateY(0) scale(0.98); }
+/* 悬停 — 温柔上浮 + 手绘装饰活跃 */
+.ghibi-card:hover {
+  transform: translateY(-4px) rotate(0.5deg); /* 轻微旋转 — 纸片飘起感 */
+  box-shadow:
+    0 10px 30px rgba(120, 100, 80, 0.12),
+    0 4px 14px rgba(120, 100, 80, 0.06),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+  border-color: rgba(180, 170, 155, 0.40);
+}
 
-.ph3d-quick-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
+.ghibi-card:active {
+  transform: translateY(0) scale(0.98) rotate(0deg);
+  transition-duration: 0.2s;
+}
+
+/* ============================================================ */
+/* ===== 图标区 — 手绘水彩圆形容器 ===== */
+/* ============================================================ */
+
+.ghibi-card-icon-wrap {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50% 48% 52% 50%; /* 微妙不规则圆 */
   display: grid;
   place-items: center;
-  flex-shrink: 0;
-  font-size: 19px;
   position: relative;
+  background: var(--ghibi-icon-bg, #F0EDE6);
   box-shadow:
-    0 2px 8px rgba(0,0,0,0.08),
-    inset 0 -1px 2px rgba(0,0,0,0.04);
-  line-height: 1;
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    inset 0 -3px 8px rgba(0,0,0,0.06),
+    inset 0 2px 6px rgba(255,255,255,0.7),
+    0 3px 10px rgba(0,0,0,0.05);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.ph3d-quick-item:hover .ph3d-quick-icon {
-  transform: scale(1.12) rotate(-5deg) !important;
+/* 手绘风图标容器增强 */
+.ghibli-icon-handdrawn {
+  /* 轻微旋转 — 手绘不完美感 */
+  transform: rotate(-2deg);
+  /* 水彩边缘效果 */
+  border: 2px solid rgba(255,255,255,0.6);
+  box-shadow:
+    inset 0 -3px 8px rgba(0,0,0,0.06),
+    inset 0 2px 6px rgba(255,255,255,0.7),
+    0 3px 10px rgba(0,0,0,0.05),
+    0 0 0 1px rgba(180,170,155,0.1);
 }
 
-/* 图标内发光效果 */
-.ph3d-quick-icon::after {
+.ghibi-card-icon {
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  color: var(--ghibi-icon-color, #5D4037); /* 温暖深棕色 */
+}
+
+/* hover 时图标轻微弹跳 */
+.ghibi-card:hover .ghibi-card-icon-wrap {
+  transform: scale(1.08) rotate(-3deg);
+  box-shadow:
+    inset 0 -3px 10px rgba(0,0,0,0.08),
+    inset 0 2px 8px rgba(255,255,255,0.8),
+    0 4px 14px rgba(0,0,0,0.08);
+}
+
+.ghibi-card:hover .ghibi-card-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* 图标容器内部的水彩纹理（伪元素） */
+.ghibi-card-icon-wrap::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(255,255,255,0.35), transparent 60%);
+  background: radial-gradient(
+    ellipse at 30% 20%,
+    rgba(255,255,255,0.6) 0%,
+    transparent 55%
+  );
   pointer-events: none;
 }
 
-.ph3d-qi-weight {
-  background: linear-gradient(145deg, #fef3c7, #fcd34d);
-  box-shadow: 0 2px 10px rgba(251,191,36,0.35);
-}
-.ph3d-qi-vaccine {
-  background: linear-gradient(145deg, #ddd6fe, #a78bfa);
-  box-shadow: 0 2px 10px rgba(167,139,250,0.3);
-}
-.ph3d-qi-deworm {
-  background: linear-gradient(145deg, #fecaca, #f87171);
-  box-shadow: 0 2px 10px rgba(248,113,113,0.3);
-}
-.ph3d-qi-checkup {
-  background: linear-gradient(145deg, #a7f3d0, #34d399);
-  box-shadow: 0 2px 10px rgba(52,211,153,0.3);
-}
-.ph3d-qi-diet {
-  background: linear-gradient(145deg, #fed7aa, #fb923c);
-  box-shadow: 0 2px 10px rgba(251,146,60,0.3);
-}
-.ph3d-qi-beauty {
-  background: linear-gradient(145deg, #bfdbfe, #60a5fa);
-  box-shadow: 0 2px 10px rgba(96,165,250,0.3);
-}
+/* ============================================================ */
+/* ===== 内容区 ===== */
+/* ============================================================ */
 
-/* 智能分析 - 特殊发光样式 */
-.ph3d-qi-ai {
-  background: linear-gradient(135deg, #fbcfe8, #c084fc);
-  box-shadow: 0 2px 12px rgba(192,132,252,0.4);
-  animation: aiIconPulse 2.5s ease-in-out infinite;
-}
-
-@keyframes aiIconPulse {
-  0%, 100% { box-shadow: 0 2px 12px rgba(192,132,252,0.4); }
-  50%      { box-shadow: 0 4px 20px rgba(192,132,252,0.6), 0 0 24px rgba(240,147,251,0.2); }
-}
-.ph3d-qi-ai::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  background: inherit;
-  filter: blur(8px);
-  opacity: 0.45;
-  z-index: -1;
-}
-.ph3d-quick-item-glow {
-  position: relative;
-  overflow: visible !important;
-  background:
-    linear-gradient(135deg, rgba(240,147,251,0.06), rgba(245,87,108,0.06)),
-    #fff;
-  border-color: rgba(245,87,108,0.15) !important;
-}
-.ph3d-quick-item-glow::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: 14px;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(240,147,251,0.4), transparent 40%, rgba(245,87,108,0.3));
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  pointer-events: none;
-  animation: aiGlowBorder 3s ease-in-out infinite alternate;
-}
-
-@keyframes aiGlowBorder {
-  from { opacity: 0.5; }
-  to { opacity: 1; }
-}
-
-.ph3d-ai-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1px 7px;
-  border-radius: 999px;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  color: #fff;
-  background: linear-gradient(135deg, #f093fb, #f5576c);
-  box-shadow: 0 2px 8px rgba(245,87,108,0.35);
-  animation: aiBadgePulse 2s ease-in-out infinite;
-}
-
-@keyframes aiBadgePulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-}
-
-.ph3d-quick-text {
+.ghibi-card-content {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  padding-top: 2px;
 }
 
-.ph3d-quick-text strong {
-  font-size: 13px;
-  font-weight: 700;
-  color: #2d2015;
-  letter-spacing: 0.2px;
+.ghibi-card-title {
+  font-size: 17px;
+  font-weight: 750;
+  color: #2D3436;
+  letter-spacing: -0.2px;
   line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin: 0;
+  /* 手写风格字体栈 */
+  font-family: 'ZCOOL KuaiLe', cursive;
+  /* 柔和文字阴影 */
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
 }
 
-.ph3d-quick-text span {
-  font-size: 10.5px;
-  color: #9a8a7a;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.ghibi-card-desc {
+  font-size: 13px;
+  color: #8E99A4;
+  font-weight: 450;
+  line-height: 1.45;
+  margin: 0 0 4px;
+  /* 手写斜体 */
+  font-style: italic;
+  font-family: 'ZCOOL KuaiLe', cursive;
+  /* 柔和阴影 */
+  text-shadow: 0.5px 0.5px 1px rgba(0,0,0,0.03);
 }
 
-.ph3d-arrow {
-  color: #c8baae;
-  flex-shrink: 0;
-  width: 12px !important;
-  height: 12px !important;
-  transition: all 0.25s ease;
+.ghibi-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+/* 徽章标签 — 小药丸形状 + 手写风 */
+.ghibi-card-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ghibi-badge-text, #7A8B94);
+  background: var(--ghibi-badge-bg, #F2EEE8);
+  padding: 3px 10px;
+  border-radius: 10px 8px 10px 8px; /* 不规则圆角 */
+  letter-spacing: 0.3px;
+  border: 1px solid rgba(160,150,140,0.12);
+  /* 手写风格字体 */
+  font-family: 'ZCOOL KuaiLe', cursive;
+}
+
+/* 箭头 — 手写风格 */
+.ghibi-card-arrow {
+  font-size: 18px;
+  color: #C5BDB5;
+  font-weight: 400;
+  transition: all 0.35s ease;
+  line-height: 1;
+}
+
+.ghibi-card:hover .ghibi-card-arrow {
+  color: var(--ghibi-accent, #B0A090);
+  transform: translateX(3px);
+}
+
+/* ============================================================ */
+/* ===== 装饰元素 — 自然系点缀 ===== */
+/* ============================================================ */
+
+.ghibi-card-deco {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.45;
+  transition: all 0.5s ease;
+}
+
+.ghibi-card:hover .ghibi-card-deco {
+  opacity: 0.75;
+  animation: ghibiDecoFloat 2.5s ease-in-out infinite;
+}
+
+/* 小叶子 — 使用伪元素 + CSS绘制 */
+.ghibi-deco-leaf {
+  right: 12px;
+  top: 10px;
+  width: 18px;
+  height: 18px;
+}
+.ghibi-deco-leaf::before {
+  content: '🍃';
+  font-size: 14px;
+  position: absolute;
+  filter: grayscale(0.2) brightness(1.1) saturate(0.9);
+}
+
+/* 小花朵 */
+.ghibi-deco-flower {
+  right: 14px;
+  top: 8px;
+  width: 18px;
+  height: 18px;
+}
+.ghibi-deco-flower::before {
+  content: '🌸';
+  font-size: 13px;
+  position: absolute;
+  filter: grayscale(0.15) brightness(1.15) saturate(0.85);
+}
+
+/* 小星星 */
+.ghibi-deco-star {
+  right: 12px;
+  top: 10px;
+  width: 18px;
+  height: 18px;
+}
+.ghibi-deco-star::before {
+  content: '⭐';
+  font-size: 12px;
+  position: absolute;
+  filter: brightness(1.2) saturate(0.8);
+}
+
+/* 小云朵 */
+.ghibi-deco-cloud {
+  right: 10px;
+  top: 10px;
+  width: 20px;
+  height: 16px;
+}
+.ghibi-deco-cloud::before {
+  content: '☁️';
+  font-size: 14px;
+  position: absolute;
+  filter: grayscale(0.3) brightness(1.2);
   opacity: 0.6;
 }
 
-.ph3d-quick-item:hover .ph3d-arrow {
-  color: #8b7355;
-  transform: translateX(3px);
-  opacity: 1;
+/* 小闪光 */
+.ghibi-deco-sparkle {
+  right: 12px;
+  top: 10px;
+  width: 18px;
+  height: 18px;
+}
+.ghibi-deco-sparkle::before {
+  content: '✨';
+  font-size: 13px;
+  position: absolute;
+  filter: brightness(1.3) saturate(0.7);
+}
+
+/* 小花瓣 */
+.ghibi-deco-petal {
+  right: 14px;
+  top: 9px;
+  width: 18px;
+  height: 18px;
+}
+.ghibi-deco-petal::before {
+  content: '🌼';
+  font-size: 13px;
+  position: absolute;
+  filter: grayscale(0.1) brightness(1.1) saturate(0.9);
+}
+
+/* 魔法星光 */
+.ghibi-deco-magic {
+  right: 10px;
+  top: 8px;
+  width: 20px;
+  height: 20px;
+}
+.ghibi-deco-magic::before {
+  content: '✨';
+  font-size: 14px;
+  position: absolute;
+}
+
+@keyframes ghibiDecoFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(8deg); }
+}
+
+/* ============================================================ */
+/* ===== 各卡片宫崎骏手绘治愈风配色方案 ===== */
+/* ============================================================ */
+
+/* ─── 体重记录 — 天空蓝 Sky Blue ─── */
+.ghibi-card-weight {
+  --ghibi-accent: #5BA3C9;
+  --ghibi-icon-color: #4A90B8;
+}
+.ghibi-card-weight .ghibi-card-icon-wrap {
+  background: linear-gradient(145deg, #E8F4FA, #D0EBF7);
+  border-color: rgba(91,163,201,0.2);
+}
+
+/* ─── 疫苗记录 — 薰衣草紫 Lavender ─── */
+.ghibi-card-vaccine {
+  --ghibi-accent: #A87DC8;
+  --ghibi-icon-color: #9665B8;
+}
+.ghibi-card-vaccine .ghibi-card-icon-wrap {
+  background: linear-gradient(145deg, #F3EBFB, #E8DCF6);
+  border-color: rgba(168,125,200,0.2);
+}
+
+/* ─── 驱虫记录 — 樱花粉 Cherry Pink ─── */
+.ghibi-card-deworm {
+  --ghibi-accent: #E88A98;
+  --ghibi-icon-color: #D87888;
+}
+.ghibi-card-deworm .ghibi-card-icon-wrap {
+  background: linear-gradient(145deg, #FDEEF1, #FADDE4);
+  border-color: rgba(232,138,152,0.2);
+}
+
+/* ─── 体检记录 — 薄荷绿 Mint Green ─── */
+.ghibi-card-checkup {
+  --ghibi-accent: #45AE98;
+  --ghibi-icon-color: #3A9A85;
+}
+.ghibi-card-checkup .ghibi-card-icon-wrap {
+  background: linear-gradient(145deg, #E8FAF5, #D4F5EC);
+  border-color: rgba(69,174,152,0.2);
+}
+
+/* ─── 饮食记录 — 蜜桃橙 Peach Orange ─── */
+.ghibi-card-diet {
+  --ghibi-accent: #E8964F;
+  --ghibi-icon-color: #D48545;
+}
+.ghibi-card-diet .ghibi-card-icon-wrap {
+  background: linear-gradient(145deg, #FFF4EC, #FFE8D6);
+  border-color: rgba(232,150,79,0.2);
+}
+
+/* ─── 美容护理 — 珠光粉 Pearl Pink ─── */
+.ghibi-card-beauty {
+  --ghibi-accent: #D47D8C;
+  --ghibi-icon-color: #C06B7A;
+}
+.ghibi-card-beauty .ghibi-card-icon-wrap {
+  background: linear-gradient(145deg, #FDF0F2, #F8DFE3);
+  border-color: rgba(212,125,140,0.2);
+}
+
+/* ─── 日常观察 — 嫩草绿 Grass Green ─── */
+.ghibi-card-obs {
+  --ghibi-accent: #60B47A;
+  --ghibi-icon-color: #50A06A;
+}
+.ghibi-card-obs .ghibi-card-icon-wrap {
+  background: linear-gradient(145deg,#EFFAF3, #E0F5E8);
+  border-color: rgba(96,180,122,0.2);
+}
+
+/* ══════════ 智能分析 — 梦幻极光 Aurora Magic ══════════ */
+.ghibi-card-ai {
+  --ghibi-accent: #B08DCF;
+  --ghibi-icon-color: #9A7DBF;
+  background:
+    linear-gradient(135deg, rgba(212,165,232,0.08) 0%, rgba(183,140,217,0.05) 50%, rgba(167,139,250,0.03) 100%),
+    #FFFAF0;
+  border-color: rgba(176,140,210,0.2);
+}
+
+.ghibi-card-ai .ghibi-card-icon-wrap {
+  background: linear-gradient(145deg, #F0E4F8, #E4D0F0);
+  border-color: rgba(176,140,207,0.25);
+}
+
+/* AI 卡片图标特殊效果 */
+.ghibli-icon-magic {
+  background: linear-gradient(145deg, #F0E4F8, #E4D0F0) !important;
+  animation: magicPulse 3s ease-in-out infinite;
+}
+
+@keyframes magicPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(176,140,207,0.2); }
+  50% { box-shadow: 0 0 20px rgba(176,140,207,0.35); }
+}
+
+/* AI 卡片徽章特殊样式 — 带微光效果 */
+.ghibi-badge-magic {
+  background: linear-gradient(135deg, #F0E4F8, #E8D5F5) !important;
+  color: #9060BA !important;
+  border-color: rgba(176,140,207,0.20) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.ghibi-badge-magic::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 40%,
+    rgba(255,255,255,0.3) 50%,
+    transparent 60%
+  );
+  animation: ghibiMagicShimmer 3s ease-in-out infinite;
+}
+
+@keyframes ghibiMagicShimmer {
+  0%, 100% { transform: translateX(-100%) rotate(0deg); }
+  50% { transform: translateX(100%) rotate(0deg); }
+}
+
+/* AI 卡片 hover 增强 */
+.ghibi-card-ai:hover {
+  box-shadow:
+    0 10px 30px rgba(176,140,207,0.12),
+    0 4px 14px rgba(212,165,232,0.07),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+  border-color: rgba(176,140,210,0.26);
 }
 
 /* ═══ 弹窗样式 ═══ */
@@ -10678,6 +10936,71 @@ body::before {
   color: white;
   transform: scale(1.1);
 }
+
+/* ══════════════════════════════════
+   分页组件
+   ══════════════════════════════════ */
+.h3d-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding-bottom: 8px;
+}
+
+.h3d-page-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: #fff;
+  color: #555;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.h3d-page-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-color: transparent;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.25);
+}
+
+.h3d-page-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3);
+}
+
+.h3d-page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.h3d-page-arrow {
+  font-size: 16px;
+  padding: 0 10px;
+}
+
+.h3d-page-ellipsis {
+  color: #bbb;
+  font-size: 13px;
+  padding: 0 2px;
+  user-select: none;
+}
+
 
 /* 点击动画 */
 .h3d-record-item:active .h3d-action-btn {
@@ -13237,7 +13560,7 @@ body::before {
   user-select: none;
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'ZCOOL KuaiLe', cursive;
 }
 
 /* 图片加载失败时动态插入的降级名字圆，需撑满容器 */

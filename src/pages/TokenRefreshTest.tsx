@@ -20,7 +20,7 @@ export default function TokenRefreshTest() {
     try {
       // 这里可以模拟一个会返回 401 的请求
       // 实际项目中，这可能是任何 API 调用
-      console.log('测试 401 处理...');
+    // 测试 401 处理
       
       // 模拟一个会失败的请求（实际项目中替换为真实的 API 调用）
       // const response = await fetch('/api/test-unauthorized');

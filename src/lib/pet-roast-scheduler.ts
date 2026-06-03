@@ -223,7 +223,7 @@ export class PetRoastScheduler {
     this.scheduleNextTrigger();
     
     this.emitStatusChange();
-    console.log(`[PetRoastScheduler] 已启动 - 宠物: ${this.pet.name}`);
+    // PetRoastScheduler 已启动
   }
 
   /**
@@ -325,7 +325,7 @@ export class PetRoastScheduler {
 
     this.status.nextScheduledTime = nextTime;
 
-    console.log(`[PetRoastScheduler] 下次触发时间: ${new Date(nextTime).toLocaleTimeString()} (${Math.round(interval / 1000)}s后)`);
+    // 已计算下次触发时间
 
     this.timerId = setTimeout(() => {
       this.handleScheduledTrigger();
@@ -340,7 +340,7 @@ export class PetRoastScheduler {
   private async handleScheduledTrigger(): Promise<void> {
     // 检查是否超过最大连续数
     if (this.status.consecutiveCount >= this.config.maxConsecutiveMessages) {
-      console.log("[PetRoastScheduler] 达到最大连续推送数，暂停本次");
+      // 达到最大连续推送数，暂停本次
       this.status.consecutiveCount = 0;
       this.scheduleNextTrigger(); // 继续安排下一次
       return;

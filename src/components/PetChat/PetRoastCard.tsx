@@ -197,7 +197,7 @@ export function PetRoastCard({
     if (onExecuteAction) {
       onExecuteAction(action);
     } else {
-      console.log("执行建议动作:", action);
+      // 执行建议动作
     }
   };
 

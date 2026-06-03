@@ -1,6 +1,6 @@
 /**
  * AI 宠物心声 API 服务层
- * 提供宠物聊天、照片心声、声音翻译、人话转宠物语的 AI 服务调用
+ * 提供宠物聊天、照片心声的 AI 服务调用
  * 统一走后端 API (/api/v1/ai/*)，不再支持 Mock 模式
  */
 
@@ -171,11 +171,32 @@ export async function fetchPhotoMind(request: PhotoMindRequest): Promise<{
       body: JSON.stringify({
         pet_id: pet.id,
         image_base64: imageBase64,
+        media_type: imageFile.type || "image/jpeg",
       }),
     });
 
     if (!response.ok) {
       const errText = await response.text().catch(() => "");
+
+      // 解析 FastAPI 422 验证错误详情
+      if (response.status === 422) {
+        let detailMsg = "请求参数验证失败";
+        try {
+          const errJson = JSON.parse(errText);
+          if (Array.isArray(errJson.detail)) {
+            const fields = errJson.detail
+              .map((e: any) => e?.loc?.join(".") || JSON.stringify(e))
+              .join(", ");
+            detailMsg += `: ${fields}`;
+          }
+          console.error(`[PhotoMind] 422 验证错误详情:`, JSON.stringify(errJson.detail, null, 2));
+        } catch {
+          // 非 JSON 响应，使用原始文本
+        }
+        console.error(`[PhotoMind] 后端 API 422:`, errText);
+        return { success: false, error: detailMsg };
+      }
+
       console.error(`[PhotoMind] 后端 API 错误 ${response.status}:`, errText);
       return { success: false, error: `照片分析失败（HTTP ${response.status}）` };
     }
@@ -274,13 +295,6 @@ export async function fetchVoiceTranslate(request: VoiceTranslateRequest): Promi
       const emotionAnalysis = analyzeEmotion(audioFeatures, { species: petSpecies, personality });
       emotion = emotionAnalysis.primaryEmotion;
       emotionScore = emotionAnalysis.confidence;
-      console.log("[SoundEngine] 物种:", petSpecies, "音频特征:", audioFeatures);
-      console.log("[SoundEngine] 情绪分析:", {
-        primary: emotion,
-        confidence: Math.round(emotionScore * 100) + "%",
-        rules: emotionAnalysis.matchedRules,
-        detected: emotionAnalysis.detectedSpecies,
-      });
     } catch (error) {
       console.warn("[SoundEngine] 音频分析失败，使用默认值:", error);
       const features = generateFeaturesForEmotion("neutral", petSpecies);
@@ -316,7 +330,7 @@ export async function fetchVoiceTranslate(request: VoiceTranslateRequest): Promi
     const data = await response.json();
 
     // 详细日志：打印完整后端响应用于排查
-    console.log("[VoiceTranslate] 后端完整响应:", JSON.stringify(data, null, 2));
+    // 解析后端完整响应
 
     if (!data.success) {
       return { success: false, error: data.error || "后端返回异常" };

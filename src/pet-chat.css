@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════
-   宠物聊天页面样式 - 可爱高端风格
+   宠物心声页面样式 - 可爱高端风格
 ═══════════════════════════════════════════════════════ */
 
 .chat-page {
@@ -7,7 +7,7 @@
   background: #FAF7F5;
   display: flex;
   flex-direction: column;
-  font-family: "PingFang SC", "Helvetica Neue", sans-serif;
+  font-family: 'ZCOOL KuaiLe', cursive;
   padding-bottom: 0; /* 由 fixed footer 处理间距 */
   position: relative;
   overflow: hidden;
@@ -99,14 +99,14 @@
 /* 头像 */
 .chat-avatar-wrap {
   position: relative;
-  width: 82px;
-  height: 82px;
+  width: 120px;
+  height: 120px;
   flex-shrink: 0;
 }
 
 .chat-avatar {
-  width: 82px;
-  height: 82px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   background: linear-gradient(135deg, #fff, #FAF7F5);
   display: flex;
@@ -176,10 +176,22 @@
 .chat-avatar .ppa-figure {
   margin: 0 !important;
   transform: none !important;
-  width: 78px !important;
-  height: 78px !important;
+  width: 120px !important;
+  height: 120px !important;
   border-radius: 50% !important;
-  overflow: hidden !important;
+  overflow: visible !important;
+}
+
+/* 确保头像内部图片完全填满容器 */
+.chat-avatar .ppa-figure img,
+.chat-avatar .ppa-photo-3d,
+.chat-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
 }
 
 .chat-avatar .ppa-overflow-mode {
@@ -200,12 +212,19 @@
   position: static !important;
 }
 
+.chat-avatar .ppa-skeleton img,
+.chat-avatar .ppa-placeholder img {
+  width: 120px !important;
+  height: 120px !important;
+  border-radius: 50% !important;
+}
+
 .chat-avatar .ppa-placeholder-inner {
-  padding: 8px 0 !important;
+  padding: 10px 0 !important;
 }
 
 .chat-avatar .ppa-placeholder-emoji {
-  font-size: 32px !important;
+  font-size: 40px !important;
 }
 
 .chat-avatar .ppa-placeholder-label {
@@ -1730,86 +1749,169 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   功能快捷入口栏
+   功能快捷入口栏 - NFT 风格纵向卡片
 ═══════════════════════════════════════════════════════ */
 
 .quick-actions-bar {
   position: relative;
   z-index: 2;
-  margin: 14px 18px 0;
-  overflow: hidden;
-}
-
-.quick-actions-scroll {
+  margin: 28px 18px 0;
   display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding: 6px 4px;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  flex-direction: row;
+  gap: 14px;
 }
 
-.quick-actions-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.quick-action-btn {
+.quick-action-card {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-  padding: 10px 16px;
   border: none;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(250, 247, 245, 0.9));
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 12px rgba(160, 130, 100, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  border: 1.5px solid rgba(200, 170, 140, 0.15);
+  border-radius: 20px;
+  background: #fff;
   cursor: pointer;
-  transition: all 0.25s ease;
-  min-width: 76px;
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-shadow:
+    0 1px 3px rgba(120, 100, 70, 0.04),
+    0 4px 16px rgba(140, 115, 85, 0.06),
+    0 12px 32px rgba(140, 115, 85, 0.04);
+  text-align: left;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
 }
 
-.quick-action-btn:hover {
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 6px 20px rgba(160, 130, 100, 0.15);
-  border-color: var(--action-color, #D4A574);
+.quick-action-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 2px 6px rgba(120, 100, 70, 0.06),
+    0 8px 24px rgba(140, 115, 85, 0.10),
+    0 18px 48px rgba(140, 115, 85, 0.08);
 }
 
-.quick-action-btn:active {
-  transform: translateY(-1px) scale(0.98);
+.quick-action-card:active {
+  transform: scale(0.98) translateY(0);
+  transition-duration: 0.15s;
 }
 
-.quick-action-icon-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--action-gradient, linear-gradient(135deg, #D4A574, #A67B5B));
+/* ====== 顶部大图视觉区 ====== */
+.qa-visual {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
-  transition: all 0.25s ease;
 }
 
-.quick-action-btn:hover .quick-action-icon-wrap {
-  transform: scale(1.1);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+.qa-visual-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  transition: opacity 0.35s ease;
 }
 
-.quick-action-label {
-  font-size: 12px;
+.quick-action-card:hover .qa-visual-bg {
+  opacity: 0.18;
+}
+
+/* ====== 图标容器 — 吉卜力手绘风（复用首页样式语言） ====== */
+.qa-icon-wrap {
+  position: relative;
+  z-index: 1;
+  width: 56px;
+  height: 56px;
+  border-radius: 50% 48% 52% 50%;
+  display: grid;
+  place-items: center;
+  background: var(--qa-icon-bg, #F0EDE6);
+  box-shadow:
+    inset 0 -3px 8px rgba(0,0,0,0.06),
+    inset 0 2px 6px rgba(255,255,255,0.7),
+    0 3px 10px rgba(0,0,0,0.05);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.qa-icon-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse at 30% 20%,
+    rgba(255,255,255,0.6) 0%,
+    transparent 55%
+  );
+  pointer-events: none;
+}
+
+/* 手绘风图标容器增强（同首页 ghibli-icon-handdrawn） */
+.qa-icon-wrap.ghibli-icon-handdrawn {
+  transform: rotate(-2deg);
+  border: 2px solid rgba(255,255,255,0.6);
+  box-shadow:
+    inset 0 -3px 8px rgba(0,0,0,0.06),
+    inset 0 2px 6px rgba(255,255,255,0.7),
+    0 3px 10px rgba(0,0,0,0.05),
+    0 0 0 1px rgba(180,170,155,0.1);
+}
+
+.quick-action-card:hover .qa-icon-wrap {
+  transform: scale(1.08) rotate(-3deg);
+  box-shadow:
+    inset 0 -3px 10px rgba(0,0,0,0.08),
+    inset 0 2px 8px rgba(255,255,255,0.8),
+    0 4px 14px rgba(0,0,0,0.08);
+}
+
+.qa-icon {
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+  color: #5D4037;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.quick-action-card:hover .qa-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* ====== 底部文字信息区 ====== */
+.qa-content {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 14px 16px 16px;
+  min-width: 0;
+}
+
+.qa-title {
+  font-size: 15px;
   font-weight: 700;
-  color: #5C4A32;
-  letter-spacing: 0.5px;
+  color: #3D3228;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
-.quick-action-desc {
-  font-size: 9.5px;
-  color: #A69076;
-  white-space: nowrap;
+.qa-desc {
+  font-size: 11.5px;
+  color: #7A6E63;
+  line-height: 1.4;
+  letter-spacing: 0.005em;
+}
+
+/* 快捷入口底部安全提示 */
+.quick-actions-tip {
+  position: absolute;
+  bottom: -30px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 6px 0;
+}
+
+.quick-actions-tip span {
+  font-size: 11.5px;
+  color: #B5AA9A;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2501,14 +2603,36 @@
 .pmr-card {
   position: relative;
   width: 100%;
-  border-radius: 20px;
-  background: linear-gradient(145deg, #FFFFFF, #FAF7F5, #F8F4F0);
-  box-shadow:
-    0 4px 20px rgba(160, 130, 100, 0.08),
-    0 1px 3px rgba(0, 0, 0, 0.04);
-  border: 1.5px solid rgba(212, 165, 116, 0.12);
+  border-radius: 22px 26px 24px 28px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(251, 207, 132, 0.08) 0%, transparent 60%),
+    linear-gradient(180deg, #FFFEF9 0%, #FFF9EE 100%);
+  border: 1.5px solid rgba(180, 170, 155, 0.18);
   overflow: hidden;
-  animation: pmrSlideIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: pmrSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow:
+    0 2px 12px rgba(160, 140, 120, 0.06),
+    0 8px 30px rgba(160, 140, 120, 0.04);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.pmr-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 16px rgba(160, 140, 120, 0.10),
+    0 12px 40px rgba(160, 140, 120, 0.06);
+}
+
+/* 纸张纹理叠加 */
+.pmr-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 15% 25%, rgba(212, 165, 116, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 85% 70%, rgba(167, 199, 148, 0.03) 0%, transparent 35%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 @keyframes pmrSlideIn {
@@ -2518,11 +2642,13 @@
 
 /* ====== 卡片头部 ====== */
 .pmr-header {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 14px 18px 10px;
-  border-bottom: 1px solid rgba(200, 170, 140, 0.1);
+  border-bottom: 1px dashed rgba(180, 170, 155, 0.15);
 }
 
 .pmr-header-left {
@@ -2548,30 +2674,35 @@
   gap: 8px;
 }
 
-/* 情绪徽章 */
+/* 情绪徽章 — 水彩柔和风 */
 .pmr-emotion-badge {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 3px 10px;
-  border-radius: 12px;
+  padding: 4px 10px;
+  border-radius: 14px 12px 16px 10px;
   font-size: 11px;
   font-weight: 700;
   color: #fff;
-  background: var(--badge-color, #9CA3AF);
+  background: var(--badge-color, #B5A090);
   white-space: nowrap;
+  box-shadow:
+    inset 0 1px 2px rgba(255,255,255,0.3),
+    0 2px 6px rgba(0,0,0,0.06);
+  letter-spacing: 0.2px;
 }
 
-/* 幽默度标签 */
+/* 幽默度标签 — 便签风 */
 .pmr-humor-tag {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 3px 8px;
-  border-radius: 10px;
+  padding: 3px 9px;
+  border-radius: 10px 12px 8px 14px;
   font-size: 10.5px;
-  color: #A69076;
-  background: rgba(212, 165, 116, 0.1);
+  color: #9B8B7E;
+  background: rgba(212, 165, 116, 0.08);
+  border: 1px dashed rgba(180, 170, 155, 0.2);
   white-space: nowrap;
 }
 
@@ -2583,74 +2714,83 @@
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: 50%;
+  border-radius: 50% 48% 52% 50%;
   border: none;
-  background: transparent;
+  background: rgba(240, 235, 230, 0.5);
   color: #A69076;
   cursor: pointer;
-  transition: all 0.22s ease;
+  transition: all 0.3s ease;
 }
 
 .pmr-expand-btn:hover,
 .pmr-close-btn:hover {
   background: rgba(212, 165, 116, 0.15);
   color: #5C4A32;
+  transform: rotate(-3deg) scale(1.05);
 }
 
 /* ====== 内容区域（照片 + 心声） ====== */
 .pmr-body {
+  position: relative;
+  z-index: 1;
   display: flex;
-  gap: 16px;
-  padding: 16px 18px;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px 14px;
 }
 
-/* 左侧：照片 */
+/* 照片区 — 通栏大图 */
 .pmr-photo-section {
   position: relative;
-  flex-shrink: 0;
-  width: 110px;
-  min-height: 110px;
+  width: 100%;
 }
 
 .pmr-photo {
   width: 100%;
-  height: 110px;
+  height: 170px;
   object-fit: cover;
-  border-radius: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  transition: all 0.25s ease;
+  border-radius: 20px 24px 22px 26px;
+  border: 2.5px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 14px rgba(160, 140, 120, 0.12);
+  transition: all 0.3s ease;
 }
 
 .pmr-card:hover .pmr-photo {
   border-color: rgba(212, 165, 116, 0.3);
+  transform: scale(1.01);
 }
 
-/* 照片上的标签叠加层 */
-.pmr-photo-tags {
-  position: absolute;
-  top: 8px;
-  left: 8px;
+/* 照片下方标签栏 — 水彩便签风 */
+.pmr-photo-tags-bar {
   display: flex;
-  gap: 5px;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: -4px;
 }
 
 .pmr-photo-tag {
-  padding: 2px 8px;
-  border-radius: 8px;
-  font-size: 9.5px;
-  font-weight: 700;
-  backdrop-filter: blur(8px);
+  padding: 5px 12px;
+  border-radius: 12px 10px 14px 11px;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.3px;
+  transition: all 0.2s ease;
+}
+
+.pmr-photo-tag:hover {
+  transform: translateY(-1px) rotate(-1deg);
 }
 
 .pmr-tag-expression {
-  background: rgba(155, 126, 222, 0.85);
-  color: #fff;
+  background: linear-gradient(135deg, rgba(183, 160, 210, 0.18), rgba(183, 160, 210, 0.08));
+  color: #7A5E99;
+  border: 1.5px dashed rgba(183, 160, 210, 0.35);
 }
 
 .pmr-tag-posture {
-  background: rgba(74, 222, 128, 0.85);
-  color: #fff;
+  background: linear-gradient(135deg, rgba(139, 190, 160, 0.18), rgba(139, 190, 160, 0.08));
+  color: #4A8A6A;
+  border: 1.5px dashed rgba(139, 190, 160, 0.35);
 }
 
 /* 无图片占位 */
@@ -2659,23 +2799,23 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   width: 100%;
-  height: 100%;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #f0ebe6, #e8e0d8);
-  color: #B0A098;
-  font-size: 11px;
+  height: 170px;
+  border-radius: 20px 24px 22px 26px;
+  background: linear-gradient(145deg, #f5f0ea, #ebe5dd);
+  color: #B5AA9A;
+  font-size: 13px;
   font-weight: 600;
+  border: 2.5px dashed rgba(180, 170, 155, 0.25);
 }
 
-/* 右侧：心声内容 */
+/* 心声内容区 — 全宽 */
 .pmr-content-section {
-  flex: 1;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-width: 0; /* 防止内容溢出 */
+  gap: 14px;
 }
 
 /* 内心 OS 头部 */
@@ -2686,40 +2826,44 @@
 }
 
 .pmr-mind-heart-icon {
-  color: #FB7185;
-  animation: pmrHeartBeat 1.5s ease-in-out infinite;
+  color: #E8A5A5;
+  animation: pmrHeartBeat 2s ease-in-out infinite;
 }
 
 @keyframes pmrHeartBeat {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+  50% { transform: scale(1.15); }
 }
 
 .pmr-mind-label {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   color: #8B7355;
   letter-spacing: 0.5px;
 }
 
-/* 内心 OS 文本框 */
+/* 内心 OS 文本框 — 手写信纸风 */
 .pmr-mind-text-box {
   position: relative;
-  padding: 12px 16px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(250, 247, 245, 0.95), #fff);
-  border: 1px solid rgba(212, 165, 116, 0.1);
-  box-shadow: inset 0 1px 3px rgba(160, 130, 100, 0.04);
+  padding: 16px 18px;
+  border-radius: 18px 22px 16px 20px;
+  background:
+    linear-gradient(180deg, rgba(255,252,248,0.95) 0%, rgba(252,248,242,0.9) 100%);
+  border: 1.5px solid rgba(212, 165, 116, 0.15);
+  box-shadow:
+    inset 0 1px 3px rgba(160, 130, 100, 0.03),
+    0 2px 10px rgba(160, 140, 120, 0.05);
 }
 
 .pmr-mind-text {
   margin: 0;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 14.5px;
+  font-weight: 500;
   color: #5C4A32;
-  line-height: 1.65;
-  letter-spacing: 0.3px;
-  min-height: 1.65em;
+  line-height: 1.7;
+  letter-spacing: 0.2px;
+  min-height: 1.7em;
+  font-family: 'ZCOOL KuaiLe', sans-serif;
 }
 
 .pmr-mind-text.pmr-complete {
@@ -2727,7 +2871,7 @@
 }
 
 @keyframes pmrTextGlow {
-  from { opacity: 0.6; }
+  from { opacity: 0.5; }
   to { opacity: 1; }
 }
 
@@ -2767,11 +2911,33 @@
   color: #8B6347;
 }
 
+/* 内心 OS 空值提示 */
+.pmr-mind-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  color: #B0A098;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.pmr-mind-empty-icon {
+  color: #D4A574;
+  animation: pmrSparkleSpin 2s ease-in-out infinite;
+}
+
+@keyframes pmrSparkleSpin {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(10deg) scale(1.1); }
+}
+
 /* 情绪评分条 */
 .pmr-score-bar-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  padding-top: 4px;
 }
 
 .pmr-score-label {
@@ -2785,33 +2951,37 @@
   flex: 1;
   height: 6px;
   border-radius: 3px;
-  background: rgba(200, 170, 140, 0.15);
+  background: rgba(200, 170, 140, 0.12);
   overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
 }
 
 .pmr-score-bar-fill {
   height: 100%;
   border-radius: 3px;
   transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  opacity: 0.85;
 }
 
 .pmr-score-value {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   min-width: 32px;
   text-align: right;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
 }
 
 /* ====== 展开详情面板 ====== */
 .pmr-detail-panel {
+  position: relative;
+  z-index: 1;
   padding: 0 18px 16px;
   animation: pmrDetailSlide 0.35s ease-out;
 }
 
 @keyframes pmrDetailSlide {
   from { opacity: 0; max-height: 0; }
-  to { opacity: 1; max-height: 300px; }
+  to { opacity: 1; max-height: 400px; }
 }
 
 .pmr-detail-grid {
@@ -2827,14 +2997,14 @@
   align-items: center;
   gap: 4px;
   padding: 10px 6px;
-  border-radius: 12px;
-  background: rgba(250, 247, 245, 0.8);
-  border: 1px solid rgba(200, 170, 140, 0.08);
+  border-radius: 14px 12px 16px 10px;
+  background: rgba(252, 248, 242, 0.6);
+  border: 1px dashed rgba(180, 170, 155, 0.15);
   text-align: center;
 }
 
 .pmr-detail-icon {
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1;
 }
 
@@ -2845,7 +3015,7 @@
 }
 
 .pmr-detail-value {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   color: #5C4A32;
 }
@@ -2853,9 +3023,9 @@
 /* 互动建议 */
 .pmr-suggestions {
   padding: 12px 14px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.05), rgba(245, 158, 11, 0.03));
-  border: 1px solid rgba(245, 158, 11, 0.12);
+  border-radius: 16px 20px 14px 18px;
+  background: linear-gradient(135deg, rgba(251, 239, 220, 0.5), rgba(245, 230, 210, 0.3));
+  border: 1px dashed rgba(212, 165, 116, 0.15);
 }
 
 .pmr-suggestions-title {
@@ -2864,7 +3034,7 @@
   gap: 5px;
   font-size: 12px;
   font-weight: 700;
-  color: #B45309;
+  color: #A67B5B;
   margin-bottom: 10px;
 }
 
@@ -2879,30 +3049,32 @@
   align-items: center;
   gap: 5px;
   padding: 6px 12px;
-  border: 1.5px solid rgba(212, 165, 116, 0.2);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.8);
+  border: 1.5px dashed rgba(180, 170, 155, 0.25);
+  border-radius: 14px 12px 16px 10px;
+  background: rgba(255, 255, 255, 0.7);
   font-size: 12px;
   font-weight: 600;
   color: #6B5644;
   cursor: pointer;
-  transition: all 0.22s ease;
+  transition: all 0.3s ease;
   white-space: nowrap;
 }
 
 .pmr-suggestion-chip:hover {
   border-color: #D4A574;
   background: #fff;
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(212, 165, 116, 0.15);
+  transform: translateY(-2px) rotate(-1deg);
+  box-shadow: 0 3px 10px rgba(212, 165, 116, 0.12);
 }
 
-/* ====== 底部操作栏 ====== */
+/* ====== 底部操作栏 — 吉卜力手绘风 ====== */
 .pmr-actions {
+  position: relative;
+  z-index: 1;
   display: flex;
-  gap: 8px;
-  padding: 12px 18px 16px;
-  border-top: 1px solid rgba(200, 170, 140, 0.08);
+  gap: 12px;
+  padding: 14px 20px 18px;
+  border-top: 1px dashed rgba(180, 170, 155, 0.12);
 }
 
 .pmr-action-btn {
@@ -2911,58 +3083,70 @@
   gap: 5px;
   padding: 8px 14px;
   border: none;
-  border-radius: 50px;
+  border-radius: 14px 16px 12px 18px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.22s ease;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   white-space: nowrap;
 }
 
+/* 分享按钮 — 淡薰衣草 */
 .pmr-action-share {
-  background: linear-gradient(135deg, #9B7EDE, #B8A0E8);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(155, 126, 222, 0.3);
+  background: linear-gradient(145deg, #F0E8F8, #E8DCF5);
+  color: #8B6DB0;
+  box-shadow:
+    0 2px 8px rgba(155, 126, 222, 0.1),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+  border: 1px solid rgba(155, 126, 222, 0.15);
 }
 
 .pmr-action-share:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(155, 126, 222, 0.4);
+  transform: translateY(-2px) rotate(-1deg);
+  box-shadow: 0 4px 14px rgba(155, 126, 222, 0.18);
+  background: linear-gradient(145deg, #F5EDFB, #EDE2F8);
 }
 
+/* 再拍按钮 — 淡蜜桃 */
 .pmr-action-retake {
-  background: linear-gradient(135deg, #F59E0B, #FBBF24);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  background: linear-gradient(145deg, #FFF0D9, #FDE8C8);
+  color: #C78B3A;
+  box-shadow:
+    0 2px 8px rgba(245, 158, 11, 0.1),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+  border: 1px solid rgba(245, 158, 11, 0.15);
 }
 
 .pmr-action-retake:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+  transform: translateY(-2px) rotate(1deg);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.18);
+  background: linear-gradient(145deg, #FFF5E5, #FEEDCE);
 }
 
+/* 收藏按钮 — 淡米色 */
 .pmr-action-favorite {
-  background: linear-gradient(135deg, rgba(212, 165, 116, 0.15), rgba(166, 123, 91, 0.1));
-  color: #8B7355;
-  border: 1.5px solid rgba(212, 165, 116, 0.2);
+  background: rgba(245, 242, 238, 0.8);
+  color: #A69076;
+  border: 1px solid rgba(180, 170, 155, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
 }
 
 .pmr-action-favorite:hover {
-  background: linear-gradient(135deg, #D4A574, #A67B5B);
-  color: #fff;
-  border-color: transparent;
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(212, 165, 116, 0.3);
+  color: #8B7355;
+  transform: translateY(-2px);
 }
 
-/* 底部装饰光晕 */
+/* 底部装饰 — 手绘感渐变线 */
 .pmr-bottom-glow {
   position: absolute;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40%;
+  left: 15%;
+  right: 15%;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #D4A574, transparent);
-  opacity: 0.3;
+  background: linear-gradient(90deg, transparent, rgba(212, 165, 116, 0.2), rgba(180, 170, 155, 0.15), transparent);
+  opacity: 0.5;
 }
 
 
@@ -3423,49 +3607,56 @@
   transform: translateY(0) scale(0.98);
 }
 
-/* 空状态提示 */
+/* 空状态引导 */
 .chat-empty-hint {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 48px 24px;
+  gap: 16px;
+  padding: 60px 24px;
   cursor: pointer;
   transition: all 0.3s ease;
+  background: rgba(255,250,245,0.5);
+  border-radius: 24px;
+  margin: 20px 16px;
 }
 
 .chat-empty-hint:hover {
-  background: rgba(212, 165, 116, 0.04);
-  border-radius: 20px;
+  background: rgba(255,250,245,0.8);
+  transform: translateY(-2px);
 }
 
 .chat-empty-hint p {
-  font-size: 14px;
-  color: #A69076;
+  font-size: 15px;
+  color: #8B7B6E;
   text-align: center;
-  line-height: 1.5;
+  line-height: 1.6;
   margin: 0;
+  font-weight: 500;
 }
 
 .chat-empty-action {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 20px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 700;
+  padding: 10px 24px;
+  border-radius: 22px;
+  font-size: 13.5px;
+  font-weight: 600;
   color: #D4A574;
-  border: 1.5px solid rgba(212, 165, 116, 0.3);
-  transition: all 0.25s ease;
+  border: 1.8px solid rgba(212, 165, 116, 0.4);
+  background: rgba(255,255,255,0.7);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(212, 165, 116, 0.1);
 }
 
 .chat-empty-hint:hover .chat-empty-action {
-  background: linear-gradient(135deg, #D4A574, #A67B5B);
+  background: linear-gradient(135deg, #D4A574, #C49A6C);
   color: #fff;
   border-color: transparent;
-  box-shadow: 0 3px 12px rgba(212, 165, 116, 0.35);
+  box-shadow: 0 4px 16px rgba(212, 165, 116, 0.35);
+  transform: translateY(-1px);
 }
 
 
@@ -3527,7 +3718,7 @@
 .chat-guide-cards {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 /* 单张卡片 */
@@ -3535,97 +3726,27 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px;
-  border-radius: 18px;
-  background: var(--card-gradient);
-  border: 1.5px solid var(--card-accent);
-  opacity: 0.6;
+  padding: 16px 18px;
+  border: none;
+  border-radius: 16px;
+  background: #FFFDF8;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.chat-guide-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, transparent 60%, var(--card-accent));
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: all 0.2s ease;
+  box-shadow:
+    0 1px 3px rgba(140, 115, 85, 0.06),
+    0 1px 2px rgba(140, 115, 85, 0.04);
+  text-align: left;
 }
 
 .chat-guide-card:hover {
-  opacity: 1;
-  transform: translateX(4px);
-  box-shadow: 0 6px 24px rgba(0,0,0,0.08), 0 2px 8px color-mix(in srgb, var(--card-accent) 15%, transparent);
-  border-color: transparent;
+  background: #FAF6EF;
+  box-shadow:
+    0 4px 12px rgba(140, 115, 85, 0.08),
+    0 1px 3px rgba(140, 115, 85, 0.05);
 }
 
-.chat-guide-card:hover::before {
-  opacity: 0.04;
-}
-
-/* 图标区 */
-.chat-guide-card-icon {
-  width: 46px;
-  height: 46px;
-  min-width: 46px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-}
-
-/* 内容区 */
-.chat-guide-card-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.chat-guide-card-body h3 {
-  font-size: 15px;
-  font-weight: 700;
-  color: #2D2A26;
-  margin: 0 0 4px 0;
-}
-
-.chat-guide-card-body p {
-  font-size: 12.5px;
-  color: #8B7E70;
-  line-height: 1.55;
-  margin: 0 0 6px 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.chat-guide-card-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--card-accent);
-  background: color-mix(in srgb, var(--card-accent) 10%, transparent);
-  padding: 3px 10px;
-  border-radius: 20px;
-  letter-spacing: 0.2px;
-}
-
-/* 箭头 */
-.chat-guide-arrow {
-  color: #C4B8AA;
-  min-width: 16px;
-  transition: all 0.25s ease;
-}
-
-.chat-guide-card:hover .chat-guide-arrow {
-  color: var(--card-accent);
-  transform: translateX(3px);
+.chat-guide-card:active {
+  transform: scale(0.99);
 }
 
 /* 底部提示 */
@@ -3633,18 +3754,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 12px 16px;
+  padding: 14px 20px;
   font-size: 12px;
-  color: #B5AAA0;
-  background: rgba(180,170,160,0.06);
-  border-radius: 12px;
+  color: #A89880;
+  background: linear-gradient(135deg, rgba(245, 240, 232, 0.5), rgba(250, 245, 238, 0.3));
+  border-radius: 14px;
   margin-top: 4px;
-}
-
-.chat-guide-tips svg {
-  color: #D4A574;
-  flex-shrink: 0;
+  border: 1px solid rgba(200, 180, 155, 0.12);
 }
 
 

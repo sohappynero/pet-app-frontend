@@ -221,12 +221,27 @@ function getIconInfo(record: HealthRecord): IconInfo {
   return { icon: <FileText size={20} />, bg: "#f5f0eb", color: "#8b7355", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" };
 }
 
+function getPageNumbers(current: number, total: number): (number | string)[] {
+  if (total <= 5) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  if (current <= 3) {
+    return [1, 2, 3, 4, "...", total];
+  }
+  if (current >= total - 2) {
+    return [1, "...", total - 3, total - 2, total - 1, total];
+  }
+  return [1, "...", current - 1, current, current + 1, "...", total];
+}
+
 export default function Records() {
   const navigate = useNavigate();
   const { phone, selectedPetId, selectedPet, pets } = useShell();
   const [records, setRecords] = useState<HealthRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<HealthFilter>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   const currentPet = useMemo(
     () => selectedPet || pets[0] || null,
@@ -460,6 +475,11 @@ export default function Records() {
     return text.replace(/<[^>]*>/g, "").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").trim();
   };
 
+  // 切换筛选时重置页码
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter]);
+
   // 过滤后排序
   const filteredRecords = useMemo(() => {
     const filtered = records.filter((record) => {
@@ -476,6 +496,13 @@ export default function Records() {
     });
     return [...filtered].sort((a, b) => b.record_date.localeCompare(a.record_date));
   }, [records, activeFilter]);
+
+  // 分页数据
+  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / PAGE_SIZE));
+  const paginatedRecords = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredRecords.slice(start, start + PAGE_SIZE);
+  }, [filteredRecords, currentPage]);
 
   return (
     <main className="h3d-page">
@@ -677,7 +704,7 @@ export default function Records() {
           </div>
         ) : (
           <div className="h3d-record-list">
-            {filteredRecords.map((record) => {
+            {paginatedRecords.map((record) => {
               const { icon, bg, color, gradient } = getIconInfo(record);
               const sub = getRecordSub(record);
               return (
@@ -709,6 +736,41 @@ export default function Records() {
                 </button>
               );
             })}
+            {totalPages > 1 && (
+              <div className="h3d-pagination">
+                <button
+                  className="h3d-page-btn h3d-page-arrow"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  aria-label="上一页"
+                >
+                  ‹
+                </button>
+                {getPageNumbers(currentPage, totalPages).map((page, idx) =>
+                  page === "..." ? (
+                    <span key={`ellipsis-${idx}`} className="h3d-page-ellipsis">…</span>
+                  ) : (
+                    <button
+                      key={page}
+                      className={`h3d-page-btn ${currentPage === page ? "active" : ""}`}
+                      onClick={() => setCurrentPage(page as number)}
+                      aria-label={`第 ${page} 页`}
+                      aria-current={currentPage === page ? "page" : undefined}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
+                <button
+                  className="h3d-page-btn h3d-page-arrow"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  aria-label="下一页"
+                >
+                  ›
+                </button>
+              </div>
+            )}
           </div>
         )}
       </section>

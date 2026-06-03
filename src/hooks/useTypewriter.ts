@@ -72,7 +72,7 @@ export function useTypewriter(
   const [isTyping, setIsTyping] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [cursorVisible, setCursorVisible] = useState(true);
-  const [hasStarted, setHasStarted] = useState(autoStart);
+  const [hasStarted, setHasStarted] = useState(false);
 
   // Refs
   const currentIndexRef = useRef(0);

@@ -173,58 +173,66 @@ export function PhotoMindResultCard({
 
       {/* ====== 内容区域 ====== */}
       <div className="pmr-body">
-        {/* 左侧：照片缩略图 */}
+        {/* 照片展示区 — 通栏大图 */}
         <div className="pmr-photo-section">
           {photoUrl ? (
-            <>
-              <img
-                src={photoUrl}
-                alt={`${petName}的照片`}
-                className="pmr-photo"
-                loading="lazy"
-              />
-              {/* 照片上的标签叠加 */}
-              <div className="pmr-photo-tags">
-                <span className="pmr-photo-tag pmr-tag-expression">
-                  {result.expression}
-                </span>
-                <span className="pmr-photo-tag pmr-tag-posture">
-                  {result.posture}
-                </span>
-              </div>
-            </>
+            <img
+              src={photoUrl}
+              alt={`${petName}的照片`}
+              className="pmr-photo"
+              loading="lazy"
+            />
           ) : (
             <div className="pmr-photo-placeholder">
-              <Eye size={32} />
+              <Eye size={40} />
               <span>无图片</span>
             </div>
           )}
         </div>
 
-        {/* 右侧：心声内容区 */}
+        {/* 照片下方标签栏 */}
+        <div className="pmr-photo-tags-bar">
+          <span className="pmr-photo-tag pmr-tag-expression">
+            {result.expression}
+          </span>
+          <span className="pmr-photo-tag pmr-tag-posture">
+            {result.posture}
+          </span>
+        </div>
+
+        {/* 心声内容区 — 全宽 */}
         <div className="pmr-content-section">
           {/* 宠物内心 OS 标题 */}
           <div className="pmr-mind-header">
-            <Heart size={14} className="pmr-mind-heart-icon" />
+            <Heart size={16} className="pmr-mind-heart-icon" />
             <span className="pmr-mind-label">{petName}的内心OS</span>
           </div>
 
           {/* 内心 OS 文本（打字机效果） */}
           <div className="pmr-mind-text-box">
-            <p className={`pmr-mind-text ${isComplete ? "pmr-complete" : ""}`}>
-              {displayedText}
-              {!isComplete && cursorVisible && <span className="pmr-cursor">▊</span>}
-            </p>
+            {result.mindOs ? (
+              <>
+                <p className={`pmr-mind-text ${isComplete ? "pmr-complete" : ""}`}>
+                  {displayedText}
+                  {!isComplete && cursorVisible && <span className="pmr-cursor">▊</span>}
+                </p>
 
-            {/* 跳过按钮（正在打字时显示） */}
-            {!isComplete && isTyping && (
-              <button
-                className="pmr-skip-btn"
-                onClick={skipToEnd}
-                title="跳过动画"
-              >
-                跳过 ▶
-              </button>
+                {/* 跳过按钮（正在打字时显示） */}
+                {!isComplete && isTyping && (
+                  <button
+                    className="pmr-skip-btn"
+                    onClick={skipToEnd}
+                    title="跳过动画"
+                  >
+                    跳过 ▶
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="pmr-mind-empty">
+                <Sparkles size={18} className="pmr-mind-empty-icon" />
+                <span>AI 心声解读接入中，请稍后再试~</span>
+              </div>
             )}
           </div>
 

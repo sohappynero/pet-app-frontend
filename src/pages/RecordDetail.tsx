@@ -23,7 +23,7 @@ import {
   UserCheck,
   XCircle,
 } from "lucide-react";
-import { fetchRecords, fetchWeights, fetchFeedings, fetchGroomings, fetchObservations } from "../lib/api";
+import { fetchRecords, fetchWeights, fetchFeedings, fetchGroomings, fetchObservations, fetchDewormings, fetchVaccines, fetchCheckups, fetchMedicals } from "../lib/api";
 import { useShell } from "../hooks/useShell";
 import type { HealthRecord } from "../types";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
@@ -280,6 +280,107 @@ export default function RecordDetail() {
               appetite: "",
               note: displayNote,
               images: [],
+            } as HealthRecord);
+          } else {
+            setRecord(null);
+          }
+        })
+        .finally(() => setLoading(false));
+    } else if (type === "deworm" && petId) {
+      // 驱虫记录 → 查 pet_deworming_records 表
+      fetchDewormings(petId)
+        .then((res) => {
+          const found = (Array.isArray(res) ? res : []).find((r: any) => r.id === targetId);
+          if (found) {
+            setRecord({
+              ...found,
+              id: found.id,
+              record_type: "deworm",
+              record_date: found.deworming_date ? String(found.deworming_date).slice(0, 10) : "",
+              title: found.medication_name || "驱虫护理",
+              hospital: found.pet_hospital || "",
+              deworm_type: found.deworming_type || "",
+              cost: found.cost ?? null,
+              weight_kg: null, mood: "", appetite: "",
+              note: found.notes || `${found.medication_name||'驱虫'}${found.pet_hospital?` | ${found.pet_hospital}`:''}${found.cost?` | ${found.cost}元`:''}`,
+              images: found.photo_urls || [],
+            } as HealthRecord);
+          } else {
+            setRecord(null);
+          }
+        })
+        .finally(() => setLoading(false));
+    } else if (type === "vaccine" && petId) {
+      // 疫苗记录 → 返回分页对象 {list: [...], total, page}
+      fetchVaccines(petId)
+        .then((res) => {
+          const list = Array.isArray(res) ? res : ((res && res.list) ? res.list : []);
+          const found = list.find((r: any) => r.id === targetId);
+          if (found) {
+            setRecord({
+              ...found,
+              id: found.id,
+              record_type: "vaccine",
+              record_date: found.vaccine_date ? String(found.vaccine_date).slice(0, 10) : "",
+              title: found.vaccine_name || "疫苗接种",
+              hospital: found.pet_hospital || found.hospital_name || "",
+              cost: found.cost ?? null,
+              weight_kg: null, mood: "", appetite: "",
+              deworm_type: "",
+              note: found.notes || `${found.vaccine_name||'疫苗'}${found.pet_hospital||found.hospital_name?` | ${found.pet_hospital||found.hospital_name}`:''}${found.cost?` | ${found.cost}元`:''}`,
+              images: [],
+            } as HealthRecord);
+          } else {
+            setRecord(null);
+          }
+        })
+        .finally(() => setLoading(false));
+    } else if (type === "checkup" && petId) {
+      // 体检记录 → 查 check_up_records 表
+      fetchCheckups(petId)
+        .then((res) => {
+          const found = (Array.isArray(res) ? res : []).find((r: any) => r.id === targetId);
+          if (found) {
+            setRecord({
+              ...found,
+              id: found.id,
+              record_type: "checkup",
+              record_date: found.check_up_date ? String(found.check_up_date).slice(0, 10) : "",
+              title: found.check_up_items || "健康体检",
+              hospital: found.pet_hospital || found.hospital_name || "",
+              doctor: found.doctor || "",
+              cost: found.cost ?? null,
+              weight_kg: null, mood: "", appetite: "",
+              deworm_type: "",
+              note: found.notes || `${found.check_up_items||'体检'}${found.pet_hospital||found.hospital_name?` | ${found.pet_hospital||found.hospital_name}`:''}`,
+              images: found.photo_urls || [],
+            } as HealthRecord);
+          } else {
+            setRecord(null);
+          }
+        })
+        .finally(() => setLoading(false));
+    } else if (type === "visit" && petId) {
+      // 就诊记录 → 查 medical_case_records 表
+      fetchMedicals(petId)
+        .then((res) => {
+          const found = (Array.isArray(res) ? res : []).find((r: any) => r.id === targetId);
+          if (found) {
+            setRecord({
+              ...found,
+              id: found.id,
+              record_type: "visit",
+              record_date: found.medical_date ? String(found.medical_date).slice(0, 10) : "",
+              title: found.chief_complaint || found.diagnosis || "就诊记录",
+              hospital: found.pet_hospital || found.hospital_name || "",
+              doctor: found.doctor || "",
+              symptom: found.chief_complaint || found.symptom || "",
+              treatment: found.treatment || "",
+              cost: found.cost ?? null,
+              weight_kg: null, mood: "", appetite: "",
+              deworm_type: "",
+              note: found.notes || `${found.chief_complaint||found.diagnosis||'就诊'}${found.treatment?` | 治疗:${found.treatment}`:''}`,
+              images: found.photo_urls || [],
             } as HealthRecord);
           } else {
             setRecord(null);

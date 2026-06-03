@@ -657,9 +657,8 @@ export default function AddRecord() {
             notes: form.note.trim() || `体重记录 ${form.weight_kg}kg`,
             photo_urls: parseImages(),
           };
-          console.log("[Weight] 提交体重记录:", JSON.stringify(wPayload));
+          // 提交体重记录
           const wResult = await createWeight(wPayload);
-          console.log("[Weight] 创建成功:", wResult);
           break;
         }
         case "diet": {

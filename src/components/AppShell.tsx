@@ -181,11 +181,11 @@ export default function AppShell() {
               <span className="tab-deco tab-deco-heart">♥</span>
             </NavLink>
 
-            {/* 中间凸起的宠物聊天入口 */}
+            {/* 中间凸起的宠物心声入口 */}
             <div className="tab-chat-center">
               <button type="button" className="tab-chat-btn" onClick={() => navigate("/app/chat")}>
                 <MessageCircle size={24} strokeWidth={2.2} />
-                <span>宠物聊天</span>
+                <span>宠物心声</span>
                 <span className="tab-deco tab-deco-paw">🐾</span>
               </button>
             </div>

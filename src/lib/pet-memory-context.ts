@@ -800,7 +800,7 @@ export class PetMemoryContext {
       }
       
       this.dirty = false;
-      console.log(`[PetMemoryContext] 已保存数据 (petId: ${this.petId}, messages: ${this.messages.length})`);
+      // 已保存数据到 localStorage
     } catch (error) {
       console.error("[PetMemoryContext] 保存失败:", error);
     }
@@ -828,7 +828,7 @@ export class PetMemoryContext {
         this.profile = JSON.parse(profileData);
       }
       
-      console.log(`[PetMemoryContext] 已加载数据 (petId: ${this.petId}, messages: ${this.messages.length})`);
+      // 已从 localStorage 加载数据
     } catch (error) {
       console.error("[PetMemoryContext] 加载失败:", error);
     }
@@ -886,7 +886,7 @@ export class PetMemoryContext {
     this.saveToStorage();
     
     this.listeners = [];
-    console.log(`[PetMemoryContext] 已销毁 (petId: ${this.petId})`);
+    // PetMemoryContext 已销毁
   }
 
   /**
@@ -898,7 +898,7 @@ export class PetMemoryContext {
       localStorage.removeItem(key + STORAGE_MESSAGES);
       localStorage.removeItem(key + STORAGE_EVENTS);
       localStorage.removeItem(key + STORAGE_PROFILE);
-      console.log(`[PetMemoryContext] 已清除 petId=${petId} 的所有缓存`);
+    // 已清除指定宠物的所有缓存
     } catch (error) {
       console.error("[PetMemoryContext] 清除失败:", error);
     }
