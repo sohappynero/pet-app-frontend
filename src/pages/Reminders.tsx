@@ -425,13 +425,13 @@ export default function Reminders() {
 
   useEffect(() => { load(); }, [phone, selectedPetId]);
 
-  const urgentCount = list.filter((r) => r.status === "pending" && new Date(r.due_date) <= new Date()).length;
+  const urgentCount = list.filter((r) => r.status === "pending" && new Date(r.remind_at) <= new Date()).length;
   const pendingCount = list.filter((r) => r.status === "pending").length;
   const weeklyCount = list.filter((r) => r.repeat === "weekly" && r.status === "pending").length;
   const doneCount = list.filter((r) => r.status === "done").length;
 
   const filteredList = useMemo(() => {
-    if (activeTab === "urgent") return list.filter((r) => r.status === "pending" && new Date(r.due_date) <= new Date());
+    if (activeTab === "urgent") return list.filter((r) => r.status === "pending" && new Date(r.remind_at) <= new Date());
     if (activeTab === "pending") return list.filter((r) => r.status === "pending");
     if (activeTab === "weekly") return list.filter((r) => r.repeat === "weekly" && r.status === "pending");
     if (activeTab === "done") return list.filter((r) => r.status === "done");
@@ -608,7 +608,7 @@ export default function Reminders() {
               {filteredList.map((item) => {
                 const cat = getCategoryInfo(item.title);
                 const petName = petNameMap.get(item.pet_id) || "";
-                const isOverdue = new Date(item.due_date) <= new Date() && item.status === "pending";
+                const isOverdue = new Date(item.remind_at) <= new Date() && item.status === "pending";
 
                 return (
                   <article key={item.id} className={`rm3d-reminder-item ${isOverdue ? "is-overdue" : ""} ${item.status === "done" ? "is-done" : ""}`}>

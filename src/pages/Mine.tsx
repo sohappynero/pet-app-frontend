@@ -71,6 +71,8 @@ type FeatureItem = {
 const FEATURE_LIST: FeatureItem[] = [
   { id: "funeral", label: "宠物殡葬", emoji: "🕊️", color: "#7D6E63", bgColor: "linear-gradient(135deg, #F5F0EB, #EBE5DE)" },
   { id: "tv", label: "宠物TV", emoji: "🎬", color: "#5C9BD1", bgColor: "linear-gradient(135deg, #E8F4FD, #D4ECFA)" },
+  { id: "food", label: "宠物食品", emoji: "🥫", color: "#E8913A", bgColor: "linear-gradient(135deg, #FFF5E6, #FDE8C8)" },
+  { id: "chat", label: "同城聊天", emoji: "💬", color: "#4ECDC4", bgColor: "linear-gradient(135deg, #E8F8F5, #D0F0EC)" },
   { id: "hospital", label: "宠物医院", emoji: "🏥", color: "#E85A71", bgColor: "linear-gradient(135deg, #FFE8ED, #FFD0D8)" },
   { id: "beauty", label: "美容预约", emoji: "✨", color: "#B87DE8", bgColor: "linear-gradient(135deg, #F3E8FD, #E8D4FB)" },
 ];
