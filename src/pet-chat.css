@@ -2747,12 +2747,15 @@
 
 .pmr-photo {
   width: 100%;
-  height: 170px;
-  object-fit: cover;
+  height: auto;
+  max-height: 280px;
+  object-fit: contain;
   border-radius: 20px 24px 22px 26px;
   border: 2.5px solid rgba(255, 255, 255, 0.8);
   box-shadow: 0 4px 14px rgba(160, 140, 120, 0.12);
   transition: all 0.3s ease;
+  background: linear-gradient(180deg, #F5F0E8 0%, #EDE8DF 100%);
+  display: block;
 }
 
 .pmr-card:hover .pmr-photo {
@@ -2794,15 +2797,15 @@
 }
 
 /* 无图片占位 */
-.pmr-photo-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  height: 170px;
-  border-radius: 20px 24px 22px 26px;
+  .pmr-photo-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 200px;
+    border-radius: 20px 24px 22px 26px;
   background: linear-gradient(145deg, #f5f0ea, #ebe5dd);
   color: #B5AA9A;
   font-size: 13px;
@@ -3469,7 +3472,8 @@
 
   .pmr-photo {
     width: 100%;
-    height: 120px;
+    height: auto;
+    max-height: 220px;
   }
 
   .pmr-mind-text {
