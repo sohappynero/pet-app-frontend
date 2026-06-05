@@ -50,6 +50,8 @@ export interface PhotoMindResult {
   moodScore: number;
   mindOs: string;
   humorLevel: "low" | "medium" | "high";
+  speciesMismatch?: boolean;
+  detectedSpecies?: string;
 }
 
 /** 人话转宠物语结果 */

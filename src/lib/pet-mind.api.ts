@@ -215,6 +215,8 @@ export async function fetchPhotoMind(request: PhotoMindRequest): Promise<{
       moodScore: data.mood_score || 0.8,
       mindOs: data.mind_os || data.internal_thoughts || "主人拍我的时候，我正在想...",
       humorLevel: data.humor_level || "medium",
+      speciesMismatch: data.species_mismatch || false,
+      detectedSpecies: data.detected_species || "",
     };
 
     onProgress?.("解读完成！");
