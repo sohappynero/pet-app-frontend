@@ -200,6 +200,14 @@ export function PhotoMindResultCard({
           </span>
         </div>
 
+        {/* 物种不匹配提示 */}
+        {result.speciesMismatch && (
+          <div className="pmr-species-warning">
+            <span>⚠️</span>
+            <span>这好像不是你家的{petName}哦~ 检测到的是<strong>{result.detectedSpecies || "其他动物"}</strong></span>
+          </div>
+        )}
+
         {/* 心声内容区 — 全宽 */}
         <div className="pmr-content-section">
           {/* 宠物内心 OS 标题 */}
@@ -215,7 +223,7 @@ export function PhotoMindResultCard({
                 <p className={`pmr-mind-text ${isComplete ? "pmr-complete" : ""}`}>
                   {displayedText}
                   {!isComplete && cursorVisible && <span className="pmr-cursor">▊</span>}
-                </p>
+                </p >
 
                 {/* 跳过按钮（正在打字时显示） */}
                 {!isComplete && isTyping && (
