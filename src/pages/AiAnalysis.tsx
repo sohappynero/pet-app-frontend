@@ -131,14 +131,18 @@ export default function AiAnalysis() {
   }, [phone, selectedPetId]);
 
   // ── 核心：从后端获取AI分析真实数据 ──
+  const effectivePetId = currentPet?.id || selectedPetId;
   useEffect(() => {
-    if (!currentPet?.id) return;
+    if (!effectivePetId) {
+      setAnalysisLoading(false);
+      return;
+    }
     setAnalysisLoading(true);
-    fetchAnalysisDashboard(currentPet.id)
+    fetchAnalysisDashboard(effectivePetId)
       .then((data) => setAnalysisData(data))
       .catch((err) => console.error("分析数据获取失败:", err))
       .finally(() => setAnalysisLoading(false));
-  }, [currentPet?.id]);
+  }, [effectivePetId]);
 
   // 从后端数据派生各卡片分数（保证有值）
   const overallScore = analysisData?.overall_score ?? 0;

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, TrendingUp, TrendingDown, Minus, Scale, Target, Calendar, AlertTriangle, CheckCircle2, Activity, BarChart3, LineChart as LineChartIcon } from "lucide-react";
 import { useShell } from "../hooks/useShell";
 import type { HealthRecord } from "../types";
-import { fetchRecords } from "../lib/api";
+import { fetchRecords, fetchWeights } from "../lib/api";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
 import "../weight-trend-analysis.css";
 
@@ -243,23 +243,44 @@ export default function WeightTrendAnalysis() {
   const [wtLoading, setWtLoading] = useState(true);
 
   useEffect(() => {
+    if (!selectedPetId) return;
     setWtLoading(true);
-    fetchRecords(phone, selectedPetId ?? undefined, "all")
+
+    // 优先使用 pet_weight_records 专用表，降级使用通用健康记录
+    fetchWeights(selectedPetId)
       .then((res) => {
-        const all = res.data || [];
-        // 筛选包含体重的记录
-        const withWeight = all
-          .filter((r: HealthRecord) => r.weight_kg != null && Number(r.weight_kg) > 0)
-          .map((r: HealthRecord) => ({
+        const list = Array.isArray(res) ? res : (res as any)?.data ?? (res as any)?.list ?? [];
+        const withWeight = list
+          .filter((r: any) => r.weight_kg != null && Number(r.weight_kg) > 0)
+          .map((r: any) => ({
             date: r.record_date || r.created_at || "",
             weight: Number(r.weight_kg),
             idealMin: currentPet?.ideal_weight_min ? Number(currentPet.ideal_weight_min) : undefined,
             idealMax: currentPet?.ideal_weight_max ? Number(currentPet.ideal_weight_max) : undefined,
           }))
-          .filter((r) => r.date && !isNaN(r.weight));
-        // 按日期排序
-        withWeight.sort((a, b) => a.date.localeCompare(b.date));
-        setWeightRecords(withWeight);
+          .filter((r: any) => r.date && !isNaN(r.weight));
+        withWeight.sort((a: any, b: any) => a.date.localeCompare(b.date));
+
+        if (withWeight.length > 0) {
+          setWeightRecords(withWeight);
+          return;
+        }
+
+        // 降级：从通用健康记录中取体重
+        return fetchRecords(phone, selectedPetId ?? undefined, "all").then((fallback) => {
+          const all = fallback.data || [];
+          const fromObs = all
+            .filter((r: HealthRecord) => r.weight_kg != null && Number(r.weight_kg) > 0)
+            .map((r: HealthRecord) => ({
+              date: r.record_date || r.created_at || "",
+              weight: Number(r.weight_kg),
+              idealMin: currentPet?.ideal_weight_min ? Number(currentPet.ideal_weight_min) : undefined,
+              idealMax: currentPet?.ideal_weight_max ? Number(currentPet.ideal_weight_max) : undefined,
+            }))
+            .filter((r) => r.date && !isNaN(r.weight));
+          fromObs.sort((a, b) => a.date.localeCompare(b.date));
+          setWeightRecords(fromObs);
+        });
       })
       .catch(console.error)
       .finally(() => setWtLoading(false));

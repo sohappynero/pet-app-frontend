@@ -396,25 +396,24 @@ export async function login(payload: { username: string; password: string }) {
 
 
 export async function sendRegisterCode(payload: { phone: string }) {
-  try {
-    return await request<ApiResp<{ phone: string; expire_seconds: number; mode?: string; demo_code?: string }>>(
-      "/api/send-register-code",
-      {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }
-    );
-  } catch (err) {
-    if (!(err instanceof Error) || !err.message.includes("HTTP 404")) {
-      throw err;
+  return request<ApiResp<{ phone: string; expire_seconds: number; mode?: string; demo_code?: string }>>(
+    "/api/sms/send",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
     }
-  }
+  );
+}
 
-  return {
-    ok: true,
-    message: "验证码已发送（兼容模式）",
-    data: { phone: payload.phone, expire_seconds: 300, mode: "demo", demo_code: "123456" },
-  } as ApiResp<{ phone: string; expire_seconds: number; mode?: string; demo_code?: string }>;
+
+export async function verifySmsCode(payload: { phone: string; captcha: string }) {
+  return request<ApiResp<{ verified: boolean }>>(
+    "/api/sms/verify",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }
+  );
 }
 
 
