@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiPhone, FiLock, FiUser, FiUserPlus, FiMessageSquare } from "react-icons/fi";
 import Mascot from "../components/Mascot";
-import { register, sendRegisterCode } from "../lib/api";
+import { register, sendRegisterCode, verifySmsCode } from "../lib/api";
 
 
 export default function Register() {
@@ -89,6 +89,14 @@ export default function Register() {
 
     setLoading(true);
     try {
+      // 先校验验证码
+      const verifyRes = await verifySmsCode({ phone: form.phone.trim(), captcha: form.verify_code.trim() });
+      if (verifyRes.code !== 0 || !(verifyRes as any).verified) {
+        setError(verifyRes.message || "验证码校验失败");
+        setLoading(false);
+        return;
+      }
+
       const data = await register({
         phone: form.phone.trim(),
         verify_code: form.verify_code.trim(),
