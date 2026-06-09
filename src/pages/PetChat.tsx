@@ -1,13 +1,14 @@
 /**
- * AI 宠物心声页面
- * 融合两大功能：AI 宠物聊天、照片心声解读
+ * 会员专区页面
+ * 融合三大功能：AI 宠物聊天、照片心声解读、智能健康分析
  */
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   MessageCircle, Send, Mic, PawPrint, Heart,
   Image, Images, Loader2, X, ChevronDown,
-  Camera, Settings, Zap
+  Camera, Settings, Zap, Sparkles
 } from "lucide-react";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
 import { PetPhotoUploader, type PhotoUploadResult } from "../components/PetPhotoUploader";
@@ -86,6 +87,15 @@ const QUICK_ACTIONS: QuickAction[] = [
     iconBg: "linear-gradient(145deg, #FDF2EC, #F9E3D4)",
     description: "选一张图，让 AI 读懂毛孩子的心思"
   },
+  {
+    id: "ai-analysis",
+    icon: Sparkles,
+    label: "AI分析",
+    color: "#667eea",
+    gradient: "linear-gradient(135deg, #667eea, #764ba2)",
+    iconBg: "linear-gradient(145deg, #EEF0FE, #D8DDFC)",
+    description: "全方位 AI 智能健康分析报告"
+  },
 ];
 
 // ============================================================
@@ -134,6 +144,7 @@ const mockChats: ChatMessage[] = [
 // ============================================================
 
 export default function PetChat() {
+  const navigate = useNavigate();
   const { selectedPet } = useShell();
   
   // 状态
@@ -415,17 +426,23 @@ export default function PetChat() {
           time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
         };
         setPhotoResults((prev) => [photoItem, ...prev]);
-        
+
         // 记录到记忆系统
         memoryContext?.recordEvent({ type: "photo_uploaded", details: { hasResult: true } });
-        
+
         // 关闭上传面板（保留面板可见以查看结果）
         setShowPhotoUploader(false);
+      } else {
+        // API 返回失败，给用户明确提示
+        const errMsg = result.error || "照片分析失败，请检查网络后重试";
+        console.error("[PhotoMind] 分析失败:", errMsg);
+        alert(`照片心声解读失败：${errMsg}`);
       }
     } catch (error) {
       console.error("照片心声生成失败:", error);
       setIsAnalyzing(false);
       setAnalysisStep(1);
+      alert("照片心声解读异常，请检查网络连接后重试");
     }
   };
   
@@ -554,8 +571,8 @@ export default function PetChat() {
 
           {/* 中间：宠物名称 + 副标题 + 实时情绪指示器 */}
           <div className="chat-title-area">
-            <h1 className="chat-title">{selectedPet?.name || "宠物心声"}</h1>
-            <p className="chat-subtitle">理解毛孩子的心理 ✨</p>
+            <h1 className="chat-title">{selectedPet?.name || "会员专区"}</h1>
+            <p className="chat-subtitle">聊天 · 心声 · AI分析 ✨</p>
             
             {/* 实时情绪指示器 */}
             <div 
@@ -611,6 +628,7 @@ export default function PetChat() {
                 onClick={() => {
                   if (action.id === "camera-mind") quickCameraRef.current?.click();
                   else if (action.id === "photo-mind") quickGalleryRef.current?.click();
+                  else if (action.id === "ai-analysis") navigate("/app/ai-analysis");
                 }}
               >
                 <div className="qa-visual">

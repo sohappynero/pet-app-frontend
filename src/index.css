@@ -8688,18 +8688,33 @@ body::before {
 
 .ph3d-hero-badge {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.7);
-  backdrop-filter: blur(8px);
-  color: #8b6e50;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 14px 16px 14px 16px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(252,250,248,0.85));
+  border: 1.5px solid rgba(180, 170, 155, 0.20);
+  box-shadow: 0 2px 8px rgba(160, 140, 120, 0.06);
+  margin-bottom: 10px;
+}
+
+.ph3d-hero-badge-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #D4A574, #E8C49A);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(212, 165, 116, 0.25);
+}
+
+.ph3d-hero-badge-text {
   font-size: 11px;
   font-weight: 600;
+  color: #8b6e50;
   letter-spacing: 0.3px;
-  margin-bottom: 14px;
-  border: 1px solid rgba(200,180,160,0.35);
 }
 
 .ph3d-hero-title {
@@ -9458,8 +9473,244 @@ body::before {
   margin-top: 10px;
 }
 
+/* ═══ 健康数据概览 ═══ */
+.health-overview {
+  padding: 0 16px 16px;
+  margin-top: -8px;
+}
+
+.health-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.health-capsule {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 6px 10px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(252,250,248,0.85));
+  border-radius: 16px 18px 16px 18px;
+  border: 1.5px solid rgba(180, 170, 155, 0.18);
+  box-shadow: 0 2px 8px rgba(160, 140, 120, 0.06);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.health-capsule:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(160, 140, 120, 0.12);
+  border-color: rgba(180, 170, 155, 0.35);
+}
+
+.health-capsule-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+.health-capsule-icon svg {
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));
+}
+
+.health-capsule-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.health-capsule-num {
+  font-size: 18px;
+  font-weight: 800;
+  color: #3d2e1f;
+  line-height: 1;
+  font-family: 'ZCOOL KuaiLe', cursive;
+}
+
+.health-capsule-label {
+  font-size: 11px;
+  color: #9B8B7E;
+  font-weight: 500;
+}
+
+.health-capsule-tag {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  padding: 2px 7px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #A7C794, #8FB87A);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  box-shadow: 0 2px 5px rgba(140, 180, 120, 0.3);
+}
+
+.health-capsule-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FB7185;
+  box-shadow: 0 0 0 2px rgba(251, 113, 133, 0.25);
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.7; }
+}
+
+/* ═══ 待办提醒条 ═══ */
+.reminder-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 16px 16px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(245, 169, 98, 0.1), rgba(232, 148, 74, 0.08));
+  border-radius: 14px;
+  border: 1.5px dashed rgba(245, 169, 98, 0.3);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.reminder-bar:hover {
+  background: linear-gradient(135deg, rgba(245, 169, 98, 0.15), rgba(232, 148, 74, 0.12));
+  transform: translateX(2px);
+}
+
+.reminder-bar-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #F5A962, #E8944A);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.reminder-bar-text {
+  flex: 1;
+  font-size: 13px;
+  color: #5C4A3A;
+  font-weight: 500;
+}
+
+.reminder-bar-text strong {
+  color: #E8944A;
+  font-weight: 700;
+}
+
+.reminder-bar-arrow {
+  font-size: 16px;
+  color: #E8944A;
+  font-weight: 600;
+}
+
+/* ═══ 快速记录网格布局 ═══ */
+.ghibi-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
 /* ============================================================ */
-/* ===== 宫崎骏手绘治愈卡片核心样式 ===== */
+/* ===== 宫崎骏手绘治愈小卡片（纵向方块） ===== */
+/* ============================================================ */
+
+.ghibi-card-mini {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px 12px;
+  background: #FFFAF0;
+  border-radius: 18px 20px 18px 20px;
+  border: 1.5px solid rgba(180, 170, 155, 0.20);
+  box-shadow: 0 2px 8px rgba(160, 140, 120, 0.06);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+
+.ghibi-card-mini:hover {
+  transform: translateY(-4px) rotate(1deg);
+  box-shadow:
+    0 10px 24px rgba(120, 100, 80, 0.1),
+    0 4px 10px rgba(120, 100, 80, 0.05),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+  border-color: rgba(180, 170, 155, 0.40);
+}
+
+.ghibi-card-mini:active {
+  transform: translateY(0) scale(0.96) rotate(0deg);
+  transition-duration: 0.15s;
+}
+
+.ghibi-mini-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 50% 48% 52% 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ghibi-icon-bg, #F0EDE6);
+  color: var(--ghibi-icon-color, #5D4037);
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow:
+    inset 0 -2px 6px rgba(0,0,0,0.06),
+    inset 0 2px 6px rgba(255,255,255,0.8),
+    0 2px 6px rgba(0,0,0,0.05);
+}
+
+.ghibi-card-mini:hover .ghibi-mini-icon-wrap {
+  transform: scale(1.1) rotate(-4deg);
+  box-shadow:
+    inset 0 -3px 10px rgba(0,0,0,0.08),
+    inset 0 2px 8px rgba(255,255,255,0.8),
+    0 4px 12px rgba(0,0,0,0.08);
+}
+
+.ghibi-mini-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2D3436;
+  font-family: 'ZCOOL KuaiLe', cursive;
+  letter-spacing: -0.2px;
+  margin-top: 2px;
+}
+
+.ghibi-mini-desc {
+  font-size: 10px;
+  color: #A0ABB0;
+  font-weight: 450;
+  line-height: 1.3;
+}
+
+/* 各类型小卡片主题色 */
+.ghibi-card-weight { --ghibi-icon-bg: linear-gradient(145deg, #E5F4EF, #D0EBE1); --ghibi-icon-color: #5BA88C; }
+.ghibi-card-vaccine { --ghibi-icon-bg: linear-gradient(145deg, #F0E8F5, #E2D4EC); --ghibi-icon-color: #9B7EDE; }
+.ghibi-card-deworm { --ghibi-icon-bg: linear-gradient(145deg, #F5EDE8, #E8D8CC); --ghibi-icon-color: #C4956A; }
+.ghibi-card-checkup { --ghibi-icon-bg: linear-gradient(145deg, #FDE8E8, #F5D0D0); --ghibi-icon-color: #E07A7A; }
+.ghibi-card-diet { --ghibi-icon-bg: linear-gradient(145deg, #FDF2EC, #F9E3D4); --ghibi-icon-color: #D4A574; }
+.ghibi-card-beauty { --ghibi-icon-bg: linear-gradient(145deg, #E8F0F5, #D4E2EC); --ghibi-icon-color: #6A9FBF; }
+.ghibi-card-obs { --ghibi-icon-bg: linear-gradient(145deg, #F0F0E8, #E2E2D4); --ghibi-icon-color: #8B9A6B; }
+
+/* ============================================================ */
+/* ===== 宫崎骏手绘治愈卡片核心样式（保留原有长卡片） ===== */
 /* ============================================================ */
 
 .ghibi-card {

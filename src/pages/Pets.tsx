@@ -190,13 +190,15 @@ export default function Pets() {
           {/* 左侧文字 */}
           <div className="ph3d-hero-text">
             <div className="ph3d-hero-badge">
-              <Sparkles size={12} />
-              <span>健康管家</span>
+              <span className="ph3d-hero-badge-icon">
+                <Sparkles size={14} />
+              </span>
+              <span className="ph3d-hero-badge-text">健康管家</span>
             </div>
             <h1 className="ph3d-hero-title">
-              宠物健康<br /><span className="ph3d-title-accent">管理中心</span>
+              {currentPet?.name || "宝贝"} 的<br /><span className="ph3d-title-accent">健康小窝</span>
             </h1>
-            <p className="ph3d-hero-desc">为爱宠记录每一个健康时刻</p>
+            <p className="ph3d-hero-desc">记录每一刻，守护每一天 ✨</p>
             
             {/* 当前宠物信息 */}
             <div className="ph3d-pet-card">
@@ -285,6 +287,50 @@ export default function Pets() {
         </div>
       </section>
 
+      {/* ═══ 健康数据概览 ═══ */}
+      <section className="health-overview">
+        <div className="health-overview-grid">
+          <div className="health-capsule">
+            <span className="health-capsule-icon" style={{ background: "linear-gradient(135deg, #A7C794, #8FB87A)" }}>
+              <Activity size={16} />
+            </span>
+            <div className="health-capsule-info">
+              <span className="health-capsule-num">{healthScore || "--"}</span>
+              <span className="health-capsule-label">综合评分</span>
+            </div>
+            {scoreGrade && <span className="health-capsule-tag">{scoreGrade}</span>}
+          </div>
+          <div className="health-capsule" onClick={() => navigate("/app/reminders")}>
+            <span className="health-capsule-icon" style={{ background: "linear-gradient(135deg, #F5A962, #E8944A)" }}>
+              <Bell size={16} />
+            </span>
+            <div className="health-capsule-info">
+              <span className="health-capsule-num">{pendingCount}</span>
+              <span className="health-capsule-label">待办提醒</span>
+            </div>
+            {pendingCount > 0 && <span className="health-capsule-dot" />}
+          </div>
+          <div className="health-capsule" onClick={() => navigate("/app/records")}>
+            <span className="health-capsule-icon" style={{ background: "linear-gradient(135deg, #7EC8E3, #5BA8C4)" }}>
+              <FileText size={16} />
+            </span>
+            <div className="health-capsule-info">
+              <span className="health-capsule-num">{totalRecords}</span>
+              <span className="health-capsule-label">健康记录</span>
+            </div>
+          </div>
+          <div className="health-capsule" onClick={() => navigate("/app/records")}>
+            <span className="health-capsule-icon" style={{ background: "linear-gradient(135deg, #C4A8D8, #A88BC4)" }}>
+              <Scale size={16} />
+            </span>
+            <div className="health-capsule-info">
+              <span className="health-capsule-num">{weightRecords}</span>
+              <span className="health-capsule-label">体重追踪</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ═══ 快速记录区域（宫崎骏手绘治愈风）═══ */}
       <section className="ghibi-quick-section">
         <div className="ghibi-section-head">
@@ -292,136 +338,85 @@ export default function Pets() {
           <span className="ghibi-section-sub">一键记录宠物的健康数据</span>
         </div>
 
-        <div className="ghibi-card-list">
+        <div className="ghibi-card-grid">
           {/* 体重记录 */}
-          <button type="button" className="ghibi-card ghibi-card-weight" onClick={() => navigate(`/app/add-record?type=weight&pet_id=${currentPet?.id}`)}>
-            <div className="ghibi-card-icon-wrap ghibli-icon-handdrawn">
-              <Scale size={24} strokeWidth={1.5} className="ghibi-card-icon" />
+          <button type="button" className="ghibi-card-mini ghibi-card-weight" onClick={() => navigate(`/app/add-record?type=weight&pet_id=${currentPet?.id}`)}>
+            <div className="ghibi-mini-icon-wrap">
+              <Scale size={22} strokeWidth={1.5} />
             </div>
-            <div className="ghibi-card-content">
-              <h4 className="ghibi-card-title">体重记录</h4>
-              <p className="ghibi-card-desc">追踪体重变化趋势</p>
-              <div className="ghibi-card-footer">
-                <span className="ghibi-card-badge">追踪中</span>
-                <span className="ghibi-card-arrow">→</span>
-              </div>
-            </div>
-            <div className="ghibi-card-deco ghibi-deco-leaf" />
+            <span className="ghibi-mini-label">体重</span>
+            <span className="ghibi-mini-desc">追踪变化</span>
           </button>
 
           {/* 疫苗记录 */}
-          <button type="button" className="ghibi-card ghibi-card-vaccine" onClick={() => navigate(`/app/add-record?type=vaccine&pet_id=${currentPet?.id}`)}>
-            <div className="ghibi-card-icon-wrap ghibli-icon-handdrawn">
-              <Shield size={24} strokeWidth={1.5} className="ghibi-card-icon" />
+          <button type="button" className="ghibi-card-mini ghibi-card-vaccine" onClick={() => navigate(`/app/add-record?type=vaccine&pet_id=${currentPet?.id}`)}>
+            <div className="ghibi-mini-icon-wrap">
+              <Shield size={22} strokeWidth={1.5} />
             </div>
-            <div className="ghibi-card-content">
-              <h4 className="ghibi-card-title">疫苗记录</h4>
-              <p className="ghibi-card-desc">管理疫苗接种时间</p>
-              <div className="ghibi-card-footer">
-                <span className="ghibi-card-badge">管理中</span>
-                <span className="ghibi-card-arrow">→</span>
-              </div>
-            </div>
-            <div className="ghibi-card-deco ghibi-deco-flower" />
+            <span className="ghibi-mini-label">疫苗</span>
+            <span className="ghibi-mini-desc">接种管理</span>
           </button>
 
           {/* 驱虫记录 */}
-          <button type="button" className="ghibi-card ghibi-card-deworm" onClick={() => navigate(`/app/add-record?type=deworm&pet_id=${currentPet?.id}`)}>
-            <div className="ghibi-card-icon-wrap ghibli-icon-handdrawn">
-              <Shield size={24} strokeWidth={1.5} className="ghibi-card-icon" />
+          <button type="button" className="ghibi-card-mini ghibi-card-deworm" onClick={() => navigate(`/app/add-record?type=deworm&pet_id=${currentPet?.id}`)}>
+            <div className="ghibi-mini-icon-wrap">
+              <Shield size={22} strokeWidth={1.5} />
             </div>
-            <div className="ghibi-card-content">
-              <h4 className="ghibi-card-title">驱虫记录</h4>
-              <p className="ghibi-card-desc">体内外驱虫计划</p>
-              <div className="ghibi-card-footer">
-                <span className="ghibi-card-badge">计划中</span>
-                <span className="ghibi-card-arrow">→</span>
-              </div>
-            </div>
-            <div className="ghibi-card-deco ghibi-deco-star" />
+            <span className="ghibi-mini-label">驱虫</span>
+            <span className="ghibi-mini-desc">定期计划</span>
           </button>
 
           {/* 体检记录 */}
-          <button type="button" className="ghibi-card ghibi-card-checkup" onClick={() => navigate(`/app/add-record?type=checkup&pet_id=${currentPet?.id}`)}>
-            <div className="ghibi-card-icon-wrap ghibli-icon-handdrawn">
-              <Heart size={24} strokeWidth={1.5} className="ghibi-card-icon" />
+          <button type="button" className="ghibi-card-mini ghibi-card-checkup" onClick={() => navigate(`/app/add-record?type=checkup&pet_id=${currentPet?.id}`)}>
+            <div className="ghibi-mini-icon-wrap">
+              <Heart size={22} strokeWidth={1.5} />
             </div>
-            <div className="ghibi-card-content">
-              <h4 className="ghibi-card-title">体检记录</h4>
-              <p className="ghibi-card-desc">定期检查档案</p>
-              <div className="ghibi-card-footer">
-                <span className="ghibi-card-badge">档案中</span>
-                <span className="ghibi-card-arrow">→</span>
-              </div>
-            </div>
-            <div className="ghibi-card-deco ghibi-deco-cloud" />
+            <span className="ghibi-mini-label">体检</span>
+            <span className="ghibi-mini-desc">健康档案</span>
           </button>
 
           {/* 饮食记录 */}
-          <button type="button" className="ghibi-card ghibi-card-diet" onClick={() => navigate(`/app/add-record?type=diet&pet_id=${currentPet?.id}`)}>
-            <div className="ghibi-card-icon-wrap ghibli-icon-handdrawn">
-              <Utensils size={24} strokeWidth={1.5} className="ghibi-card-icon" />
+          <button type="button" className="ghibi-card-mini ghibi-card-diet" onClick={() => navigate(`/app/add-record?type=diet&pet_id=${currentPet?.id}`)}>
+            <div className="ghibi-mini-icon-wrap">
+              <Utensils size={22} strokeWidth={1.5} />
             </div>
-            <div className="ghibi-card-content">
-              <h4 className="ghibi-card-title">饮食记录</h4>
-              <p className="ghibi-card-desc">每日饮食与营养</p>
-              <div className="ghibi-card-footer">
-                <span className="ghibi-card-badge">追踪中</span>
-                <span className="ghibi-card-arrow">→</span>
-              </div>
-            </div>
-            <div className="ghibi-card-deco ghibi-deco-leaf" />
+            <span className="ghibi-mini-label">饮食</span>
+            <span className="ghibi-mini-desc">每日营养</span>
           </button>
 
           {/* 美容护理 */}
-          <button type="button" className="ghibi-card ghibi-card-beauty" onClick={() => navigate(`/app/add-record?type=beauty&pet_id=${currentPet?.id}`)}>
-            <div className="ghibi-card-icon-wrap ghibli-icon-handdrawn">
-              <Scissors size={24} strokeWidth={1.5} className="ghibi-card-icon" />
+          <button type="button" className="ghibi-card-mini ghibi-card-beauty" onClick={() => navigate(`/app/add-record?type=beauty&pet_id=${currentPet?.id}`)}>
+            <div className="ghibi-mini-icon-wrap">
+              <Scissors size={22} strokeWidth={1.5} />
             </div>
-            <div className="ghibi-card-content">
-              <h4 className="ghibi-card-title">美容护理</h4>
-              <p className="ghibi-card-desc">洗浴美容与护理</p>
-              <div className="ghibi-card-footer">
-                <span className="ghibi-card-badge">护理中</span>
-                <span className="ghibi-card-arrow">→</span>
-              </div>
-            </div>
-            <div className="ghibi-card-deco ghibi-deco-sparkle" />
+            <span className="ghibi-mini-label">美容</span>
+            <span className="ghibi-mini-desc">洗护护理</span>
           </button>
 
           {/* 日常观察 */}
-          <button type="button" className="ghibi-card ghibi-card-obs" onClick={() => navigate(`/app/add-record?type=observation&pet_id=${currentPet?.id}`)}>
-            <div className="ghibi-card-icon-wrap ghibli-icon-handdrawn">
-              <Eye size={24} strokeWidth={1.5} className="ghibi-card-icon" />
+          <button type="button" className="ghibi-card-mini ghibi-card-obs" onClick={() => navigate(`/app/add-record?type=observation&pet_id=${currentPet?.id}`)}>
+            <div className="ghibi-mini-icon-wrap">
+              <Eye size={22} strokeWidth={1.5} />
             </div>
-            <div className="ghibi-card-content">
-              <h4 className="ghibi-card-title">日常观察</h4>
-              <p className="ghibi-card-desc">行为与健康状态</p>
-              <div className="ghibi-card-footer">
-                <span className="ghibi-card-badge">观察中</span>
-                <span className="ghibi-card-arrow">→</span>
-              </div>
-            </div>
-            <div className="ghibi-card-deco ghibi-deco-petal" />
+            <span className="ghibi-mini-label">观察</span>
+            <span className="ghibi-mini-desc">行为记录</span>
           </button>
 
-          {/* 智能分析 */}
-          <button type="button" className="ghibi-card ghibi-card-ai" onClick={() => navigate("/app/ai-analysis")}>
-            <div className="ghibi-card-icon-wrap ghibli-icon-handdrawn ghibli-icon-magic">
-              <Sparkles size={24} strokeWidth={1.5} className="ghibi-card-icon" />
-            </div>
-            <div className="ghibi-card-content">
-              <h4 className="ghibi-card-title">智能分析</h4>
-              <p className="ghibi-card-desc">AI健康洞察报告</p>
-              <div className="ghibi-card-footer">
-                <span className="ghibi-card-badge ghibi-badge-magic">AI 分析</span>
-                <span className="ghibi-card-arrow">→</span>
-              </div>
-            </div>
-            <div className="ghibi-card-deco ghibi-deco-magic" />
-          </button>
         </div>
       </section>
+
+      {/* ═══ 待办提醒条（条件显示）═══ */}
+      {pendingCount > 0 && (
+        <section className="reminder-bar" onClick={() => navigate("/app/reminders")}>
+          <span className="reminder-bar-icon">
+            <Bell size={16} />
+          </span>
+          <span className="reminder-bar-text">
+            你有 <strong>{pendingCount}</strong> 条待处理提醒
+          </span>
+          <span className="reminder-bar-arrow">→</span>
+        </section>
+      )}
 
       {/* 切换宠物弹窗 */}
       {switchOpen && (

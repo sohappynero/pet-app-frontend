@@ -185,7 +185,7 @@ export default function AppShell() {
             <div className="tab-chat-center">
               <button type="button" className="tab-chat-btn" onClick={() => navigate("/app/chat")}>
                 <MessageCircle size={24} strokeWidth={2.2} />
-                <span>宠物心声</span>
+                <span>会员专区</span>
                 <span className="tab-deco tab-deco-paw">🐾</span>
               </button>
             </div>
