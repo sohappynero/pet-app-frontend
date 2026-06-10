@@ -127,6 +127,19 @@ function base64ToDataUrl(base64: string, mimeType = "image/jpeg"): string {
 }
 
 // ============================================================
+// 配额错误类型
+// ============================================================
+
+export interface QuotaError {
+  type: "quota_exceeded";
+  feature: string;
+  used: number;
+  limit: number;
+  plan: string;
+  upgradeHint: string;
+}
+
+// ============================================================
 // 照片心声 API
 // ============================================================
 
@@ -145,6 +158,7 @@ export async function fetchPhotoMind(request: PhotoMindRequest): Promise<{
   result?: PhotoMindResult;
   photoUrl?: string;
   error?: string;
+  quotaError?: QuotaError;
 }> {
   const { pet, imageFile, personality: customPersonality, onProgress } = request;
 
@@ -178,6 +192,40 @@ export async function fetchPhotoMind(request: PhotoMindRequest): Promise<{
     if (!response.ok) {
       const errText = await response.text().catch(() => "");
 
+      // 解析 429 配额超限错误
+      if (response.status === 429) {
+        try {
+          const errJson = JSON.parse(errText);
+          const detail = errJson.detail || {};
+          return {
+            success: false,
+            error: detail.message || "本月次数已用完",
+            quotaError: {
+              type: "quota_exceeded",
+              feature: detail.feature || "photo_emotion",
+              used: detail.used ?? 5,
+              limit: detail.limit ?? 5,
+              plan: detail.plan || "free",
+              upgradeHint: detail.upgrade_hint || "升级会员可获得更多使用次数",
+            },
+          };
+        } catch {
+          // 非 JSON 响应，返回默认配额错误
+          return {
+            success: false,
+            error: "本月次数已用完，请稍后再试",
+            quotaError: {
+              type: "quota_exceeded",
+              feature: "photo_emotion",
+              used: 5,
+              limit: 5,
+              plan: "free",
+              upgradeHint: "升级会员可获得更多使用次数",
+            },
+          };
+        }
+      }
+
       // 解析 FastAPI 422 验证错误详情
       if (response.status === 422) {
         let detailMsg = "请求参数验证失败";
@@ -204,7 +252,36 @@ export async function fetchPhotoMind(request: PhotoMindRequest): Promise<{
     const data = await response.json();
 
     if (!data.success) {
-      return { success: false, error: data.error || "后端返回异常" };
+      const errMsg: string = data.error || data.message || data.detail || "后端返回异常";
+
+      // 检测配额超限关键词，构造 quotaError 触发弹窗
+      const quotaKeywords = [
+        "次数已用完", "次数已用尽", "配额已用完", "配额已满",
+        "quota exceeded", "rate limit", "too many", "超出限制",
+        "已达上限", "使用次数", "免费次数", "本月次数",
+        "请升级", "升级会员", "upgrade",
+      ];
+      const isQuotaError = quotaKeywords.some(kw =>
+        errMsg.toLowerCase().includes(kw.toLowerCase())
+      );
+
+      if (isQuotaError) {
+        console.warn("[PhotoMind] 检测到配额超限（HTTP 200+success:false）:", errMsg);
+        return {
+          success: false,
+          error: errMsg,
+          quotaError: {
+            type: "quota_exceeded",
+            feature: "photo_emotion",
+            used: data.used ?? data.quota_used ?? 5,
+            limit: data.limit ?? data.quota_limit ?? 5,
+            plan: data.plan || "free",
+            upgradeHint: data.upgrade_hint || data.upgradeHint || "升级会员可获得更多使用次数",
+          },
+        };
+      }
+
+      return { success: false, error: errMsg };
     }
 
     // 4. 解析后端返回的数据为标准格式
@@ -325,6 +402,30 @@ export async function fetchVoiceTranslate(request: VoiceTranslateRequest): Promi
 
     if (!response.ok) {
       const errText = await response.text().catch(() => "");
+
+      // 解析 429 配额超限错误
+      if (response.status === 429) {
+        try {
+          const errJson = JSON.parse(errText);
+          const detail = errJson.detail || {};
+          return {
+            success: false,
+            error: detail.message || "本月次数已用完",
+            quotaError: {
+              type: "quota_exceeded",
+              feature: detail.feature || "voice_translate",
+              used: detail.used ?? 0,
+              limit: detail.limit ?? 0,
+              plan: detail.plan || "free",
+              upgradeHint: detail.upgrade_hint || "升级会员可获得更多使用次数",
+            },
+          };
+        } catch {
+          // 非 JSON 响应，使用原始文本
+        }
+        return { success: false, error: "本月次数已用完，请稍后再试" };
+      }
+
       console.error(`[VoiceTranslate] 后端 API 错误 ${response.status}:`, errText);
       return { success: false, error: `声音翻译失败（HTTP ${response.status}）` };
     }

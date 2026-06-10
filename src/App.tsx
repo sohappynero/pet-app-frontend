@@ -20,6 +20,7 @@ import PrivacySettings from "./pages/PrivacySettings";
 import TokenRefreshTest from "./pages/TokenRefreshTest";
 import TestNewFeatures from "./pages/TestNewFeatures";
 import PetChat from "./pages/PetChat";
+import VipSubscribe from "./pages/VipSubscribe";
 import WeightTrendAnalysis from "./pages/WeightTrendAnalysis";
 import HealthReportAnalysis from "./pages/HealthReportAnalysis";
 import DietAnalysis from "./pages/DietAnalysis";
@@ -60,6 +61,7 @@ export default function App() {
             <Route path="help" element={<HelpCenter />} />
             <Route path="privacy" element={<PrivacySettings />} />
             <Route path="chat" element={<PetChat />} />
+            <Route path="vip-subscribe" element={<VipSubscribe />} />
           </Route>
         </Route>
 

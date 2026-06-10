@@ -1,830 +1,627 @@
 /**
- * 会员专区页面
- * 融合三大功能：AI 宠物聊天、照片心声解读、智能健康分析
+ * 会员中心页面
  */
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  MessageCircle, Send, Mic, PawPrint, Heart,
-  Image, Images, Loader2, X, ChevronDown,
-  Camera, Settings, Zap, Sparkles
+  ChevronLeft, Heart, Smile, Sparkles,
+  Crown, Info, Camera, Images, Loader2,
+  X, Shield, HelpCircle, FileText, Lock,
+  ChevronDown, Calendar, ScanLine, Stethoscope, Home, LockKeyhole, Wallet,
+  Gem, Check, CreditCard, Smartphone, MessageCircle
 } from "lucide-react";
-import PetPhotoAvatar from "../components/PetPhotoAvatar";
-import { PetPhotoUploader, type PhotoUploadResult } from "../components/PetPhotoUploader";
-import { PhotoAnalysisOverlay } from "../components/PetChat/PhotoAnalysisOverlay";
-import { PhotoMindResultCard } from "../components/PetChat/PhotoMindResult";
 import { useShell } from "../hooks/useShell";
-import { getLocalAvatar, isNameCircleMarker } from "../lib/pet-avatar";
-import PetNameCircle from "../components/PetNameCircle";
-import {
-  fetchPhotoMind,
-  chatWithPet,
-} from "../lib/pet-mind.api";
-import {
-  EMOTION_EMOJIS,
-  EMOTION_LABELS,
-  EMOTION_COLORS,
-  generateInteractionSuggestions,
-  inferPersonality
-} from "../lib/pet-prompt";
-import {
-  getOrCreateMemoryContext,
-  destroyMemoryContext,
-  type PetMemoryContext,
-  type StoredChatMessage
-} from "../lib/pet-memory-context";
-import type {
-  Pet, ChatMessage as BaseChatMessage, MessageSource,
-  PhotoMindResult, PetEmotion,
-  TriggerType
-} from "../types";
-import { petTtsEngine, toTtsSpecies } from "../lib/pet-tts-engine";
+import { getLocalAvatar } from "../lib/pet-avatar";
+import { fetchPhotoMind } from "../lib/pet-mind.api";
+import type { QuotaError } from "../lib/pet-mind.api";
+import QuotaHintModal from "../components/PetChat/QuotaHintModal";
 
-
-// ============================================================
-// Voice Tab 模式类型
-// ============================================================
-
-interface ChatMessage extends BaseChatMessage {
-  source: MessageSource;
-  // 照片心声
-  photoMind?: PhotoMindResult;
-  photoUrl?: string;
-}
-
-
-// ============================================================
-// 功能快捷入口配置
-// ============================================================
-
-interface QuickAction {
+// VIP 特权配置
+interface PrivilegeItem {
   id: string;
   icon: React.ElementType;
   label: string;
+  desc: string;
   color: string;
-  gradient: string;
-  iconBg: string;
-  description: string;
+  bg: string;
 }
 
-const QUICK_ACTIONS: QuickAction[] = [
-  {
-    id: "camera-mind",
-    icon: Camera,
-    label: "拍照解读",
-    color: "#5BA88C",
-    gradient: "linear-gradient(135deg, #5BA88C, #7EC4A8)",
-    iconBg: "linear-gradient(145deg, #E5F4EF, #D0EBE1)",
-    description: "拍一张，让 AI 读懂毛孩子的心思"
-  },
-  {
-    id: "photo-mind",
-    icon: Images,
-    label: "选图解读",
-    color: "#D4A574",
-    gradient: "linear-gradient(135deg, #D4A574, #E8C49A)",
-    iconBg: "linear-gradient(145deg, #FDF2EC, #F9E3D4)",
-    description: "选一张图，让 AI 读懂毛孩子的心思"
-  },
-  {
-    id: "ai-analysis",
-    icon: Sparkles,
-    label: "AI分析",
-    color: "#667eea",
-    gradient: "linear-gradient(135deg, #667eea, #764ba2)",
-    iconBg: "linear-gradient(145deg, #EEF0FE, #D8DDFC)",
-    description: "全方位 AI 智能健康分析报告"
-  },
+const VIP_PRIVILEGES: PrivilegeItem[] = [
+  { id: "emotion", icon: Smile, label: "情绪识别", desc: "读懂小情绪", color: "#A78BFA", bg: "#F3E8FF" },
+  { id: "analysis", icon: Sparkles, label: "AI健康分析", desc: "深度分析健康状态", color: "#F5A962", bg: "#FEF3E8" },
 ];
-
-// ============================================================
-// 宠物实时情绪状态（模拟数据）
-// ============================================================
-
-interface PetMoodState {
-  emoji: string;
-  label: string;
-  description: string;
-  color: string;
-}
-
-const PET_MOOD_STATES: PetMoodState[] = [
-  { emoji: "😊", label: "开心", description: "今天心情超棒~", color: "#4ADE80" },
-  { emoji: "😴", label: "困困", description: "想睡觉觉...", color: "#A78BFA" },
-  { emoji: "🤔", label: "好奇", description: "在观察什么？", color: "#FBBF24" },
-  { emoji: "💕", label: "粘人", description: "想被主人抱抱", color: "#FB7185" },
-  { emoji: "😋", label: "饿了", description: "罐罐时间到！", color: "#FB923C" },
-];
-
-// ============================================================
-// 功能 Tab
-// ============================================================
-
-type ChatTab = "chat" | "photo";
-
-const TAB_CONFIG = {
-  chat: { icon: MessageCircle, label: "聊天", color: "#D4A574" },
-  photo: { icon: Image, label: "照片心声", color: "#9B7EDE" },
-} as const;
-
-// ============================================================
-// 模拟数据
-// ============================================================
-
-const mockChats: ChatMessage[] = [
-  { id: 1, type: "human", text: "宝贝，今天想吃什么口味的罐头呀？", emoji: "😊", time: "09:30", source: "human" },
-  { id: 2, type: "pet", text: "汪汪汪！想吃鸡肉味的！还要出去玩！", emoji: "🐕", time: "09:31", source: "pet" },
-  { id: 3, type: "human", text: "好好好，吃完带你去公园跑跑~", emoji: "🤗", time: "09:32", source: "human" },
-  { id: 4, type: "pet", text: "太棒了！我最喜欢在草地上打滚了！", emoji: "🐾", time: "09:33", source: "pet" },
-];
-
-// ============================================================
-// 主组件
-// ============================================================
 
 export default function PetChat() {
   const navigate = useNavigate();
   const { selectedPet } = useShell();
-  
-  // 状态
-  const [messages, setMessages] = useState<ChatMessage[]>(mockChats);
-  const [inputText, setInputText] = useState("");
-  const [activeTab, setActiveTab] = useState<ChatTab>("chat");
-  const [isVoiceInputting, setIsVoiceInputting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState("");
-  
-  // 新增：实时情绪状态 + 设置面板
-  const [currentMood, setCurrentMood] = useState<PetMoodState>(PET_MOOD_STATES[0]);
-  const [showSettings, setShowSettings] = useState(false);
-  
-  // 照片心声状态
-  const [showPhotoUploader, setShowPhotoUploader] = useState(false);
-  
-  // 分析中 Loading 状态（用于显示分析覆盖层）
+
+  const [showPhotoMind, setShowPhotoMind] = useState(false);
+  const [photoResult, setPhotoResult] = useState<{ text: string; photoUrl: string } | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisStep, setAnalysisStep] = useState(1);
-  const [analyzingPhotoUrl, setAnalyzingPhotoUrl] = useState<string>("");
+  const [showBenefits, setShowBenefits] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("overview");
+  const [openFaq, setOpenFaq] = useState<string[]>(["q1"]);
+  const [showQuotaModal, setShowQuotaModal] = useState(false);
+  const [quotaErrorData, setQuotaErrorData] = useState<QuotaError | null>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
 
-  // ============================================================
-  // 分区结果列表（各功能独立存储，不混入聊天消息）
-  // ============================================================
-  
-  /** 照片心声结果列表 */
-  const [photoResults, setPhotoResults] = useState<Array<{
-    id: number;
-    result: PhotoMindResult;
-    photoUrl: string;
-    time: string;
-  }>>([]);
-
-  // 长期记忆上下文
-  const [memoryContext, setMemoryContext] = useState<PetMemoryContext | null>(null);
-  const [petProfile, setPetProfile] = useState<any>(null);
-  
-  // Refs
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const quickCameraRef = useRef<HTMLInputElement>(null);
-  const quickGalleryRef = useRef<HTMLInputElement>(null);
-
-  // 快捷入口：直接触发相机/相册（跳过中间弹窗）
-  const handleQuickCameraChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = "";
-    setActiveTab("photo");
-    setShowPhotoUploader(false);
-    const dataUrl = await new Promise<string>((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.readAsDataURL(file);
-    });
-    await handlePhotoUpload({ file, dataUrl, base64: dataUrl.split(',')[1] || '', mimeType: file.type, fileSize: file.size });
-  }, []);
-
-  const handleQuickGalleryChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = "";
-    setActiveTab("photo");
-    setShowPhotoUploader(false);
-    const dataUrl = await new Promise<string>((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.readAsDataURL(file);
-    });
-    await handlePhotoUpload({ file, dataUrl, base64: dataUrl.split(',')[1] || '', mimeType: file.type, fileSize: file.size });
-  }, []);
-  
-  // 自动滚动到最新消息
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-  
-  // ============================================================
-  // 初始化长期记忆上下文
-  // ============================================================
-
-  useEffect(() => {
-    if (!selectedPet) return;
-
-    // 1. 创建/获取记忆上下文
-    const ctx = getOrCreateMemoryContext(selectedPet.id, {
-      maxMessages: 500,
-      autoSaveInterval: 3000,   // 3 秒自动保存
-      enableAnalytics: true
-    });
-    setMemoryContext(ctx);
-
-    // 2. 从存储恢复消息（如果有）
-    const savedMessages = ctx.getMessages();
-    if (savedMessages.length > 0) {
-      setMessages(savedMessages as any[]);
-    // 已从本地存储恢复消息
-    }
-
-    // 3. 记录页面打开事件
-    ctx.recordEvent({ type: "page_opened", details: { page: "chat" } });
-
-    // 4. 构建宠物状态画像
-    const personality = inferPersonality(selectedPet.species, selectedPet.breed);
-    const profile = ctx.buildProfile(selectedPet, personality);
-    setPetProfile(profile);
-
-    return () => {
-      // 清理：保存数据 + 销毁实例
-      ctx.saveToStorage();
-      destroyMemoryContext(selectedPet.id);
-    };
-  }, [selectedPet]);
-  
-  // ============================================================
-  // 聊天功能
-  // ============================================================
-  
-  /** 语音输入 */
-  const handleVoiceInput = () => {
-    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
-      alert("您的浏览器不支持语音识别功能");
-      return;
-    }
-    
-    if (isVoiceInputting) {
-      setIsVoiceInputting(false);
-      return;
-    }
-    
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = "zh-CN";
-    
-    recognition.onstart = () => setIsVoiceInputting(true);
-    
-    recognition.onresult = (event: any) => {
-      let transcript = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-      }
-      setInputText(transcript);
-    };
-    
-    recognition.onerror = () => setIsVoiceInputting(false);
-    recognition.onend = () => setIsVoiceInputting(false);
-    
-    recognition.start();
-  };
-  
-  /** 发送消息 - 调用后端 AI 聊天接口 */
-  const handleSend = async () => {
-    if (!inputText.trim() || !selectedPet) return;
-    
-    const userMsg: ChatMessage = {
-      id: Date.now(),
-      type: "human",
-      text: inputText,
-      emoji: "😊",
-      time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
-      source: "human",
-    };
-    
-    setMessages(prev => [...prev, userMsg]);
-    const msgText = inputText;
-    setInputText("");
-    
-    // 记录到记忆系统
-    memoryContext?.addMessage(userMsg as any);
-
-    // 调用后端聊天接口
-    setIsLoading(true);
-    setLoadingText("正在思考...");
-    
+  // ====== 前端本地配额计数（免费版每月5次）======
+  const FREE_PHOTO_QUOTA = 5;
+  const QUOTA_STORAGE_KEY = "photo_mind_quota";
+  const [photoQuotaUsed, setPhotoQuotaUsed] = useState<number>(() => {
     try {
-      const result = await chatWithPet(selectedPet.id, msgText);
-      
-      if (result.success && result.reply) {
-        const petMsg: ChatMessage = {
-          id: Date.now() + 1,
-          type: "pet",
-          text: result.reply,
-          emoji: result.emoji || "🐾",
-          time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
-          source: "pet",
-        };
-        setMessages((prev) => [...prev, petMsg]);
-        memoryContext?.addMessage(petMsg as any);
-      } else {
-        // 后端失败时使用本地兜底
-        console.warn("[Chat] 后端返回失败，使用兜底回复:", result.error);
-        addFallbackReply(msgText);
-      }
-    } catch (error) {
-      console.error("[Chat] 聊天异常:", error);
-      addFallbackReply(msgText);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      const raw = localStorage.getItem(QUOTA_STORAGE_KEY);
+      if (!raw) return 0;
+      const data = JSON.parse(raw);
+      // 每月1号自动重置
+      const now = new Date();
+      const storedMonth = data.month; // "2026-06"
+      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      if (storedMonth !== currentMonth) return 0;
+      return typeof data.used === "number" ? data.used : 0;
+    } catch { return 0; }
+  });
 
-  /** 兜底回复（后端不可用时使用） */
-  const addFallbackReply = (userMsg: string) => {
-    setTimeout(() => {
-      const petReplies = [
-        { text: "汪汪！听懂了，我会乖乖的！", emoji: "🐕" },
-        { text: "喵~ 主人真好，我爱你！", emoji: "💕" },
-        { text: "摇尾巴！好开心呀~", emoji: "🐾" },
-        { text: "汪汪汪！真的吗？太好了！", emoji: "🎉" },
-      ];
-      const reply = petReplies[Math.floor(Math.random() * petReplies.length)];
-      const petMsg: ChatMessage = {
-        id: Date.now() + 1,
-        type: "pet",
-        text: reply.text,
-        emoji: reply.emoji,
-        time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
-        source: "pet",
-      };
-      setMessages((prev) => [...prev, petMsg]);
-      memoryContext?.addMessage(petMsg as any);
-    }, 500);
-  };
-  
-  // ============================================================
-  // 照片心声功能
-  // ============================================================
-  
-  /** 处理照片上传（接收完整 PhotoUploadResult） */
-  const handlePhotoUpload = async (uploadResult: PhotoUploadResult) => {
+  // 保存使用次数到 localStorage
+  const saveQuotaUsed = useCallback((used: number) => {
+    const now = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    localStorage.setItem(QUOTA_STORAGE_KEY, JSON.stringify({ used, month }));
+    setPhotoQuotaUsed(used);
+  }, []);
+
+  const photoQuotaRemaining = Math.max(0, FREE_PHOTO_QUOTA - photoQuotaUsed);
+
+  const petName = selectedPet?.name || "宝贝";
+  const petImage = selectedPet?.image_url || getLocalAvatar(selectedPet?.id ?? 0) || "";
+
+  const handleFileUpload = async (file: File) => {
     if (!selectedPet) return;
-    
-    const { file } = uploadResult;
-    
-    // 1. 开始分析：显示 Loading 覆盖层 + 设置照片 URL
+
+    // ====== 前端配额预检（不依赖后端）======
+    if (photoQuotaRemaining <= 0) {
+      console.warn("[PhotoMind] 前端本地配额已用完，直接弹窗");
+      setQuotaErrorData({
+        type: "quota_exceeded",
+        feature: "photo_emotion",
+        used: photoQuotaUsed,
+        limit: FREE_PHOTO_QUOTA,
+        plan: "free",
+        upgradeHint: "免费版每月5次心声解读，升级会员可获得更多使用次数",
+      });
+      setShowQuotaModal(true);
+      return;
+    }
+
     setIsAnalyzing(true);
-    setAnalysisStep(1); // 第一步：分析表情
-    setAnalyzingPhotoUrl(uploadResult.dataUrl);
-    setLoadingText("正在分析照片...");
-    
     try {
-      // 模拟步骤进度推进（配合 API 的 onProgress 回调）
-      // 实际项目中这些步骤由 API onProgress 驱动，这里做演示用
-      
-      // 步骤 1 → 2 过渡（约 1.2s 后）
-      setTimeout(() => setAnalysisStep(2), 1200); // 理解情绪
-      
-      // 步骤 2 → 3 过渡（约 2.7s 后）
-      setTimeout(() => setAnalysisStep(3), 2700); // 生成内心 OS
-
-      // 2. 调用 AI 分析 API
-      const result = await fetchPhotoMind({
+      const res = await fetchPhotoMind({
         pet: selectedPet,
         imageFile: file,
-        onProgress: (status) => {
-          setLoadingText(status);
-          // 根据 status 文本自动推断当前步骤
-          if (status.includes("理解") || status.includes("分析")) {
-            setAnalysisStep(2);
-          } else if (status.includes("生成") || status.includes("心声")) {
-            setAnalysisStep(3);
-          }
-        },
       });
-      
-      // 3. 关闭分析覆盖层
-      setIsAnalyzing(false);
-      setAnalysisStep(1);
-      
-      if (result.success && result.result) {
-        // 4. 添加到照片结果列表（分区显示，不混入聊天消息）
-        const photoItem = {
-          id: Date.now(),
-          result: result.result,
-          photoUrl: result.photoUrl || "",
-          time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
-        };
-        setPhotoResults((prev) => [photoItem, ...prev]);
+      if (res.success && res.result) {
+        // 成功后递增本地计数
+        const newUsed = photoQuotaUsed + 1;
+        saveQuotaUsed(newUsed);
+        console.log(`[PhotoMind] 分析成功，本月已用 ${newUsed}/${FREE_PHOTO_QUOTA} 次`);
 
-        // 记录到记忆系统
-        memoryContext?.recordEvent({ type: "photo_uploaded", details: { hasResult: true } });
+        const text = `${res.result.expression}，${res.result.posture}，心情${res.result.mood}。${res.result.mindOs || ""}`;
+        setPhotoResult({ text, photoUrl: res.photoUrl || URL.createObjectURL(file) });
 
-        // 关闭上传面板（保留面板可见以查看结果）
-        setShowPhotoUploader(false);
+        // 如果刚好用完最后一次，延迟弹窗提示
+        if (newUsed >= FREE_PHOTO_QUOTA) {
+          setTimeout(() => {
+            setQuotaErrorData({
+              type: "quota_exceeded",
+              feature: "photo_emotion",
+              used: newUsed,
+              limit: FREE_PHOTO_QUOTA,
+              plan: "free",
+              upgradeHint: "本月次数已用完，升级会员可继续使用~",
+            });
+            setShowQuotaModal(true);
+          }, 800);
+        }
+      } else if (res.quotaError) {
+        // 后端返回的配额错误
+        setQuotaErrorData(res.quotaError);
+        setShowQuotaModal(true);
       } else {
-        // API 返回失败，给用户明确提示
-        const errMsg = result.error || "照片分析失败，请检查网络后重试";
-        console.error("[PhotoMind] 分析失败:", errMsg);
-        alert(`照片心声解读失败：${errMsg}`);
+        alert(res.error || "照片分析失败，请重试");
       }
-    } catch (error) {
-      console.error("照片心声生成失败:", error);
+    } catch (err) {
+      console.error("心声解读失败:", err);
+      alert("照片分析异常，请检查网络后重试");
+    } finally {
       setIsAnalyzing(false);
-      setAnalysisStep(1);
-      alert("照片心声解读异常，请检查网络连接后重试");
     }
   };
-  
-  // ============================================================
-  // 人类消息翻译成宠物语言
-  // ============================================================
-  
-  const handleTranslateToPet = useCallback((msgId: number, text: string) => {
-    // 兼容中英文品种标识
-    const speciesLower = (selectedPet?.species || "").toLowerCase();
-    const isCat = speciesLower === "猫" || speciesLower === "cat";
-    
-    // 翻译规则
-    const translateTextToPet = (input: string): string => {
-      const lowerText = input.toLowerCase();
-      
-      // 根据关键词选择叫声
-      if (lowerText.includes("吃") || lowerText.includes("饿") || lowerText.includes("饭") || lowerText.includes("罐头")) {
-        return isCat ? "喵呜~喵呜~" : "汪汪汪！汪汪！";
-      }
-      if (lowerText.includes("玩") || lowerText.includes("出去") || lowerText.includes("公园") || lowerText.includes("散步")) {
-        return isCat ? "喵~喵呜~" : "汪！汪汪！出去玩！";
-      }
-      if (lowerText.includes("爱") || lowerText.includes("喜欢") || lowerText.includes("乖") || lowerText.includes("宝贝")) {
-        return isCat ? "呼噜~呼噜~" : "摇尾巴！舔舔！";
-      }
-      if (lowerText.includes("睡") || lowerText.includes("困") || lowerText.includes("晚安")) {
-        return isCat ? "嗯~zzZ" : "呵欠...困了...";
-      }
-      if (lowerText.includes("生气") || lowerText.includes("不要") || lowerText.includes("不行")) {
-        return isCat ? "嘶~！" : "汪！汪呜！";
-      }
-      if (lowerText.includes("好") || lowerText.includes("棒") || lowerText.includes("厉害")) {
-        return isCat ? "喵~" : "汪汪！";
-      }
-      
-      // 默认生成叫声
-      const wordCount = input.length;
-      const barkCount = Math.min(Math.max(1, Math.ceil(wordCount / 4)), 5);
-      
-      const dogBarks = ["汪", "汪汪", "呜", "嗷呜"];
-      const catMeows = ["喵", "喵呜", "喵~"];
-      
-      const barks = isCat ? catMeows : dogBarks;
-      let result = "";
-      for (let i = 0; i < barkCount; i++) {
-        result += barks[Math.floor(Math.random() * barks.length)];
-        if (i < barkCount - 1) result += i < 2 ? "，" : "";
-      }
-      return result + "！";
-    };
-    
-    // 生成翻译后的宠物语言
-    const translated = translateTextToPet(text);
-    
-    // 添加翻译结果消息（宠物语言）
-    const petSoundMsg: ChatMessage = {
-      id: Date.now(),
-      type: "pet_translate",
-      text: translated,
-      emoji: isCat ? "😺" : "🐕",
-      time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
-      source: "pet_translate",
-    };
-    
-    setMessages((prev) => [...prev, petSoundMsg]);
-    
-    // 记录到记忆系统
-    memoryContext?.addMessage(petSoundMsg as StoredChatMessage);
-  }, [selectedPet]);
-  
-  // ============================================================
-  // 渲染
-  // ============================================================
-  
+
   return (
-    <main className="chat-page">
-      {/* 顶部装饰 */}
-      <div className="chat-top-deco">
-        <div className="chat-top-orb chat-orb-1" />
-        <div className="chat-top-orb chat-orb-2" />
-      </div>
-      
-      {/* ====== 新 Header 区域 ====== */}
-      <header className="chat-header">
-        {/* 背景渐变层 */}
-        <div className="chat-header-bg">
-          <div className="chat-header-gradient" />
-        </div>
-        
-        <div className="chat-header-inner">
-          {/* 左侧：宠物头像区域 */}
-          <div className="chat-avatar-wrap">
-            <div className="chat-avatar">
-              {selectedPet?.image_url || getLocalAvatar(selectedPet?.id ?? 0) ? (
-                <img
-                  src={selectedPet?.image_url || getLocalAvatar(selectedPet?.id ?? 0)}
-                  alt={selectedPet?.name || "宠物头像"}
-                  className="chat-pet-avatar-img"
-                />
-              ) : selectedPet ? (
-                <div className="chat-pet-avatar-fallback">
-                  {selectedPet._resolved_avatar_url && selectedPet._resolved_avatar_url !== "__name_circle__" ? (
-                    <img
-                      src={selectedPet._resolved_avatar_url}
-                      alt={selectedPet.name}
-                      className="chat-pet-avatar-img"
-                      style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <PetNameCircle name={selectedPet.name} size={56} />
-                  )}
-                </div>
-              ) : (
-                <span className="chat-pet-emoji">🐾</span>
-              )}
-            </div>
-            <div className="chat-avatar-ring" />
-            <div className="chat-avatar-glow" />
-            {/* 浮动 emoji 特效 */}
-            <span className="chat-float-ele chat-fe-1">💕</span>
-            <span className="chat-float-ele chat-fe-2">✨</span>
-            <span className="chat-float-ele chat-fe-3">🐾</span>
-            <span className="chat-float-ele chat-fe-4">💖</span>
-          </div>
-
-          {/* 中间：宠物名称 + 副标题 + 实时情绪指示器 */}
-          <div className="chat-title-area">
-            <h1 className="chat-title">{selectedPet?.name || "会员专区"}</h1>
-            <p className="chat-subtitle">聊天 · 心声 · AI分析 ✨</p>
-            
-            {/* 实时情绪指示器 */}
-            <div 
-              className="chat-mood-indicator" 
-              style={{ "--mood-color": currentMood.color } as React.CSSProperties}
-              onClick={() => setCurrentMood(PET_MOOD_STATES[Math.floor(Math.random() * PET_MOOD_STATES.length)])}
-            >
-              <span className="chat-mood-emoji">{currentMood.emoji}</span>
-              <span className="chat-mood-label">{currentMood.label}</span>
-              <span className="chat-mood-desc">{currentMood.description}</span>
-              <Zap size={10} className="chat-mood-spark" />
-            </div>
-          </div>
-
-          {/* 右侧：设置按钮 */}
-          <div className="chat-header-btns">
-            <button 
-              className="chat-hbtn chat-hbtn-settings" 
-              onClick={() => setShowSettings(!showSettings)}
-              title="宠物设置"
-            >
-              <Settings size={18} />
-            </button>
-          </div>
-        </div>
-
-        {/* 隐藏的文件输入框（快捷入口直接触发） */}
-        <input
-          ref={quickCameraRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={handleQuickCameraChange}
-          style={{ display: 'none' }}
-        />
-        <input
-          ref={quickGalleryRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          onChange={handleQuickGalleryChange}
-          style={{ display: 'none' }}
-        />
-
-        {/* ====== 功能快捷入口栏 ====== */}
-        <div className="quick-actions-bar">
-          {QUICK_ACTIONS.map((action) => {
-            const Icon = action.icon;
-            return (
-              <button
-                key={action.id}
-                className="quick-action-card"
-                style={{ "--action-color": action.color } as React.CSSProperties}
-                onClick={() => {
-                  if (action.id === "camera-mind") quickCameraRef.current?.click();
-                  else if (action.id === "photo-mind") quickGalleryRef.current?.click();
-                  else if (action.id === "ai-analysis") navigate("/app/ai-analysis");
-                }}
-              >
-                <div className="qa-visual">
-                  <div className="qa-visual-bg" style={{ background: action.gradient }} />
-                  <div className="qa-icon-wrap ghibli-icon-handdrawn" style={{ "--qa-icon-bg": action.iconBg } as React.CSSProperties}>
-                    <Icon size={24} strokeWidth={1.5} className="qa-icon" />
-                  </div>
-                </div>
-                <div className="qa-content">
-                  <span className="qa-title">{action.label}</span>
-                  <span className="qa-desc">{action.description}</span>
-                </div>
-              </button>
-            );
-          })}
-          {/* 安全提示 */}
-          <div className="quick-actions-tip">
-            <span>🔒 数据安全加密保护 · 你的隐私我们用心守护</span>
-          </div>
-        </div>
-
-        {/* 设置面板（下拉） */}
-        {showSettings && (
-          <div className="settings-panel">
-            <div className="settings-panel-inner">
-              <h3 className="settings-title">⚙️ 宠物设置</h3>
-              
-              <div className="setting-item">
-                <span className="label">说话风格</span>
-                <div className="setting-options">
-                  {["傲娇", "温柔", "活泼", "高冷"].map((style) => (
-                    <button key={style} className="setting-chip">{style}</button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="setting-item">
-                <span className="label">粘人程度</span>
-                <input type="range" min="0" max="100" defaultValue="60" className="setting-slider" />
-              </div>
-              
-              {/* 记忆系统设置 */}
-              {memoryContext && (
-                <>
-                  <div className="setting-divider" />
-                  
-                  <div className="setting-item">
-                    <span className="setting-label">💾 聊天记录</span>
-                    <span className="setting-info-text">
-                      {memoryContext.getMessages().length} 条消息
-                    </span>
-                  </div>
-                  
-                  <div className="setting-item">
-                    <span className="setting-label">活跃度</span>
-                    <span 
-                      className={`setting-activity-badge ${petProfile?.activityLevel?.label || "inactive"}`}
-                    >
-                      {petProfile?.activityLevel?.label === "very_high" ? "非常活跃" :
-                       petProfile?.activityLevel?.label === "high" ? "活跃" :
-                       petProfile?.activityLevel?.label === "moderate" ? "一般" :
-                       petProfile?.activityLevel?.label === "low" ? "较低" : "不活跃"}
-                      ({petProfile?.activityLevel?.score || 0}分)
-                    </span>
-                  </div>
-                  
-                  <div className="setting-item">
-                    <span className="setting-label">空闲时间</span>
-                    <span className="setting-info-text">
-                      {petProfile?.activityLevel?.idleMinutes
-                        ? petProfile.activityLevel.idleMinutes < 60
-                          ? `${Math.round(petProfile.activityLevel.idleMinutes)}分钟`
-                          : `${Math.round(petProfile.activityLevel.idleMinutes / 60)}小时`
-                        : "无数据"}
-                    </span>
-                  </div>
-                  
-                  <div className="setting-row-btns">
-                    <button
-                      className="setting-action-btn"
-                      onClick={() => {
-                        memoryContext.saveToStorage();
-                        alert("聊天记录已保存！");
-                      }}
-                    >
-                      💾 手动保存
-                    </button>
-                    <button
-                      className="setting-action-btn danger"
-                      onClick={() => {
-                        if (confirm("确定要清除所有聊天记录吗？此操作不可恢复！")) {
-                          memoryContext.clearMessages();
-                          setMessages([]);
-                          setPetProfile(null);
-                          alert("已清除所有记录");
-                        }
-                      }}
-                    >
-                      🗑️ 清除记忆
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+    <main className="vip-page">
+      {/* Header */}
+      <header className="vip-header">
+        <button className="vip-back" onClick={() => navigate(-1)}>
+          <ChevronLeft size={22} strokeWidth={2} />
+        </button>
+        <h1 className="vip-header-title">会员中心</h1>
+        <button className="vip-right-btn" onClick={() => setShowBenefits(true)}>
+          <Info size={13} />
+          <span>权益说明</span>
+        </button>
       </header>
 
-      {/* ====== 分析中 Loading 覆盖层（全屏） ====== */}
-      <PhotoAnalysisOverlay
-        photoUrl={analyzingPhotoUrl}
-        currentStep={analysisStep}
-        isActive={isAnalyzing}
-      />
-      
-      {/* ====== 照片心声区域（上传面板 + 结果列表） ====== */}
-      {activeTab === "photo" && (
-        <>
-          {/* 上传面板 */}
-          {showPhotoUploader && (
-            <div className="chat-feature-panel">
-              <div className="chat-panel-header">
-                <span className="chat-panel-title">📸 照片心声</span>
-                <button className="chat-panel-close" onClick={() => setShowPhotoUploader(false)}>
-                  <ChevronDown size={20} />
-                </button>
+      {/* Hero */}
+      <section className="vip-hero">
+        <div className="vip-hero-text">
+          <h2 className="vip-hero-title">
+            成为{petName}的守护天使
+            <br />
+            <span>解锁更多爱与陪伴</span>
+          </h2>
+          <p className="vip-hero-desc">记录每一刻，守护每一天</p>
+        </div>
+        <div className="vip-hero-visual">
+          {petImage ? (
+            <img src={petImage} alt={petName} className="vip-hero-pet-img" />
+          ) : (
+            <span className="vip-hero-pet-fallback">🐾</span>
+          )}
+        </div>
+      </section>
+
+      {/* VIP Card */}
+      <section className="vip-card-bar">
+        <div className="vip-card-left">
+          <span className="vip-card-heart">
+            <Heart size={16} fill="#fff" />
+          </span>
+          <div>
+            <h3>{petName}的VIP小窝</h3>
+            <p>专属特权让我们更好地陪伴彼此</p>
+          </div>
+        </div>
+        <button className="vip-open-btn" onClick={() => navigate("/app/vip-subscribe")}>立即开通</button>
+      </section>
+
+      {/* Privileges */}
+      <section className="vip-privileges">
+        <h3 className="vip-section-title">
+          <Crown size={15} />
+          会员专属特权
+        </h3>
+        <div className="vip-privilege-grid">
+          {VIP_PRIVILEGES.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.id}
+                className="vip-privilege-item"
+                onClick={() => {
+                  if (item.id === "emotion") setShowPhotoMind(prev => !prev);
+                  if (item.id === "analysis") navigate("/app/ai-analysis");
+                }}
+              >
+                <span className="vip-privilege-icon" style={{ background: item.bg, color: item.color }}>
+                  <Icon size={22} />
+                </span>
+                <span className="vip-privilege-label">{item.label}</span>
+                <span className="vip-privilege-desc">{item.desc}</span>
               </div>
-              <p className="chat-panel-desc">上传宠物照片，AI 解读它此刻的内心 OS~</p>
-              <PetPhotoUploader
-                onUploadComplete={handlePhotoUpload}
-                onProgress={setLoadingText}
-                onCancel={() => setShowPhotoUploader(false)}
-                disabled={isLoading}
-                showCameraButton={true}
-              />
+            );
+          })}
+        </div>
+      </section>
+
+      {/* 心声解读（情绪识别功能区） */}
+      {showPhotoMind && (
+        <section className="vip-photo-mind">
+          <div className="vip-photo-mind-header">
+            <h3 className="vip-section-title">
+              <Smile size={15} />
+              心声解读
+            </h3>
+            <span className={`vip-quota-hint ${photoQuotaRemaining <= 1 ? "warning" : ""}`}>
+              {photoQuotaRemaining > 0 ? `剩余 ${photoQuotaRemaining}/${FREE_PHOTO_QUOTA} 次` : "次数已用完"}
+            </span>
+          </div>
+          <div className="vip-photo-actions">
+            <button type="button" className="vip-photo-btn" onClick={() => cameraRef.current?.click()}>
+              <Camera size={18} />
+              <span>拍照解读</span>
+            </button>
+            <button type="button" className="vip-photo-btn" onClick={() => galleryRef.current?.click()}>
+              <Images size={18} />
+              <span>选图解读</span>
+            </button>
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            ref={cameraRef}
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileUpload(file);
+              e.target.value = "";
+            }}
+          />
+          <input
+            type="file"
+            accept="image/*"
+            ref={galleryRef}
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileUpload(file);
+              e.target.value = "";
+            }}
+          />
+          {isAnalyzing && (
+            <div className="vip-analyzing">
+              <Loader2 size={18} className="spin" />
+              <span>正在分析宠物心理活动...</span>
             </div>
           )}
+          {photoResult && (
+            <div className="vip-photo-result">
+              <img src={photoResult.photoUrl} alt="宠物照片" />
+              <p>{photoResult.text}</p>
+            </div>
+          )}
+        </section>
+      )}
 
-          {/* 照片分析结果列表（分区显示） */}
-          {photoResults.length > 0 && !showPhotoUploader && (
-            <div className="chat-feature-results">
-              <div className="chat-results-header">
-                <span className="chat-results-title">📸 心声解读记录</span>
-                <span className="chat-results-count">{photoResults.length} 条</span>
-              </div>
-              {photoResults.map((item) => (
-                <div key={item.id} className="chat-result-item chat-result-photo">
-                  <PhotoMindResultCard
-                    result={item.result}
-                    photoUrl={item.photoUrl}
-                    petName={selectedPet?.name || "宝贝"}
-                    petSpecies={selectedPet?.species || "dog"}
-                    expandable={true}
-                    onClose={() => setPhotoResults(prev => prev.filter(r => r.id !== item.id))}
-                    onShare={() => {}}
-                    onRetake={() => {
-                      setActiveTab("photo");
-                      setShowPhotoUploader(true);
-                    }}
-                  />
-                  <span className="chat-result-time">{item.time}</span>
-                </div>
-              ))}
-              
-              {/* 快捷重新上传按钮 */}
-              <button
-                className="chat-reupload-btn"
-                onClick={() => setShowPhotoUploader(true)}
-                style={{ background: "linear-gradient(135deg, #F59E0B, #FBBF24)" }}
-              >
-                <Image size={14} />
-                再解读一张
+      {/* Gift */}
+      <section className="vip-gift">
+        <div className="vip-gift-text">
+          <h3>给你和{petName}的小礼物 🎁</h3>
+          <p>首次开通会员赠送专属礼包</p>
+          <button className="vip-gift-btn">查看礼包</button>
+        </div>
+      </section>
+
+      {/* Voice */}
+      <section className="vip-voice">
+        <h3 className="vip-section-title">
+          <Crown size={15} />
+          会员心声
+        </h3>
+        <div className="vip-voice-list">
+          <div className="vip-voice-item">
+            <span className="vip-voice-avatar">🐱</span>
+            <p>&ldquo;自从开通会员，AI分析帮了大忙，健康趋势一目了然~&rdquo;</p>
+            <span>- 小鱼麻麻</span>
+          </div>
+          <div className="vip-voice-item">
+            <span className="vip-voice-avatar">🐕</span>
+            <p>&ldquo;情绪识别太神奇了，完全读懂了我家{petName}的小心思~&rdquo;</p>
+            <span>- {petName}的铲屎官</span>
+          </div>
+        </div>
+      </section>
+
+      {/* 权益说明抽屉 */}
+      {showBenefits && (
+        <div className="vip-benefits-overlay" onClick={() => setShowBenefits(false)}>
+          <div className="vip-benefits-drawer" onClick={(e) => e.stopPropagation()}>
+            {/* 拖条 */}
+            <div className="vip-benefits-handle" onClick={() => setShowBenefits(false)}>
+              <span />
+            </div>
+
+            {/* 标题 */}
+            <div className="vip-benefits-header">
+              <h3>权益说明</h3>
+              <button className="vip-benefits-close" onClick={() => setShowBenefits(false)}>
+                <X size={18} />
               </button>
             </div>
-          )}
-        </>
-      )}
 
-      {/* 空状态引导（始终显示，无结果时引导用户） */}
-      {photoResults.length === 0 && (
-        <div className="chat-empty-hint" onClick={() => quickGalleryRef.current?.click()}>
-          <Image size={32} style={{ color: "#D4A574", opacity: 0.6 }} />
-          <p>点击上传宠物照片，AI 帮你读懂它的内心~</p>
-          <span className="chat-empty-action">开始解读</span>
+            {/* 主体：左侧导航 + 右侧内容 */}
+            <div className="vip-benefits-body">
+              {/* 左侧导航 */}
+              <nav className="vip-benefits-nav">
+                {[
+                  { id: "overview", label: "权益总览", icon: Crown },
+                  { id: "rules", label: "使用规则", icon: Shield },
+                  { id: "privacy", label: "隐私与数据", icon: Lock },
+                  { id: "faq", label: "常见问题", icon: HelpCircle },
+                ].map((cat) => {
+                  const Icon = cat.icon;
+                  const active = activeCategory === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      className={`vip-benefits-nav-item ${active ? "active" : ""}`}
+                      onClick={() => setActiveCategory(cat.id)}
+                    >
+                      <span className="vip-benefits-nav-icon">
+                        <Icon size={18} />
+                      </span>
+                      <span className="vip-benefits-nav-label">{cat.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+
+              {/* 右侧内容 */}
+              <div className="vip-benefits-content">
+                {activeCategory === "overview" && (
+                  <>
+                    <div className="vip-benefits-overview">
+                      <div className="vip-benefits-overview-icon">
+                        <Crown size={18} fill="#FB7185" />
+                      </div>
+                      <div>
+                        <h4>权益总览</h4>
+                        <p>不同会员等级，享受不同的宠爱特权</p>
+                      </div>
+                    </div>
+                    <div className="vip-benefits-table">
+                      <div className="vip-benefits-table-header">
+                        <span>权益</span>
+                        <span>免费版</span>
+                        <span className="pro">宠物会员 Pro</span>
+                        <span>家庭尊享版</span>
+                      </div>
+                      {[
+                        { name: "AI健康分析", free: "每月 3 次", pro: "每月 60 次", family: "无限次" },
+                        { name: "健康记录", free: "基础记录", pro: "+ 月度报告", family: "+ 年度总结" },
+                        { name: "照片心理识别", free: "每月 5 次", pro: "每月 60 次", family: "每月 300 次" },
+                        { name: "宠物数量", free: "1 只", pro: "最多 3 只", family: "无限宠物" },
+                        { name: "PDF报告导出", free: "部分导出", pro: "支持导出", family: "支持导出" },
+                        { name: "家庭共享账号", free: "—", pro: "—", family: "最多 3 账号" },
+                        { name: "优先客服响应", free: "—", pro: "优先", family: "优先 + 专属" },
+                        { name: "AI成本(预估)", free: "≈ ¥0.01/人/月", pro: "≈ ¥0.15/月", family: "≈ ¥0.5/月" },
+                      ].map((row) => (
+                        <div key={row.name} className="vip-benefits-table-row">
+                          <span>{row.name}</span>
+                          <span>{row.free}</span>
+                          <span className="pro">{row.pro}</span>
+                          <span>{row.family}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="vip-benefits-footer-tip">
+                      <Heart size={12} fill="#FB7185" />
+                      更多规则详情，可查看使用规则和常见问题哦~
+                    </p>
+                  </>
+                )}
+
+                {activeCategory === "rules" && (
+                  <div className="vip-benefits-panel vip-rules-panel">
+                    <div className="vip-rules-header">
+                      <div>
+                        <h4>这些小规则</h4>
+                        <p>是为了更好地守护你和宝贝</p>
+                      </div>
+                      <span className="vip-rules-hero-emoji">🐱</span>
+                    </div>
+                    <div className="vip-rules-list">
+                      {[
+                        {
+                          icon: Calendar,
+                          title: "AI 分析次数说明",
+                          desc: "免费版每月可使用 AI 健康分析 3 次，宠物会员 Pro 每月可使用 60 次，家庭尊享版不限次使用。每月 1 日自动刷新次数哦~",
+                          note: "大多数家长每月实际使用不到 20 次",
+                          color: "#FB7185",
+                          bg: "#FFF0F3",
+                        },
+                        {
+                          icon: ScanLine,
+                          title: "照片情绪识别",
+                          desc: "上传宠物照片后，我们会尝试分析开心、放松、紧张、害怕、兴奋等情绪状态。",
+                          note: "温馨提示：情绪识别仅供参考，不能替代专业兽医诊断哦~",
+                          color: "#A78BFA",
+                          bg: "#F3E8FF",
+                        },
+                        {
+                          icon: Stethoscope,
+                          title: "宠物健康分析",
+                          desc: "AI 会结合：体重、疫苗、驱虫、饮食、症状记录进行综合分析，分析结果用于健康管理参考。",
+                          note: "如果宠物出现异常情况，请及时前往宠物医院。",
+                          color: "#F5A962",
+                          bg: "#FEF3E8",
+                        },
+                        {
+                          icon: Home,
+                          title: "多宠物说明",
+                          desc: "免费版可管理 1 只宠物，会员 Pro 最多管理 3 只，家庭尊享版不限宠物数量。",
+                          note: "适合：狗狗家庭、多猫家庭、猫狗混养家庭",
+                          color: "#7EC8A0",
+                          bg: "#E8F8F0",
+                        },
+                        {
+                          icon: LockKeyhole,
+                          title: "数据安全",
+                          desc: "你记录的照片、健康记录、AI 分析结果，仅用于提供服务。未经允许，不会公开展示给其他用户。",
+                          note: "",
+                          color: "#6B8DD6",
+                          bg: "#E8EFFF",
+                        },
+                        {
+                          icon: Wallet,
+                          title: "自动续费说明",
+                          desc: "如果开启自动续费，将在到期前 24 小时自动扣费。可随时关闭，关闭后已购买时长仍可正常使用。",
+                          note: "",
+                          color: "#D4A574",
+                          bg: "#FDF2EC",
+                        },
+                      ].map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <div key={item.title} className="vip-rules-card">
+                            <span className="vip-rules-card-icon" style={{ background: item.bg, color: item.color }}>
+                              <Icon size={20} />
+                            </span>
+                            <div className="vip-rules-card-body">
+                              <strong>{item.title}</strong>
+                              <p>{item.desc}</p>
+                              {item.note && <span className="vip-rules-card-note">{item.note}</span>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="vip-rules-footer">
+                      <Heart size={14} fill="#FB7185" />
+                      <span>诺怒希望每一次记录，都能让爱更有力量</span>
+                    </div>
+                  </div>
+                )}
+
+                {activeCategory === "privacy" && (
+                  <div className="vip-benefits-panel vip-privacy-panel">
+                    <div className="vip-privacy-header">
+                      <h4>隐私与数据保护</h4>
+                      <p>你和宠物的秘密，只属于你们</p>
+                    </div>
+
+                    <div className="vip-privacy-cards">
+                      <div className="vip-privacy-card">
+                        <div className="vip-privacy-card-icon">
+                          <Lock size={18} />
+                        </div>
+                        <div className="vip-privacy-card-body">
+                          <strong>数据使用说明</strong>
+                          <p>
+                            照片、健康记录、AI 分析结果<span className="vip-privacy-highlight">仅用于服务</span>，不公开，不会被其他用户看到。
+                          </p>
+                          <p>删除账号后，所有数据将在 30 天内彻底清除。</p>
+                        </div>
+                      </div>
+
+                      <div className="vip-privacy-card">
+                        <div className="vip-privacy-card-icon" style={{ background: "#F3E8FF", color: "#A78BFA" }}>
+                          <Sparkles size={18} />
+                        </div>
+                        <div className="vip-privacy-card-body">
+                          <strong>AI 分析与隐私</strong>
+                          <p>
+                            AI 分析仅参考你的数据生成报告，<span className="vip-privacy-highlight">不用于商业目的</span>。
+                          </p>
+                          <p>结果仅供参考，不是兽医诊断。</p>
+                        </div>
+                      </div>
+
+                      <div className="vip-privacy-card">
+                        <div className="vip-privacy-card-icon" style={{ background: "#FEF3E8", color: "#F5A962" }}>
+                          <Home size={18} />
+                        </div>
+                        <div className="vip-privacy-card-body">
+                          <strong>照片与共享</strong>
+                          <p>
+                            只有家庭共享成员可看到照片，每个家庭版账号<span className="vip-privacy-highlight">最多 3 人</span>共享。
+                          </p>
+                          <p>共享前需确认邀请，成员仅能查看无法导出。</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button type="button" className="vip-privacy-contact">
+                      <MessageCircle size={14} />
+                      联系客服
+                    </button>
+                  </div>
+                )}
+
+                {activeCategory === "faq" && (
+                  <div className="vip-benefits-panel vip-faq-panel">
+                    <div className="vip-faq-header">
+                      <div>
+                        <h4>你关心的问题</h4>
+                        <p>我们都准备好啦</p>
+                      </div>
+                      <span className="vip-faq-hero-emoji">🐶</span>
+                    </div>
+                    <div className="vip-faq-list">
+                      {[
+                        {
+                          id: "q1",
+                          q: "会员值得买吗？",
+                          a: "如果你只是偶尔记录，免费版已经够用。如果你希望：长期记录健康变化、经常做 AI 分析、查看趋势报告、管理多只宠物，会员会更适合你哦~",
+                        },
+                        {
+                          id: "q2",
+                          q: "AI 分析准吗？",
+                          a: "AI 会根据记录的数据进行分析，记录越完整，分析结果越准确。它更像一个 24 小时宠物健康助手，而不是兽医。",
+                        },
+                        {
+                          id: "q3",
+                          q: "换手机后会员还在吗？",
+                          a: "会的！登录同一个账号即可恢复会员权益。",
+                        },
+                        {
+                          id: "q4",
+                          q: "家庭版怎么共享？",
+                          a: "进入「我的」→「家庭共享」，邀请家人加入即可。最多支持 3 个共享账号。",
+                        },
+                        {
+                          id: "q5",
+                          q: "照片会泄露吗？",
+                          a: "不会哦~照片仅用于情绪识别、写真生成、AI 分析，不会公开展示。",
+                        },
+                        {
+                          id: "q6",
+                          q: "会员到期怎么办？",
+                          a: "会员到期后，已记录的数据不会消失，只是恢复到免费版权益。",
+                        },
+                        {
+                          id: "q7",
+                          q: "为什么会限制次数？",
+                          a: "因为每次 AI 分析都会消耗模型资源。限制次数是为了保证每位宠物家长都能获得稳定服务。",
+                        },
+                      ].map((item, idx) => {
+                        const isOpen = openFaq.includes(item.id);
+                        return (
+                          <div key={item.id} className={`vip-faq-item ${isOpen ? "open" : ""}`}>
+                            <button
+                              type="button"
+                              className="vip-faq-question"
+                              onClick={() =>
+                                setOpenFaq((prev) =>
+                                  isOpen ? prev.filter((id) => id !== item.id) : [...prev, item.id]
+                                )
+                              }
+                            >
+                              <span className="vip-faq-number">Q{idx + 1}</span>
+                              <span className="vip-faq-text">{item.q}</span>
+                              <ChevronDown size={16} className="vip-faq-arrow" />
+                            </button>
+                            <div className="vip-faq-answer">
+                              <p>{item.a}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="vip-faq-footer">
+                      <span>还有其他问题？</span>
+                      <button type="button" className="vip-faq-contact">联系客服</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
-
-      {/* 加载提示 */}
-      {isLoading && (
-        <div className="chat-loading-toast">
-          <Loader2 size={16} className="animate-spin" />
-          <span>{loadingText}</span>
-        </div>
-      )}
-      
-      {/* 底部操作区 - 已移除，功能通过各Tab内部入口访问 */}
+      <QuotaHintModal
+        isOpen={showQuotaModal}
+        onClose={() => setShowQuotaModal(false)}
+        quotaData={quotaErrorData}
+        petImage={petImage}
+        onUpgrade={() => {
+          setShowQuotaModal(false);
+          navigate("/app/vip-subscribe");
+        }}
+      />
     </main>
   );
 }
