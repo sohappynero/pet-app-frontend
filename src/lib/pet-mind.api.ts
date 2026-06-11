@@ -203,23 +203,23 @@ export async function fetchPhotoMind(request: PhotoMindRequest): Promise<{
             quotaError: {
               type: "quota_exceeded",
               feature: detail.feature || "photo_emotion",
-              used: detail.used ?? 5,
-              limit: detail.limit ?? 5,
-              plan: detail.plan || "free",
+              used: detail.used ?? 0,
+              limit: detail.limit ?? 0,
+              plan: detail.plan || "unknown",
               upgradeHint: detail.upgrade_hint || "升级会员可获得更多使用次数",
             },
           };
         } catch {
-          // 非 JSON 响应，返回默认配额错误
+          // 非 JSON 响应，返回默认配额错误（不硬编码具体数值）
           return {
             success: false,
             error: "本月次数已用完，请稍后再试",
             quotaError: {
               type: "quota_exceeded",
               feature: "photo_emotion",
-              used: 5,
-              limit: 5,
-              plan: "free",
+              used: 0,
+              limit: 0,
+              plan: "unknown",
               upgradeHint: "升级会员可获得更多使用次数",
             },
           };
@@ -273,9 +273,9 @@ export async function fetchPhotoMind(request: PhotoMindRequest): Promise<{
           quotaError: {
             type: "quota_exceeded",
             feature: "photo_emotion",
-            used: data.used ?? data.quota_used ?? 5,
-            limit: data.limit ?? data.quota_limit ?? 5,
-            plan: data.plan || "free",
+            used: data.used ?? data.quota_used ?? 0,
+            limit: data.limit ?? data.quota_limit ?? 0,
+            plan: data.plan || "unknown",
             upgradeHint: data.upgrade_hint || data.upgradeHint || "升级会员可获得更多使用次数",
           },
         };

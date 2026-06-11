@@ -19,6 +19,8 @@ import { useShell } from "../hooks/useShell";
 import type { HealthRecord, RecordType } from "../types";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
 import { getLocalAvatar } from "../lib/pet-avatar";
+import type { QuotaError } from "../lib/pet-mind.api";
+import QuotaHintModal from "../components/PetChat/QuotaHintModal";
 
 type AnalysisTab = "all" | "health" | "trend" | "diet" | "vaccine" | "exercise" | "beauty";
 
@@ -106,6 +108,8 @@ export default function AiAnalysis() {
   // ── 后端真实数据 ──
   const [analysisData, setAnalysisData] = useState<AnalysisDashboardData | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(true);
+  const [showQuotaModal, setShowQuotaModal] = useState(false);
+  const [quotaErrorData, setQuotaErrorData] = useState<QuotaError | null>(null);
 
   const currentPet = useMemo(() => selectedPet || pets[0] || null, [selectedPet, pets]);
 
@@ -140,7 +144,21 @@ export default function AiAnalysis() {
     setAnalysisLoading(true);
     fetchAnalysisDashboard(effectivePetId)
       .then((data) => setAnalysisData(data))
-      .catch((err) => console.error("分析数据获取失败:", err))
+      .catch((err: any) => {
+        if (err.status === 429 && err.quotaDetail) {
+          setQuotaErrorData({
+            type: "quota_exceeded",
+            feature: err.quotaDetail.feature,
+            used: err.quotaDetail.used,
+            limit: err.quotaDetail.limit,
+            plan: err.quotaDetail.plan,
+            upgradeHint: err.quotaDetail.upgradeHint,
+          });
+          setShowQuotaModal(true);
+        } else {
+          console.error("分析数据获取失败:", err);
+        }
+      })
       .finally(() => setAnalysisLoading(false));
   }, [effectivePetId]);
 
@@ -468,6 +486,13 @@ export default function AiAnalysis() {
       </section>
 
       <div style={{ height: "32px" }} />
+
+      <QuotaHintModal
+        isOpen={showQuotaModal}
+        onClose={() => setShowQuotaModal(false)}
+        quotaData={quotaErrorData}
+        onUpgrade={() => navigate("/vip")}
+      />
     </main>
   );
 }

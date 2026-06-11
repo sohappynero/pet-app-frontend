@@ -250,6 +250,21 @@ async function request<T = unknown>(url: string, init?: RequestInit): Promise<T>
   const data = contentType.includes("application/json") ? await res.json() : null;
 
   if (!res.ok || data?.ok === false) {
+    // 特殊处理 429 配额超限
+    if (res.status === 429 && data?.detail) {
+      const detail = typeof data.detail === "object" ? data.detail : {};
+      const msg = detail.message || "本月使用次数已用完";
+      const err = new Error(msg) as any;
+      err.status = 429;
+      err.quotaDetail = {
+        feature: detail.feature || "",
+        used: detail.used ?? 0,
+        limit: detail.limit ?? 0,
+        plan: detail.plan || "unknown",
+        upgradeHint: detail.upgrade_hint || "升级会员可获得更多使用次数",
+      };
+      throw err;
+    }
     // 特殊处理 422 验证错误，显示详细信息
     if (res.status === 422 && data?.detail) {
       const detailMsg = Array.isArray(data.detail)
@@ -263,7 +278,8 @@ async function request<T = unknown>(url: string, init?: RequestInit): Promise<T>
       throw new Error(`数据验证失败: ${detailMsg}`);
     }
     const fallbackMessage = !res.ok ? `请求失败（HTTP ${res.status}）` : "请求失败";
-    throw new Error(data?.message || data?.detail || fallbackMessage);
+    const detailStr = typeof data?.detail === "object" ? (data.detail.message || JSON.stringify(data.detail)) : data?.detail;
+    throw new Error(data?.message || detailStr || fallbackMessage);
   }
   return data as T;
 }

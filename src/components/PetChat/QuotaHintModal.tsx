@@ -141,7 +141,7 @@ export default function QuotaHintModal({
                 <span className="qm-progress-bar" style={{ width: `${Math.min(100, (quotaData.used / quotaData.limit) * 100)}%` }} />
               </span>
               <span className="qm-progress-detail">
-                免费版每月 {quotaData.limit} 次 · 下月1日自动刷新
+                {quotaData.plan === "pro" ? "Pro会员" : quotaData.plan === "family" ? "家庭版" : "免费版"}每月 {quotaData.limit} 次 · 下月1日自动刷新
               </span>
             </div>
           </div>

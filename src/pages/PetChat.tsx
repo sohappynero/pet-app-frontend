@@ -47,9 +47,9 @@ export default function PetChat() {
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
 
-  // ====== 前端本地配额计数（免费版每月5次）======
-  const FREE_PHOTO_QUOTA = 5;
+  // ====== 前端本地配额计数（从后端获取实际限额）======
   const QUOTA_STORAGE_KEY = "photo_mind_quota";
+  const [photoQuotaLimit, setPhotoQuotaLimit] = useState<number>(5);
   const [photoQuotaUsed, setPhotoQuotaUsed] = useState<number>(() => {
     try {
       const raw = localStorage.getItem(QUOTA_STORAGE_KEY);
@@ -64,6 +64,35 @@ export default function PetChat() {
     } catch { return 0; }
   });
 
+  // 从后端获取实际配额限额
+  useEffect(() => {
+    const fetchQuotaLimit = async () => {
+      try {
+        const token = (await import("../lib/session")).getSessionToken();
+        const envBaseUrl = (import.meta as any)?.env?.VITE_API_BASE_URL || "";
+        const baseUrl = String(envBaseUrl).replace(/\/$/, "");
+        const resp = await fetch(`${baseUrl}/api/v1/payment/membership`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          const photoQuota = data.quotas?.find((q: any) => q.feature === "photo_emotion");
+          if (photoQuota) {
+            setPhotoQuotaLimit(photoQuota.limit === -1 ? 999999 : photoQuota.limit);
+            // 同步后端实际使用量（比 localStorage 更准确）
+            if (typeof photoQuota.used === "number") {
+              setPhotoQuotaUsed(photoQuota.used);
+              saveQuotaUsed(photoQuota.used);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("[PetChat] 获取配额限额失败，使用默认值", e);
+      }
+    };
+    fetchQuotaLimit();
+  }, []);
+
   // 保存使用次数到 localStorage
   const saveQuotaUsed = useCallback((used: number) => {
     const now = new Date();
@@ -72,7 +101,7 @@ export default function PetChat() {
     setPhotoQuotaUsed(used);
   }, []);
 
-  const photoQuotaRemaining = Math.max(0, FREE_PHOTO_QUOTA - photoQuotaUsed);
+  const photoQuotaRemaining = Math.max(0, photoQuotaLimit - photoQuotaUsed);
 
   const petName = selectedPet?.name || "宝贝";
   const petImage = selectedPet?.image_url || getLocalAvatar(selectedPet?.id ?? 0) || "";
@@ -87,9 +116,9 @@ export default function PetChat() {
         type: "quota_exceeded",
         feature: "photo_emotion",
         used: photoQuotaUsed,
-        limit: FREE_PHOTO_QUOTA,
-        plan: "free",
-        upgradeHint: "免费版每月5次心声解读，升级会员可获得更多使用次数",
+        limit: photoQuotaLimit,
+        plan: "unknown",
+        upgradeHint: "本月次数已用完，升级会员可获得更多使用次数",
       });
       setShowQuotaModal(true);
       return;
@@ -105,20 +134,20 @@ export default function PetChat() {
         // 成功后递增本地计数
         const newUsed = photoQuotaUsed + 1;
         saveQuotaUsed(newUsed);
-        console.log(`[PhotoMind] 分析成功，本月已用 ${newUsed}/${FREE_PHOTO_QUOTA} 次`);
+        console.log(`[PhotoMind] 分析成功，本月已用 ${newUsed}/${photoQuotaLimit} 次`);
 
         const text = `${res.result.expression}，${res.result.posture}，心情${res.result.mood}。${res.result.mindOs || ""}`;
         setPhotoResult({ text, photoUrl: res.photoUrl || URL.createObjectURL(file) });
 
         // 如果刚好用完最后一次，延迟弹窗提示
-        if (newUsed >= FREE_PHOTO_QUOTA) {
+        if (newUsed >= photoQuotaLimit) {
           setTimeout(() => {
             setQuotaErrorData({
               type: "quota_exceeded",
               feature: "photo_emotion",
               used: newUsed,
-              limit: FREE_PHOTO_QUOTA,
-              plan: "free",
+              limit: photoQuotaLimit,
+              plan: "unknown",
               upgradeHint: "本月次数已用完，升级会员可继续使用~",
             });
             setShowQuotaModal(true);
@@ -224,7 +253,7 @@ export default function PetChat() {
               心声解读
             </h3>
             <span className={`vip-quota-hint ${photoQuotaRemaining <= 1 ? "warning" : ""}`}>
-              {photoQuotaRemaining > 0 ? `剩余 ${photoQuotaRemaining}/${FREE_PHOTO_QUOTA} 次` : "次数已用完"}
+              {photoQuotaRemaining > 0 ? `剩余 ${photoQuotaRemaining}/${photoQuotaLimit} 次` : "次数已用完"}
             </span>
           </div>
           <div className="vip-photo-actions">

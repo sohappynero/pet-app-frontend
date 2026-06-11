@@ -22,6 +22,8 @@ import {
 import { useShell } from "../hooks/useShell";
 import { fetchAnalysisDashboard, type AnalysisDashboardData } from "../lib/api";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
+import type { QuotaError } from "../lib/pet-mind.api";
+import QuotaHintModal from "../components/PetChat/QuotaHintModal";
 import "../exercise-analysis.css";
 
 // ── 运动类型图标卡片 ────────────────────────────
@@ -140,13 +142,29 @@ export default function ExerciseAnalysis() {
   // ── 从后端获取真实数据 ──
   const [analysisData, setAnalysisData] = useState<AnalysisDashboardData | null>(null);
   const [excLoading, setExcLoading] = useState(true);
+  const [showQuotaModal, setShowQuotaModal] = useState(false);
+  const [quotaErrorData, setQuotaErrorData] = useState<QuotaError | null>(null);
 
   useEffect(() => {
     if (!currentPet?.id) return;
     setExcLoading(true);
     fetchAnalysisDashboard(currentPet.id)
       .then((data) => setAnalysisData(data))
-      .catch(console.error)
+      .catch((err: any) => {
+        if (err.status === 429 && err.quotaDetail) {
+          setQuotaErrorData({
+            type: "quota_exceeded",
+            feature: err.quotaDetail.feature,
+            used: err.quotaDetail.used,
+            limit: err.quotaDetail.limit,
+            plan: err.quotaDetail.plan,
+            upgradeHint: err.quotaDetail.upgradeHint,
+          });
+          setShowQuotaModal(true);
+        } else {
+          console.error("运动分析数据获取失败:", err);
+        }
+      })
       .finally(() => setExcLoading(false));
   }, [currentPet?.id]);
 
@@ -302,6 +320,13 @@ export default function ExerciseAnalysis() {
       </section>
 
       <div style={{ height: "32px" }} />
+
+      <QuotaHintModal
+        isOpen={showQuotaModal}
+        onClose={() => setShowQuotaModal(false)}
+        quotaData={quotaErrorData}
+        onUpgrade={() => navigate("/vip")}
+      />
     </main>
   );
 }

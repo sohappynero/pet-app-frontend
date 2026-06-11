@@ -19,6 +19,8 @@ import { useShell } from "../hooks/useShell";
 import { fetchAnalysisDashboard, type AnalysisDashboardData } from "../lib/api";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
 import { getLocalAvatar } from "../lib/pet-avatar";
+import type { QuotaError } from "../lib/pet-mind.api";
+import QuotaHintModal from "../components/PetChat/QuotaHintModal";
 import "../diet-analysis.css";
 
 // ── 营养环形进度条 ──────────────────────────────
@@ -105,13 +107,29 @@ export default function DietAnalysis() {
   // ── 从后端获取真实数据 ──
   const [analysisData, setAnalysisData] = useState<AnalysisDashboardData | null>(null);
   const [dietLoading, setDietLoading] = useState(true);
+  const [showQuotaModal, setShowQuotaModal] = useState(false);
+  const [quotaErrorData, setQuotaErrorData] = useState<QuotaError | null>(null);
 
   useEffect(() => {
     if (!currentPet?.id) return;
     setDietLoading(true);
     fetchAnalysisDashboard(currentPet.id)
       .then((data) => setAnalysisData(data))
-      .catch(console.error)
+      .catch((err: any) => {
+        if (err.status === 429 && err.quotaDetail) {
+          setQuotaErrorData({
+            type: "quota_exceeded",
+            feature: err.quotaDetail.feature,
+            used: err.quotaDetail.used,
+            limit: err.quotaDetail.limit,
+            plan: err.quotaDetail.plan,
+            upgradeHint: err.quotaDetail.upgradeHint,
+          });
+          setShowQuotaModal(true);
+        } else {
+          console.error("饮食分析数据获取失败:", err);
+        }
+      })
       .finally(() => setDietLoading(false));
   }, [currentPet?.id]);
 
@@ -250,6 +268,13 @@ export default function DietAnalysis() {
       </section>
 
       <div style={{ height: "32px" }} />
+
+      <QuotaHintModal
+        isOpen={showQuotaModal}
+        onClose={() => setShowQuotaModal(false)}
+        quotaData={quotaErrorData}
+        onUpgrade={() => navigate("/vip")}
+      />
     </main>
   );
 }
