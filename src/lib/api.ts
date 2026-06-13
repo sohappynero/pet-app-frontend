@@ -1112,6 +1112,10 @@ export interface AnalysisDashboardData {
       approaching_vac?: number;
     };
   };
+  /** AI 生成的中文健康总结，200-400 字。LLM 失败/超时为 null */
+  ai_summary?: string | null;
+  /** 该 ai_summary 是否来自当天缓存 */
+  ai_summary_from_cache?: boolean;
 }
 
 /** 获取AI分析仪表盘数据（纯DB计算，真实数据） */

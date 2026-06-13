@@ -293,6 +293,34 @@ export default function AiAnalysis() {
               overallScore >= 75 ? "宝贝整体健康状况良好，继续保持！" : "宝贝需要更多关注，请查看详细指标"
             } />
 
+            {!analysisLoading && analysisData?.ai_summary && (
+              <div className="ai-summary-block" style={{
+                margin: "12px 0",
+                padding: "14px 16px",
+                background: "linear-gradient(135deg, #fff5e6 0%, #ffe9d6 100%)",
+                borderRadius: 12,
+                borderLeft: "3px solid #ff9a56",
+                position: "relative",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                  <Sparkles size={16} color="#ff9a56" />
+                  <strong style={{ fontSize: 13, color: "#7a4a1f" }}>AI 健康小助手</strong>
+                  {analysisData.ai_summary_from_cache && (
+                    <span style={{ fontSize: 11, opacity: 0.55, marginLeft: "auto" }}>今日已生成</span>
+                  )}
+                </div>
+                <p style={{
+                  fontSize: 14,
+                  lineHeight: 1.7,
+                  color: "#5a3a1a",
+                  margin: 0,
+                  whiteSpace: "pre-line",
+                }}>
+                  {analysisData.ai_summary}
+                </p>
+              </div>
+            )}
+
             {!analysisLoading && dims && (<>
               <div className="ai-divider"><span>详细指标</span></div>
               <div className="ai-detail-list">
