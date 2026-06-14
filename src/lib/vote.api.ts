@@ -15,7 +15,7 @@ export interface VotingCandidate {
   status: CandidateStatus;
   vote_count: number;
   vote_percentage: number;
-  is_voted_by_me: boolean;
+  my_votes: number;
 }
 
 export interface InDevItem {
@@ -39,7 +39,7 @@ export interface LaunchedItem {
 export interface CandidateListData {
   max_votes_per_user: number;
   user_remaining_votes: number;
-  user_voted_candidate_ids: number[];
+  user_votes_per_candidate: Record<number, number>;
   total_voters: number;
   candidates: VotingCandidate[];
   in_dev: InDevItem[];
