@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Loader2, Vote, Hammer, CheckCircle2 } from "lucide-react";
 import VoteConfirmDialog from "../components/VoteConfirmDialog";
@@ -26,6 +26,7 @@ export default function FeatureVote() {
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 加载投票数据
   const loadData = async () => {
@@ -45,10 +46,17 @@ export default function FeatureVote() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
+
   // 显示 Toast 提示，2.5s 后自动消失
   const showToast = (msg: string) => {
     setToast(msg);
-    setTimeout(() => setToast(null), 2500);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2500);
   };
 
   // 点击"我要投票"
@@ -304,6 +312,7 @@ function CandidateCard({
           src={c.cover_image}
           alt={c.title}
           className="w-full h-32 object-cover rounded-xl mb-3"
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
         />
       )}
       {/* 标题 + 得票占比 */}
