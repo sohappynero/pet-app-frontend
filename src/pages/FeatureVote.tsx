@@ -16,6 +16,7 @@ interface ConfirmState {
   title: string;
   action: "cast" | "revoke";
   remainingVotesAfter: number;
+  currentVotes: number;
 }
 
 export default function FeatureVote() {
@@ -67,6 +68,7 @@ export default function FeatureVote() {
       title: c.title,
       action: "cast",
       remainingVotesAfter: data.user_remaining_votes - 1,
+      currentVotes: c.my_votes,
     });
   };
 
@@ -78,6 +80,7 @@ export default function FeatureVote() {
       title: c.title,
       action: "revoke",
       remainingVotesAfter: data.user_remaining_votes + 1,
+      currentVotes: c.my_votes,
     });
   };
 
@@ -276,6 +279,7 @@ export default function FeatureVote() {
         action={confirm?.action || "cast"}
         candidateTitle={confirm?.title || ""}
         remainingVotesAfter={confirm?.remainingVotesAfter ?? 0}
+        currentVotes={confirm?.currentVotes ?? 0}
         submitting={submitting}
         onConfirm={handleConfirm}
         onCancel={() => !submitting && setConfirm(null)}
@@ -304,9 +308,9 @@ function CandidateCard({
   onVote: () => void;
   onRevoke: () => void;
 }) {
+  const myVotes = c.my_votes;
   return (
     <div className="rounded-2xl bg-white shadow-sm p-4">
-      {/* 封面图（可选） */}
       {c.cover_image && (
         <img
           src={c.cover_image}
@@ -315,54 +319,55 @@ function CandidateCard({
           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
         />
       )}
-      {/* 标题 + 得票占比 */}
       <div className="flex items-baseline justify-between">
         <h3 className="text-base font-semibold text-gray-900">{c.title}</h3>
         <span className="text-sm text-purple-600 font-semibold">
           {c.vote_percentage.toFixed(1)}%
         </span>
       </div>
-      {/* 描述 */}
       {c.description && (
         <p className="mt-1 text-xs text-gray-500 leading-relaxed">
           {c.description}
         </p>
       )}
-      {/* 票数进度条 */}
       <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
           style={{ width: `${c.vote_percentage}%` }}
         />
       </div>
-      {/* 票数 + 操作按钮 */}
-      <div className="mt-3 flex items-center justify-between">
+      <div className="mt-3 flex items-center justify-between gap-2">
         <span className="text-xs text-gray-500">{c.vote_count} 票</span>
-        {c.is_voted_by_me ? (
-          // 已投票：允许取消
-          <button
-            onClick={onRevoke}
-            className="px-4 py-1.5 rounded-full text-xs border border-purple-300 text-purple-600 hover:bg-purple-50"
-          >
-            ✓ 已投票（点击取消）
-          </button>
-        ) : exhausted ? (
-          // 票数用完：禁用
-          <button
-            disabled
-            className="px-4 py-1.5 rounded-full text-xs bg-gray-100 text-gray-400 cursor-not-allowed"
-          >
-            票数已用完
-          </button>
-        ) : (
-          // 可投票
-          <button
-            onClick={onVote}
-            className="px-4 py-1.5 rounded-full text-xs bg-gradient-to-r from-purple-600 to-pink-500 text-white"
-          >
-            我要投票
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {myVotes > 0 && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 border border-purple-200">
+              已投 {myVotes} 票
+            </span>
+          )}
+          {myVotes > 0 && (
+            <button
+              onClick={onRevoke}
+              className="px-3 py-1.5 rounded-full text-xs border border-red-300 text-red-500 hover:bg-red-50"
+            >
+              − 取消
+            </button>
+          )}
+          {exhausted ? (
+            <button
+              disabled
+              className="px-3 py-1.5 rounded-full text-xs bg-gray-100 text-gray-400 cursor-not-allowed"
+            >
+              + 投票
+            </button>
+          ) : (
+            <button
+              onClick={onVote}
+              className="px-3 py-1.5 rounded-full text-xs bg-gradient-to-r from-purple-600 to-pink-500 text-white"
+            >
+              + 投票
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
