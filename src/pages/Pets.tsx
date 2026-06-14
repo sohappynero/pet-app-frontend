@@ -6,6 +6,7 @@ import {
   Camera,
   Check,
   ChevronDown,
+  ChevronRight,
   Eye,
   FileText,
   Heart,
@@ -17,6 +18,7 @@ import {
   Stethoscope,
   TrendingUp,
   Utensils,
+  Vote,
   X,
 } from "lucide-react";
 import { useShell } from "../hooks/useShell";
@@ -403,6 +405,25 @@ export default function Pets() {
           </button>
 
         </div>
+      </section>
+
+      {/* ═══ 功能投票入口卡片 ═══ */}
+      <section className="px-4 mt-3">
+        <button
+          onClick={() => navigate("/app/feature-vote")}
+          className="w-full rounded-2xl p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md text-left active:scale-[0.98] transition mb-4"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+              <Vote className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <div className="font-semibold">下一个功能你说了算</div>
+              <div className="text-xs opacity-90 mt-0.5">参与投票，决定开发顺序</div>
+            </div>
+            <ChevronRight className="w-4 h-4 opacity-80" />
+          </div>
+        </button>
       </section>
 
       {/* ═══ 待办提醒条（条件显示）═══ */}
