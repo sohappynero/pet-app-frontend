@@ -69,12 +69,12 @@ type FeatureItem = {
 };
 
 const FEATURE_LIST: FeatureItem[] = [
-  { id: "funeral", label: "宠物殡葬", emoji: "🕊️", color: "#7D6E63", bgColor: "linear-gradient(135deg, #F5F0EB, #EBE5DE)" },
-  { id: "tv", label: "宠物TV", emoji: "🎬", color: "#5C9BD1", bgColor: "linear-gradient(135deg, #E8F4FD, #D4ECFA)" },
-  { id: "food", label: "宠物食品", emoji: "🥫", color: "#E8913A", bgColor: "linear-gradient(135deg, #FFF5E6, #FDE8C8)" },
-  { id: "chat", label: "同城聊天", emoji: "💬", color: "#4ECDC4", bgColor: "linear-gradient(135deg, #E8F8F5, #D0F0EC)" },
-  { id: "hospital", label: "宠物医院", emoji: "🏥", color: "#E85A71", bgColor: "linear-gradient(135deg, #FFE8ED, #FFD0D8)" },
-  { id: "beauty", label: "美容预约", emoji: "✨", color: "#B87DE8", bgColor: "linear-gradient(135deg, #F3E8FD, #E8D4FB)" },
+  { id: "funeral", label: "宠物殡葬", emoji: "🕊️", color: "#9B8EA8", bgColor: "linear-gradient(135deg, #F5F0FA, #EDE5F5)" },
+  { id: "tv", label: "宠物TV", emoji: "🎬", color: "#4E8FD1", bgColor: "linear-gradient(135deg, #E8F2FD, #CCE4FA)" },
+  { id: "food", label: "宠物食品", emoji: "🥫", color: "#E87A3A", bgColor: "linear-gradient(135deg, #FFF3E8, #FDDEC0)" },
+  { id: "chat", label: "同城聊天", emoji: "💬", color: "#E88AB0", bgColor: "linear-gradient(135deg, #FFF0F6, #FFD6EA)" },
+  { id: "hospital", label: "宠物医院", emoji: "🏥", color: "#E85A71", bgColor: "linear-gradient(135deg, #FFE6EC, #FFC8D4)" },
+  { id: "beauty", label: "美容预约", emoji: "✨", color: "#C46EC8", bgColor: "linear-gradient(135deg, #F8E8FD, #EDCCF5)" },
 ];
 
 function MenuRow({ item }: { item: MenuItem }) {
@@ -208,43 +208,43 @@ export default function Mine() {
   const mainMenus: MenuItem[] = [
     {
       label: "我的宠物",
-      icon: <FileText size={18} />,
+      icon: <PawPrint size={18} />,
       rightText: `${petCount} 只`,
       to: "/app/pets",
-      iconColor: "#6B5B4F",
-      iconBg: "#F5F0EB",
+      iconColor: "#E06B8B",
+      iconBg: "#FFF0F4",
     },
     {
       label: "健康报告",
       icon: <FileText size={18} />,
       rightText: "查看全部",
       to: "/app/records",
-      iconColor: "#7D6E63",
-      iconBg: "#F7F4F0",
+      iconColor: "#E87A50",
+      iconBg: "#FFF4EE",
     },
     {
       label: "提醒设置",
       icon: <Bell size={18} />,
       rightText: pendingCount > 0 ? `${pendingCount} 条` : "管理",
       to: "/app/reminders",
-      iconColor: "#8B7355",
-      iconBg: "#FAF8F5",
+      iconColor: "#C478D4",
+      iconBg: "#F9EFFE",
     },
     {
       label: "病历共享",
       icon: <Share2 size={18} />,
       rightText: "3 个",
       to: "/app/records",
-      iconColor: "#9B8577",
-      iconBg: "#F5F2EE",
+      iconColor: "#4E9BD4",
+      iconBg: "#EEF6FF",
     },
     {
       label: "智能分析",
       icon: <Brain size={18} />,
       rightText: "查看",
       to: "/app/records",
-      iconColor: "#5C6B73",
-      iconBg: "#F0F2F3",
+      iconColor: "#E85A71",
+      iconBg: "#FFECF0",
     },
   ];
 
@@ -254,24 +254,24 @@ export default function Mine() {
       icon: <Shield size={18} />,
       rightText: "设置",
       to: "/app/privacy",
-      iconColor: "#6B5B4F",
-      iconBg: "#F5F0EB",
+      iconColor: "#7E9FD4",
+      iconBg: "#EEF4FF",
     },
     {
       label: "帮助中心",
       icon: <CircleHelp size={18} />,
       rightText: "查看",
       to: "/app/help",
-      iconColor: "#7D6E63",
-      iconBg: "#F7F4F0",
+      iconColor: "#D4A030",
+      iconBg: "#FFF8E6",
     },
     {
       label: "吐槽中心",
       icon: <MessageSquare size={18} />,
       rightText: "反馈",
       to: "/app/feedback",
-      iconColor: "#D4A574",
-      iconBg: "#FBF6EF",
+      iconColor: "#E06B8B",
+      iconBg: "#FFF0F4",
     },
   ];
 
@@ -338,7 +338,7 @@ export default function Mine() {
 
       {/* 新功能卡片 - 宠物殡葬/TV/医院/美容 */}
       <section className="mine-features-section">
-        <h3 className="mine-features-title">🌟 更多服务</h3>
+        <h3 className="mine-features-title">更多服务</h3>
         <div className="mine-features-grid">
           {FEATURE_LIST.map((feature) => (
             <button
