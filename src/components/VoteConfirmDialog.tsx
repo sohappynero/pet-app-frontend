@@ -7,6 +7,8 @@ export interface VoteConfirmDialogProps {
   candidateTitle: string;
   /** 操作完成后的剩余票数 */
   remainingVotesAfter: number;
+  /** 当前用户对该候选已投票数（v2 新增） */
+  currentVotes: number;
   submitting: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -17,13 +19,13 @@ export default function VoteConfirmDialog({
   action,
   candidateTitle,
   remainingVotesAfter,
+  currentVotes,
   submitting,
   onConfirm,
   onCancel,
 }: VoteConfirmDialogProps) {
   const confirmBtnRef = useRef<HTMLButtonElement>(null);
 
-  // 弹出后焦点落在主按钮 + ESC 关闭
   useEffect(() => {
     if (!open) return;
     confirmBtnRef.current?.focus();
@@ -38,12 +40,20 @@ export default function VoteConfirmDialog({
 
   const isCast = action === "cast";
   const title = isCast ? "确认投票" : "取消投票";
-  const body = isCast
-    ? `确定要把一票投给「${candidateTitle}」吗？`
-    : `确定要取消对「${candidateTitle}」的投票吗？`;
+
+  let body: string;
+  if (isCast) {
+    body = currentVotes > 0
+      ? `确定继续投给「${candidateTitle}」吗？已投 ${currentVotes} 票`
+      : `确定要把 1 票投给「${candidateTitle}」吗？`;
+  } else {
+    body = `确定要取消对「${candidateTitle}」的 1 票吗?（你共投了 ${currentVotes} 票）`;
+  }
+
   const hint = isCast
     ? `投票后还剩 ${remainingVotesAfter} 票`
-    : `取消后剩余票数：${remainingVotesAfter}`;
+    : `取消后剩余票数:${remainingVotesAfter}`;
+
   const confirmText = submitting
     ? "提交中…"
     : isCast
