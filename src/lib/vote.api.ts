@@ -63,7 +63,8 @@ interface VoteApiEnvelope<T> {
 // 内部 fetch（注入 JWT，剥外壳，code !== 0 抛错）
 // ═════════════════════════════════════
 
-const API_BASE = import.meta.env.VITE_API_BASE || '';
+const envBaseUrl = (import.meta as any)?.env?.VITE_API_BASE_URL || "";
+const API_BASE = String(envBaseUrl).replace(/\/$/, "");
 
 async function voteFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getSessionToken();
