@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宠物配对 - 概念预览</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-b from-purple-50 to-white min-h-screen font-[Inter] max-w-[375px] mx-auto relative overflow-x-hidden">
+
+    <!-- 顶部导航 -->
+    <div class="px-4 pt-4 pb-3 flex items-center gap-2">
+        <div class="w-8 h-8 flex items-center justify-center">
+            <i data-lucide="arrow-left" class="w-5 h-5 text-gray-700"></i>
+        </div>
+        <h1 class="text-lg font-semibold text-gray-900 tracking-tight">宠物配对</h1>
+        <div class="ml-auto flex items-center gap-2">
+            <i data-lucide="sliders-horizontal" class="w-5 h-5 text-gray-400"></i>
+        </div>
+    </div>
+
+    <!-- 匹配筛选 -->
+    <div class="px-4 mb-4">
+        <div class="flex gap-2 overflow-x-auto pb-1">
+            <button class="flex-shrink-0 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 text-white text-xs font-medium">全部</button>
+            <button class="flex-shrink-0 px-3 py-1.5 rounded-full bg-white text-gray-600 text-xs shadow-sm">同品种</button>
+            <button class="flex-shrink-0 px-3 py-1.5 rounded-full bg-white text-gray-600 text-xs shadow-sm">3km内</button>
+            <button class="flex-shrink-0 px-3 py-1.5 rounded-full bg-white text-gray-600 text-xs shadow-sm">年龄相近</button>
+        </div>
+    </div>
+
+    <!-- 配对卡片 - 主卡 -->
+    <div class="mx-4 mb-4 rounded-2xl bg-white shadow-md overflow-hidden relative">
+        <!-- 宠物图片区 -->
+        <div class="h-48 bg-gradient-to-br from-orange-100 via-pink-50 to-purple-100 flex items-center justify-center relative">
+            <div class="w-24 h-24 rounded-full bg-white/80 shadow flex items-center justify-center">
+                <i data-lucide="dog" class="w-12 h-12 text-orange-300"></i>
+            </div>
+            <!-- 匹配度标签 -->
+            <div class="absolute top-3 right-3 px-2 py-1 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 text-white text-[10px] font-medium">
+                匹配度 92%
+            </div>
+            <!-- 距离标签 -->
+            <div class="absolute top-3 left-3 px-2 py-1 rounded-full bg-white/90 text-gray-600 text-[10px] flex items-center gap-1">
+                <i data-lucide="map-pin" class="w-3 h-3"></i> 1.2km
+            </div>
+        </div>
+        <!-- 信息区 -->
+        <div class="p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900">豆豆</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">金毛 · 2岁 · 公</p>
+                </div>
+                <div class="flex items-center gap-1">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-200">已绝育</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">已免疫</span>
+                </div>
+            </div>
+            <p class="mt-2 text-xs text-gray-500 leading-relaxed">性格温顺友好，喜欢和其他狗狗玩耍。每天傍晚在小区散步，希望找个小伙伴一起~</p>
+            <!-- 主人信息 -->
+            <div class="mt-3 flex items-center gap-2 py-2 border-t border-gray-50">
+                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center">
+                    <span class="text-white text-[8px] font-semibold">主</span>
+                </div>
+                <span class="text-xs text-gray-600">豆豆爸爸</span>
+                <span class="text-[10px] text-gray-400">· 活跃用户</span>
+            </div>
+        </div>
+        <!-- 操作按钮 -->
+        <div class="px-4 pb-4 flex items-center gap-3">
+            <button class="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-500 text-xs font-medium flex items-center justify-center gap-1">
+                <i data-lucide="x" class="w-4 h-4"></i> 跳过
+            </button>
+            <button class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-xs font-medium flex items-center justify-center gap-1 shadow-md">
+                <i data-lucide="heart" class="w-4 h-4"></i> 想认识
+            </button>
+        </div>
+    </div>
+
+    <!-- 已匹配列表 -->
+    <div class="mx-4 mt-2 mb-4">
+        <div class="flex items-center gap-2 mb-3">
+            <i data-lucide="sparkles" class="w-4 h-4 text-purple-600"></i>
+            <span class="text-sm font-semibold text-gray-900">已配对</span>
+            <span class="text-[10px] text-gray-400">双方都想认识</span>
+        </div>
+        <div class="space-y-2">
+            <!-- 配对 1 -->
+            <div class="rounded-xl bg-white shadow-sm p-3 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                    <i data-lucide="cat" class="w-5 h-5 text-purple-400"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="text-xs font-medium text-gray-900">咪咪 & 布丁</div>
+                    <div class="text-[10px] text-gray-400">英短 · 配对于 2 天前</div>
+                </div>
+                <button class="px-2.5 py-1.5 rounded-lg bg-purple-50 text-purple-600 text-[10px] border border-purple-200">
+                    发消息
+                </button>
+            </div>
+            <!-- 配对 2 -->
+            <div class="rounded-xl bg-white shadow-sm p-3 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center">
+                    <i data-lucide="dog" class="w-5 h-5 text-orange-400"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="text-xs font-medium text-gray-900">大黄 & 布丁</div>
+                    <div class="text-[10px] text-gray-400">田园犬 · 配对于 5 天前</div>
+                </div>
+                <button class="px-2.5 py-1.5 rounded-lg bg-purple-50 text-purple-600 text-[10px] border border-purple-200">
+                    发消息
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 安全提示 -->
+    <div class="mx-4 mb-8 rounded-2xl bg-purple-50 border border-purple-100 p-3">
+        <div class="flex items-start gap-2">
+            <i data-lucide="shield" class="w-4 h-4 text-purple-500 flex-shrink-0 mt-0.5"></i>
+            <div>
+                <span class="text-xs font-medium text-purple-700">安全社交</span>
+                <p class="text-[10px] text-purple-500 mt-0.5">所有用户均需实名认证，首次见面建议在公共场所</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 概念预览水印 -->
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.03] text-6xl font-bold text-purple-900 rotate-[-15deg] whitespace-nowrap">
+        概念预览
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

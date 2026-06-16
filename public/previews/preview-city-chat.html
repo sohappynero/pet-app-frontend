@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>同城聊天 - 概念预览</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-b from-purple-50 to-white min-h-screen font-[Inter] max-w-[375px] mx-auto relative overflow-x-hidden">
+
+    <!-- 顶部导航 -->
+    <div class="px-4 pt-4 pb-3 flex items-center gap-2">
+        <div class="w-8 h-8 flex items-center justify-center">
+            <i data-lucide="arrow-left" class="w-5 h-5 text-gray-700"></i>
+        </div>
+        <h1 class="text-lg font-semibold text-gray-900 tracking-tight">同城聊天</h1>
+        <div class="ml-auto flex items-center gap-2">
+            <span class="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-600">
+                <i data-lucide="map-pin" class="w-3 h-3 inline"></i> 杭州
+            </span>
+        </div>
+    </div>
+
+    <!-- 话题频道 -->
+    <div class="px-4 mb-3">
+        <div class="flex gap-2 overflow-x-auto pb-1">
+            <button class="flex-shrink-0 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 text-white text-xs font-medium">综合</button>
+            <button class="flex-shrink-0 px-3 py-1.5 rounded-full bg-white text-gray-600 text-xs shadow-sm">求助</button>
+            <button class="flex-shrink-0 px-3 py-1.5 rounded-full bg-white text-gray-600 text-xs shadow-sm">遛狗搭伴</button>
+            <button class="flex-shrink-0 px-3 py-1.5 rounded-full bg-white text-gray-600 text-xs shadow-sm">医院推荐</button>
+            <button class="flex-shrink-0 px-3 py-1.5 rounded-full bg-white text-gray-600 text-xs shadow-sm">领养</button>
+        </div>
+    </div>
+
+    <!-- 聊天消息列表 -->
+    <div class="px-4 space-y-4 pb-20">
+
+        <!-- 消息 1 -->
+        <div class="flex gap-3">
+            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center">
+                <span class="text-white text-xs font-semibold">柴</span>
+            </div>
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs font-medium text-gray-900">旺财主人</span>
+                    <span class="text-[10px] text-gray-400">滨江区 · 10分钟前</span>
+                </div>
+                <div class="rounded-2xl rounded-tl-sm bg-white shadow-sm p-3">
+                    <p class="text-sm text-gray-700">有没有滨江区的朋友，周末想一起去钱塘江边遛狗🐕 我家柴犬很友好的！</p>
+                </div>
+                <div class="flex items-center gap-3 mt-1.5 pl-1">
+                    <button class="flex items-center gap-1 text-gray-400 text-[10px]">
+                        <i data-lucide="heart" class="w-3 h-3"></i> 5
+                    </button>
+                    <button class="flex items-center gap-1 text-gray-400 text-[10px]">
+                        <i data-lucide="message-circle" class="w-3 h-3"></i> 3
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 消息 2 -->
+        <div class="flex gap-3">
+            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
+                <span class="text-white text-xs font-semibold">猫</span>
+            </div>
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs font-medium text-gray-900">布丁妈妈</span>
+                    <span class="text-[10px] text-gray-400">西湖区 · 25分钟前</span>
+                </div>
+                <div class="rounded-2xl rounded-tl-sm bg-white shadow-sm p-3">
+                    <p class="text-sm text-gray-700">推荐一下西湖区哪家宠物医院靠谱？我家猫需要做绝育</p>
+                    <div class="mt-2 px-2 py-1.5 rounded-lg bg-blue-50 border border-blue-100 flex items-center gap-2">
+                        <i data-lucide="hospital" class="w-3.5 h-3.5 text-blue-500"></i>
+                        <span class="text-[10px] text-blue-600">话题：医院推荐</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 mt-1.5 pl-1">
+                    <button class="flex items-center gap-1 text-gray-400 text-[10px]">
+                        <i data-lucide="heart" class="w-3 h-3"></i> 12
+                    </button>
+                    <button class="flex items-center gap-1 text-gray-400 text-[10px]">
+                        <i data-lucide="message-circle" class="w-3 h-3"></i> 8
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 消息 3 - 回复串 -->
+        <div class="flex gap-3">
+            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-teal-400 flex items-center justify-center">
+                <span class="text-white text-xs font-semibold">金</span>
+            </div>
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs font-medium text-gray-900">大金毛爸爸</span>
+                    <span class="text-[10px] text-gray-400">余杭区 · 1小时前</span>
+                </div>
+                <div class="rounded-2xl rounded-tl-sm bg-white shadow-sm p-3">
+                    <p class="text-sm text-gray-700">余杭这边有只流浪橘猫，看着很健康也很亲人，有人想领养吗？我可以帮忙送去体检</p>
+                    <div class="mt-2 grid grid-cols-2 gap-1.5 rounded-lg overflow-hidden">
+                        <div class="aspect-square bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center">
+                            <i data-lucide="cat" class="w-8 h-8 text-orange-200"></i>
+                        </div>
+                        <div class="aspect-square bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center">
+                            <i data-lucide="image" class="w-6 h-6 text-orange-200"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 mt-1.5 pl-1">
+                    <button class="flex items-center gap-1 text-pink-500 text-[10px]">
+                        <i data-lucide="heart" class="w-3 h-3 fill-pink-500"></i> 28
+                    </button>
+                    <button class="flex items-center gap-1 text-gray-400 text-[10px]">
+                        <i data-lucide="message-circle" class="w-3 h-3"></i> 15
+                    </button>
+                    <button class="flex items-center gap-1 text-gray-400 text-[10px]">
+                        <i data-lucide="share-2" class="w-3 h-3"></i> 转发
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 消息 4 -->
+        <div class="flex gap-3">
+            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center">
+                <span class="text-white text-xs font-semibold">泰</span>
+            </div>
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs font-medium text-gray-900">泰迪小公主</span>
+                    <span class="text-[10px] text-gray-400">拱墅区 · 2小时前</span>
+                </div>
+                <div class="rounded-2xl rounded-tl-sm bg-white shadow-sm p-3">
+                    <p class="text-sm text-gray-700">分享一个宝藏宠物店，运河边上新开的那家，洗澡美容很专业，价格也合理！</p>
+                </div>
+                <div class="flex items-center gap-3 mt-1.5 pl-1">
+                    <button class="flex items-center gap-1 text-gray-400 text-[10px]">
+                        <i data-lucide="heart" class="w-3 h-3"></i> 9
+                    </button>
+                    <button class="flex items-center gap-1 text-gray-400 text-[10px]">
+                        <i data-lucide="message-circle" class="w-3 h-3"></i> 4
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部输入栏 -->
+    <div class="fixed bottom-0 left-0 right-0 max-w-[375px] mx-auto bg-white border-t border-gray-100 px-4 py-3">
+        <div class="flex items-center gap-2">
+            <div class="flex-1 h-9 rounded-full bg-gray-100 px-4 flex items-center">
+                <span class="text-xs text-gray-400">说点什么...</span>
+            </div>
+            <button class="w-9 h-9 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 flex items-center justify-center shadow">
+                <i data-lucide="send" class="w-4 h-4 text-white"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 概念预览水印 -->
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.03] text-6xl font-bold text-purple-900 rotate-[-15deg] whitespace-nowrap">
+        概念预览
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

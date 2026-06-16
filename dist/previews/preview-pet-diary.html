@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宠物日记 - 概念预览</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-b from-purple-50 to-white min-h-screen font-[Inter] max-w-[375px] mx-auto relative overflow-x-hidden">
+
+    <!-- 顶部导航 -->
+    <div class="px-4 pt-4 pb-3 flex items-center gap-2">
+        <div class="w-8 h-8 flex items-center justify-center">
+            <i data-lucide="arrow-left" class="w-5 h-5 text-gray-700"></i>
+        </div>
+        <h1 class="text-lg font-semibold text-gray-900 tracking-tight">宠物日记</h1>
+        <div class="ml-auto">
+            <i data-lucide="calendar" class="w-5 h-5 text-purple-600"></i>
+        </div>
+    </div>
+
+    <!-- 日期选择器 -->
+    <div class="px-4 pb-3">
+        <div class="flex items-center gap-2 overflow-x-auto pb-2">
+            <div class="flex-shrink-0 w-12 h-14 rounded-xl bg-white shadow-sm flex flex-col items-center justify-center">
+                <span class="text-[10px] text-gray-400">周一</span>
+                <span class="text-sm font-medium text-gray-600">12</span>
+            </div>
+            <div class="flex-shrink-0 w-12 h-14 rounded-xl bg-white shadow-sm flex flex-col items-center justify-center">
+                <span class="text-[10px] text-gray-400">周二</span>
+                <span class="text-sm font-medium text-gray-600">13</span>
+            </div>
+            <div class="flex-shrink-0 w-12 h-14 rounded-xl bg-white shadow-sm flex flex-col items-center justify-center">
+                <span class="text-[10px] text-gray-400">周三</span>
+                <span class="text-sm font-medium text-gray-600">14</span>
+            </div>
+            <div class="flex-shrink-0 w-12 h-14 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 shadow-md flex flex-col items-center justify-center">
+                <span class="text-[10px] text-white/80">周四</span>
+                <span class="text-sm font-semibold text-white">15</span>
+            </div>
+            <div class="flex-shrink-0 w-12 h-14 rounded-xl bg-white shadow-sm flex flex-col items-center justify-center">
+                <span class="text-[10px] text-gray-400">周五</span>
+                <span class="text-sm font-medium text-gray-600">16</span>
+            </div>
+            <div class="flex-shrink-0 w-12 h-14 rounded-xl bg-white shadow-sm flex flex-col items-center justify-center">
+                <span class="text-[10px] text-gray-400">周六</span>
+                <span class="text-sm font-medium text-gray-600">17</span>
+            </div>
+            <div class="flex-shrink-0 w-12 h-14 rounded-xl bg-white shadow-sm flex flex-col items-center justify-center">
+                <span class="text-[10px] text-gray-400">周日</span>
+                <span class="text-sm font-medium text-gray-600">18</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 今日概览卡片 -->
+    <div class="px-4 mb-4">
+        <div class="rounded-2xl bg-white shadow-sm p-4">
+            <div class="flex items-center gap-2 mb-3">
+                <i data-lucide="paw-print" class="w-4 h-4 text-purple-600"></i>
+                <span class="text-sm font-semibold text-gray-900">布丁今日概览</span>
+                <span class="ml-auto text-xs text-gray-400">6月15日</span>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                <div class="text-center">
+                    <div class="w-10 h-10 mx-auto rounded-full bg-purple-50 flex items-center justify-center mb-1">
+                        <i data-lucide="utensils" class="w-4 h-4 text-purple-600"></i>
+                    </div>
+                    <div class="text-xs text-gray-500">饮食</div>
+                    <div class="text-sm font-semibold text-gray-900">3 餐</div>
+                </div>
+                <div class="text-center">
+                    <div class="w-10 h-10 mx-auto rounded-full bg-pink-50 flex items-center justify-center mb-1">
+                        <i data-lucide="footprints" class="w-4 h-4 text-pink-500"></i>
+                    </div>
+                    <div class="text-xs text-gray-500">活动</div>
+                    <div class="text-sm font-semibold text-gray-900">45 分钟</div>
+                </div>
+                <div class="text-center">
+                    <div class="w-10 h-10 mx-auto rounded-full bg-orange-50 flex items-center justify-center mb-1">
+                        <i data-lucide="heart" class="w-4 h-4 text-orange-400"></i>
+                    </div>
+                    <div class="text-xs text-gray-500">心情</div>
+                    <div class="text-sm font-semibold text-gray-900">开心</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 时间轴日记 -->
+    <div class="px-4">
+        <div class="flex items-center gap-2 mb-3">
+            <i data-lucide="notebook-pen" class="w-4 h-4 text-purple-600"></i>
+            <h2 class="text-sm font-semibold text-gray-900">今日记录</h2>
+        </div>
+
+        <!-- 时间线 -->
+        <div class="relative pl-6 border-l-2 border-purple-100 space-y-4 pb-4">
+            <!-- 早餐 -->
+            <div class="relative">
+                <div class="absolute -left-[25px] w-3 h-3 rounded-full bg-purple-400 border-2 border-white"></div>
+                <div class="rounded-xl bg-white shadow-sm p-3">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[10px] text-gray-400">08:30</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">饮食</span>
+                    </div>
+                    <p class="text-sm text-gray-700">早餐吃了皇家猫粮 40g + 罐头半个，胃口不错</p>
+                </div>
+            </div>
+
+            <!-- 活动 -->
+            <div class="relative">
+                <div class="absolute -left-[25px] w-3 h-3 rounded-full bg-pink-400 border-2 border-white"></div>
+                <div class="rounded-xl bg-white shadow-sm p-3">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[10px] text-gray-400">10:15</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-pink-50 text-pink-600">活动</span>
+                    </div>
+                    <p class="text-sm text-gray-700">在客厅追逗猫棒玩了 20 分钟，超级兴奋</p>
+                    <div class="mt-2 flex gap-2">
+                        <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                            <i data-lucide="image" class="w-6 h-6 text-purple-300"></i>
+                        </div>
+                        <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                            <i data-lucide="image" class="w-6 h-6 text-purple-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 心情 -->
+            <div class="relative">
+                <div class="absolute -left-[25px] w-3 h-3 rounded-full bg-orange-400 border-2 border-white"></div>
+                <div class="rounded-xl bg-white shadow-sm p-3">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[10px] text-gray-400">14:00</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-orange-50 text-orange-600">心情</span>
+                    </div>
+                    <p class="text-sm text-gray-700">午睡醒来心情很好，在窗台晒太阳发呆 ☀️</p>
+                </div>
+            </div>
+
+            <!-- 晚餐 -->
+            <div class="relative">
+                <div class="absolute -left-[25px] w-3 h-3 rounded-full bg-purple-400 border-2 border-white"></div>
+                <div class="rounded-xl bg-white shadow-sm p-3">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[10px] text-gray-400">18:30</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">饮食</span>
+                    </div>
+                    <p class="text-sm text-gray-700">晚餐鸡胸肉拌猫粮 50g，吃得干干净净</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部浮动按钮 -->
+    <div class="sticky bottom-6 px-4 mt-4">
+        <button class="w-full py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-medium shadow-lg shadow-purple-200 flex items-center justify-center gap-2">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            记录此刻
+        </button>
+    </div>
+
+    <!-- 概念预览水印 -->
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.03] text-6xl font-bold text-purple-900 rotate-[-15deg] whitespace-nowrap">
+        概念预览
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

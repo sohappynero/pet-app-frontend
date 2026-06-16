@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, Vote, Hammer, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Loader2, Vote, Hammer, CheckCircle2, Eye } from "lucide-react";
 import VoteConfirmDialog from "../components/VoteConfirmDialog";
+import FeaturePreviewDialog, { hasPreview } from "../components/FeaturePreviewDialog";
 import {
   listVoteCandidates,
   castVote,
@@ -19,12 +20,19 @@ interface ConfirmState {
   currentVotes: number;
 }
 
+// 预览弹窗所需状态
+interface PreviewState {
+  key: string;
+  title: string;
+}
+
 export default function FeatureVote() {
   const navigate = useNavigate();
   const [data, setData] = useState<CandidateListData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
+  const [preview, setPreview] = useState<PreviewState | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -201,6 +209,7 @@ export default function FeatureVote() {
                 exhausted={exhausted}
                 onVote={() => handleVoteClick(c)}
                 onRevoke={() => handleRevokeClick(c)}
+                onPreview={() => setPreview({ key: c.key, title: c.title })}
               />
             ))}
           </div>
@@ -285,6 +294,14 @@ export default function FeatureVote() {
         onCancel={() => !submitting && setConfirm(null)}
       />
 
+      {/* 功能预览弹窗 */}
+      <FeaturePreviewDialog
+        open={preview !== null}
+        candidateKey={preview?.key || ""}
+        candidateTitle={preview?.title || ""}
+        onClose={() => setPreview(null)}
+      />
+
       {/* Toast 全局提示 */}
       {toast && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 bg-black/80 text-white text-sm px-4 py-2 rounded-lg">
@@ -302,13 +319,16 @@ function CandidateCard({
   exhausted,
   onVote,
   onRevoke,
+  onPreview,
 }: {
   c: VotingCandidate;
   exhausted: boolean;
   onVote: () => void;
   onRevoke: () => void;
+  onPreview: () => void;
 }) {
   const myVotes = c.my_votes;
+  const showPreview = hasPreview(c.key);
   return (
     <div className="rounded-2xl bg-white shadow-sm p-4">
       {c.cover_image && (
@@ -329,6 +349,16 @@ function CandidateCard({
         <p className="mt-1 text-xs text-gray-500 leading-relaxed">
           {c.description}
         </p>
+      )}
+      {/* 查看预览按钮 */}
+      {showPreview && (
+        <button
+          onClick={onPreview}
+          className="mt-2 flex items-center gap-1 text-xs text-purple-600 hover:text-purple-700"
+        >
+          <Eye className="w-3.5 h-3.5" />
+          <span>查看概念预览</span>
+        </button>
       )}
       <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
         <div
