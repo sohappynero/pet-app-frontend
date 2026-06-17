@@ -57,6 +57,7 @@ function fetchWithTimeout(url: string, options?: RequestInit, timeoutMs = FETCH_
   return fetch(url, {
     ...options,
     signal: controller.signal,
+    credentials: "include",
   }).finally(() => clearTimeout(timer));
 }
 

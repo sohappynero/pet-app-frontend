@@ -14358,7 +14358,6 @@ body::before {
     0 1px 3px rgba(0,0,0,0.02);
   border: 1px solid rgba(0,0,0,0.04);
   position: relative;
-  overflow: hidden;
 }
 .ai-card::before {
   content: '';
@@ -14367,6 +14366,7 @@ body::before {
   height: 50%;
   background: linear-gradient(180deg, rgba(0,184,148,0.02), transparent);
   pointer-events: none;
+  border-radius: 20px 20px 0 0;
 }
 
 /* 卡片头部 - 全部水平排列 */

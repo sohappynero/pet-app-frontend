@@ -1,20 +1,13 @@
 /**
  * 宠物 3D 卡通头像生成服务
- * 使用 AI 图像生成 API 将真实宠物照片转换为 Pixar 风格 3D 卡通头像
+ * 通过后端代理调用 AI 图像生成 API
  */
 
 import { getSessionToken } from "./session";
 
-// API 配置
-const AI_API_BASE_URL = import.meta.env.VITE_AI_API_BASE_URL || "";
-const AI_API_KEY = import.meta.env.VITE_AI_API_KEY || "";
-
 export interface Generate3DAvatarOptions {
-  /** 宠物名称（用于提示词优化） */
   petName?: string;
-  /** 宠物种类 */
   species?: "dog" | "cat" | "other";
-  /** 背景风格 */
   background?: "simple" | "gradient" | "solid";
 }
 
@@ -89,7 +82,7 @@ function base64ToDataUrl(base64: string, mimeType = "image/png"): string {
 }
 
 /**
- * 通用图像生成 API 调用（可适配多种后端）
+ * 通过后端代理调用 AI 图像生成
  */
 async function callImageGenAPI(
   imageBase64: string,
@@ -98,111 +91,38 @@ async function callImageGenAPI(
 ): Promise<string> {
   onProgress?.("正在调用 AI 服务...");
 
-  // 方式1: 使用通义千问 Wanx API（如已配置）
-  if (AI_API_BASE_URL && AI_API_KEY) {
-    return await callWanxAPI(imageBase64, prompt, onProgress);
-  }
-
-  // 方式2: 使用 OpenAI DALL-E API（如已配置）
-  if (import.meta.env.VITE_OPENAI_API_KEY) {
-    return await callOpenAIAPI(imageBase64, prompt, onProgress);
-  }
-
-  // 方式3: 模拟生成（用于演示/测试）
-  return await mockGenerate3DAvatar(imageBase64, prompt, onProgress);
-}
-
-/**
- * 通义千问 Wanx API 调用
- */
-async function callWanxAPI(
-  imageBase64: string,
-  prompt: string,
-  onProgress?: (status: string) => void
-): Promise<string> {
-  onProgress?.("正在处理图片...");
-
-  const response = await fetch(`${AI_API_BASE_URL}/api/v1/wanx/image/generate`, {
+  const token = getSessionToken();
+  const response = await fetch("/api/v1/ai/generate-image", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${AI_API_KEY}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify({
-      model: "wanx3d-anime",
-      input: {
-        image: imageBase64,
-        prompt: prompt,
-      },
-      parameters: {
-        size: "1024*1024",
-        num_images: 1,
-      },
-    }),
+    body: JSON.stringify({ image: imageBase64, prompt }),
   });
 
   if (!response.ok) {
-    throw new Error(`API 调用失败: ${response.status}`);
+    if (import.meta.env.DEV) {
+      return await mockGenerate3DAvatar(imageBase64, prompt, onProgress);
+    }
+    throw new Error(`AI 服务调用失败: ${response.status}`);
   }
 
   onProgress?.("正在生成 3D 卡通头像...");
-
   const data = await response.json();
-  
-  // 解析返回的图片URL
-  const imageUrl = data?.data?.[0]?.url || data?.output?.image_url;
-  
-  if (!imageUrl) {
-    throw new Error("生成失败，未获取到图片");
+
+  if (!data.success || !data.url) {
+    if (import.meta.env.DEV) {
+      return await mockGenerate3DAvatar(imageBase64, prompt, onProgress);
+    }
+    throw new Error(data.error || "生成失败，未获取到图片");
   }
 
-  return imageUrl;
+  return data.url;
 }
 
 /**
- * OpenAI DALL-E API 调用
- */
-async function callOpenAIAPI(
-  _imageBase64: string,
-  prompt: string,
-  onProgress?: (status: string) => void
-): Promise<string> {
-  onProgress?.("正在处理并生成...");
-
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  
-  // 注意：DALL-E 3 不支持图像到图像的生成
-  // 这里需要配合 GPT-4 Vision 来处理
-  // 简化实现：直接使用文本生成
-  
-  const response = await fetch("https://api.openai.com/v1/images/generations", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "dall-e-3",
-      prompt: `3D Pixar style cartoon ${prompt}, professional quality`,
-      n: 1,
-      size: "1024x1024",
-      quality: "standard",
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`DALL-E API 调用失败: ${response.status}`);
-  }
-
-  onProgress?.("AI 正在渲染...");
-
-  const data = await response.json();
-  return data.data[0].url;
-}
-
-/**
- * 模拟生成（用于演示/测试环境）
- * 使用 CSS 滤镜将原图转换为类 3D 卡通效果
+ * 模拟生成（用于开发/测试环境）
  */
 async function mockGenerate3DAvatar(
   imageBase64: string,

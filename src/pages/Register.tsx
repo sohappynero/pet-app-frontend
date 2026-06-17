@@ -43,15 +43,15 @@ export default function Register() {
     setSendingCode(true);
     try {
       const data = await sendRegisterCode({ phone: form.phone.trim() });
-      const demoCode = data.data?.demo_code;
       const mode = data.data?.mode;
-      setSuccess(
-        demoCode
-          ? `${data.message || "验证码已发送"} 测试验证码：${demoCode}`
-          : mode === "tencent"
-          ? data.message || "验证码已发送到你的手机，请注意查收短信。"
-          : data.message || "验证码已发送"
-      );
+      let msg = data.message || "验证码已发送";
+      if (mode === "tencent") {
+        msg = data.message || "验证码已发送到你的手机，请注意查收短信。";
+      }
+      if (import.meta.env.DEV && data.data?.demo_code) {
+        msg += ` 测试验证码：${data.data.demo_code}`;
+      }
+      setSuccess(msg);
 
       setCountdown(60);
     } catch (err) {
