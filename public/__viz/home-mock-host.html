@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>home-mock host</title>
+  </head>
+  <body>
+    <div id="ready" data-testid="ready" hidden>ok</div>
+    <script type="module">
+      import * as homeMock from "/src/lib/home.mock.ts";
+      window.__homeMock = homeMock;
+      document.getElementById("ready").hidden = false;
+    </script>
+  </body>
+</html>
