@@ -74,3 +74,41 @@ const EMPTY_STATUS: CheckInStatus = {
   active: null,
   mood: null,
 };
+
+function safeParseStatus(raw: string | null): CheckInStatus {
+  if (!raw) return { ...EMPTY_STATUS };
+  try {
+    const parsed = JSON.parse(raw) as Partial<CheckInStatus>;
+    return {
+      photoToday: parsed.photoToday ?? null,
+      ate: parsed.ate ?? null,
+      active: parsed.active ?? null,
+      mood: parsed.mood ?? null,
+    };
+  } catch {
+    return { ...EMPTY_STATUS };
+  }
+}
+
+function readStatus(petId: number, today: Date): CheckInStatus {
+  try {
+    return safeParseStatus(localStorage.getItem(__checkInKey(petId, today)));
+  } catch {
+    return { ...EMPTY_STATUS };
+  }
+}
+
+function writeStatus(petId: number, today: Date, status: CheckInStatus): void {
+  try {
+    localStorage.setItem(__checkInKey(petId, today), JSON.stringify(status));
+  } catch {
+    // 配额满或被禁用时静默放过；mock 层不爆错
+  }
+}
+
+export async function getCheckInStatus(
+  petId: number,
+  today: Date = new Date()
+): Promise<CheckInStatus> {
+  return readStatus(petId, today);
+}
