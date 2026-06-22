@@ -1,0 +1,58 @@
+/* 全局 design tokens — 仅 :root，不输出任何具名选择器，避免污染 index.css */
+:root {
+  /* === 色彩 === */
+  --color-primary: #FFB84D;
+  --color-primary-soft: rgba(255, 184, 77, 0.2);
+  --color-primary-gradient: linear-gradient(180deg, #FFD9A0 0%, #FFF9F2 100%);
+
+  --color-bg: #FFF9F2;
+  --color-card: #FFFFFF;
+
+  --color-text-primary: #2A2A2A;
+  --color-text-secondary: #6B6B6B;
+  --color-text-tertiary: #9C9C9C;
+  --color-divider: #F0EBE2;
+
+  --color-success: #7ED957;
+  --color-info: #7BC7FF;
+  --color-warning: #FF8A65;
+
+  /* === 字体 === */
+  --font-family: -apple-system, "SF Pro Text", "PingFang SC", system-ui, sans-serif;
+
+  --text-display: 2rem;       /* 32px — Hero 宠物名字 */
+  --text-h1: 1.5rem;          /* 24px — 页面标题 */
+  --text-h2: 1.125rem;        /* 18px — 卡片标题 */
+  --text-body: 0.9375rem;     /* 15px — 正文 */
+  --text-caption: 0.8125rem;  /* 13px — 说明文字 */
+  --text-micro: 0.6875rem;    /* 11px — Tab 文字、徽章 */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* === 间距（8 倍数尺度）=== */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;   /* 卡片内边距默认 */
+  --space-5: 24px;   /* 区块间距默认 */
+  --space-6: 32px;
+  --space-7: 48px;   /* Hero 上下留白 */
+
+  /* === 圆角 === */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  /* === 阴影 === */
+  --shadow-card: 0 2px 12px rgba(255, 184, 77, 0.08);
+  --shadow-elevated: 0 8px 24px rgba(255, 184, 77, 0.12);
+
+  /* === 动效 === */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 600ms;
+}
