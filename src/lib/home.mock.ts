@@ -216,3 +216,45 @@ function composeTip(pet: PetProfileLike, s: CheckInStatus): DailyTip {
   }
   return { text: "保持喂食与作息节奏", category: "environment" };
 }
+
+export async function getDailyDigest(
+  pet: PetProfileLike,
+  today: Date = new Date()
+): Promise<DailyDigest> {
+  const status = readStatus(pet.id, today);
+  const { speaks, speaksMood } = composeSpeaks(pet, status);
+  const insights = composeInsights(pet, status);
+  return {
+    speaks,
+    speaksMood,
+    insights,
+    generatedAt: nowIso(today),
+  };
+}
+
+export async function getDailyTip(
+  pet: PetProfileLike,
+  today: Date = new Date()
+): Promise<DailyTip> {
+  const status = readStatus(pet.id, today);
+  return composeTip(pet, status);
+}
+
+export async function postCheckIn(
+  pet: PetProfileLike,
+  patch: Partial<Omit<CheckInStatus, "photoToday">> & {
+    photoToday?: CheckInPhoto | null;
+  },
+  today: Date = new Date()
+): Promise<DailyDigest> {
+  const prev = readStatus(pet.id, today);
+  const next: CheckInStatus = {
+    photoToday:
+      patch.photoToday === undefined ? prev.photoToday : patch.photoToday,
+    ate: patch.ate === undefined ? prev.ate : patch.ate,
+    active: patch.active === undefined ? prev.active : patch.active,
+    mood: patch.mood === undefined ? prev.mood : patch.mood,
+  };
+  writeStatus(pet.id, today, next);
+  return getDailyDigest(pet, today);
+}
