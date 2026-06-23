@@ -29,7 +29,6 @@ interface PrivilegeItem {
 
 const VIP_PRIVILEGES: PrivilegeItem[] = [
   { id: "emotion", icon: Smile, label: "情绪识别", desc: "读懂小情绪", color: "#A78BFA", bg: "#F3E8FF" },
-  { id: "analysis", icon: Sparkles, label: "AI健康分析", desc: "深度分析健康状态", color: "#F5A962", bg: "#FEF3E8" },
 ];
 
 export default function PetChat() {
@@ -175,7 +174,7 @@ export default function PetChat() {
         <button className="vip-back" onClick={() => navigate(-1)}>
           <ChevronLeft size={22} strokeWidth={2} />
         </button>
-        <h1 className="vip-header-title">会员中心</h1>
+        <h1 className="vip-header-title">宠物心声</h1>
         <button className="vip-right-btn" onClick={() => setShowBenefits(true)}>
           <Info size={13} />
           <span>权益说明</span>
@@ -199,20 +198,6 @@ export default function PetChat() {
             <span className="vip-hero-pet-fallback">🐾</span>
           )}
         </div>
-      </section>
-
-      {/* VIP Card */}
-      <section className="vip-card-bar">
-        <div className="vip-card-left">
-          <span className="vip-card-heart">
-            <Heart size={16} fill="#fff" />
-          </span>
-          <div>
-            <h3>{petName}的VIP小窝</h3>
-            <p>专属特权让我们更好地陪伴彼此</p>
-          </div>
-        </div>
-        <button className="vip-open-btn" onClick={() => navigate("/app/mine/vip")}>立即开通</button>
       </section>
 
       {/* Privileges */}

@@ -215,7 +215,7 @@ export default function AiAnalysis() {
           <span className="ai-float-deco ai-float-1">✨</span><span className="ai-float-deco ai-float-3">⭐</span>
         </div>
 
-        <button className="ai-back-btn" onClick={() => navigate(-1)}><ArrowLeft size={22} strokeWidth={2.2} /></button>
+        <button className="ai-back-btn" onClick={() => navigate("/app/insights")}><ArrowLeft size={22} strokeWidth={2.2} /></button>
 
         <h1 className="ai-hero-title">智能分析</h1>
 
@@ -265,11 +265,11 @@ export default function AiAnalysis() {
           {quickItems.map((item) => (
             <button key={item.label} className="ai-quick-btn" style={{ background: item.bg, boxShadow: item.shadow }}
               onClick={() => {
-                if (item.tab === "beauty") navigate("/app/beauty-analysis");
-                else if (item.tab === "trend") navigate("/app/weight-trend-analysis");
-                else if (item.tab === "health") navigate("/app/health-report-analysis");
-                else if (item.tab === "diet") navigate("/app/diet-analysis");
-                else if (item.tab === "exercise") navigate("/app/exercise-analysis");
+                if (item.tab === "beauty") navigate("/app/insights/beauty");
+                else if (item.tab === "trend") navigate("/app/insights/weight");
+                else if (item.tab === "health") navigate("/app/insights/health");
+                else if (item.tab === "diet") navigate("/app/insights/diet");
+                else if (item.tab === "exercise") navigate("/app/insights/exercise");
                 else setActiveTab(item.tab);
               }}>
               <span className="ai-quick-icon" style={{ color: item.color }}>{item.icon}</span>
@@ -519,7 +519,7 @@ export default function AiAnalysis() {
         isOpen={showQuotaModal}
         onClose={() => setShowQuotaModal(false)}
         quotaData={quotaErrorData}
-        onUpgrade={() => navigate("/vip")}
+        onUpgrade={() => navigate("/app/mine/vip")}
       />
     </main>
   );

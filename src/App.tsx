@@ -24,7 +24,8 @@ import HealthReportAnalysis from "./pages/HealthReportAnalysis";
 import DietAnalysis from "./pages/DietAnalysis";
 import ExerciseAnalysis from "./pages/ExerciseAnalysis";
 import HomePetOS from "./pages/HomePetOS";
-import Insights from "./pages/Insights";
+import AiAnalysis from "./pages/AiAnalysis";
+import VipHub from "./pages/VipHub";
 import Timeline from "./pages/Timeline";
 
 function RequireAuth() {
@@ -54,8 +55,9 @@ export default function App() {
             <Route index element={<HomePetOS />} />
             <Route path="chat" element={<PetChat />} />
 
-            {/* Insights */}
-            <Route path="insights" element={<Insights />} />
+            {/* 会员专区 */}
+            <Route path="insights" element={<VipHub />} />
+            <Route path="insights/analysis" element={<AiAnalysis />} />
             <Route path="insights/beauty" element={<BeautyAnalysis />} />
             <Route path="insights/weight" element={<WeightTrendAnalysis />} />
             <Route path="insights/health" element={<HealthReportAnalysis />} />

@@ -1128,3 +1128,223 @@
   color: var(--color-text-tertiary);
   cursor: pointer;
 }
+
+/* ======== 会员专区入口卡片 ======== */
+.petos-vip-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 20px;
+  background: var(--color-card);
+  border: 1px solid rgba(255, 184, 77, 0.12);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  font-family: var(--font-family);
+  text-align: left;
+  width: 100%;
+  transition: transform var(--duration-fast) var(--ease), box-shadow var(--duration-fast) var(--ease);
+}
+.petos-vip-card:active {
+  transform: scale(0.98);
+}
+.petos-vip-card__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
+}
+.petos-vip-card__body {
+  flex: 1;
+}
+.petos-vip-card__title {
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+.petos-vip-card__desc {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  margin-top: 3px;
+}
+.petos-vip-card__arrow {
+  font-size: 18px;
+  color: var(--color-text-tertiary);
+}
+
+/* 开通会员横条 */
+.petos-vip-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #FFD6E8 0%, #FFC4D9 100%);
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  font-family: var(--font-family);
+  margin-bottom: var(--space-3);
+}
+.petos-vip-banner__heart {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E06B8B;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.petos-vip-banner__body {
+  flex: 1;
+  text-align: left;
+}
+.petos-vip-banner__title {
+  display: block;
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-semibold);
+  color: #6B2040;
+}
+.petos-vip-banner__desc {
+  display: block;
+  font-size: var(--text-micro);
+  color: #9B4060;
+  margin-top: 2px;
+}
+.petos-vip-banner__btn {
+  padding: 8px 16px;
+  background: #fff;
+  border-radius: var(--radius-full);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  color: #E06B8B;
+  flex-shrink: 0;
+}
+
+/* ======== 成长 Tab ======== */
+.petos-timeline-dates {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: var(--space-1) 0;
+  -webkit-overflow-scrolling: touch;
+}
+.petos-timeline-dates::-webkit-scrollbar { display: none; }
+.petos-timeline-date {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-divider);
+  background: var(--color-bg);
+  font-size: var(--text-caption);
+  font-family: var(--font-family);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
+}
+.petos-timeline-date--on {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: var(--font-weight-medium);
+}
+
+.petos-timeline-grade {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  margin-top: 8px;
+}
+.petos-timeline-grade--good { background: rgba(126, 217, 87, 0.14); color: #4a9b2a; }
+.petos-timeline-grade--ok { background: var(--color-primary-soft); color: #b87a20; }
+.petos-timeline-grade--warn { background: rgba(255, 138, 101, 0.12); color: #c44a2a; }
+
+.petos-timeline-dims {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+.petos-timeline-dim {
+  background: var(--color-card);
+  border: 1px solid rgba(255, 184, 77, 0.08);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.petos-timeline-dim__emoji { font-size: 22px; }
+.petos-timeline-dim__label { font-size: var(--text-micro); color: var(--color-text-secondary); }
+.petos-timeline-dim__score { font-size: var(--text-h2); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); }
+.petos-timeline-dim__status { font-size: var(--text-micro); font-weight: var(--font-weight-medium); }
+.petos-dim--good .petos-timeline-dim__status { color: #4a9b2a; }
+.petos-dim--ok .petos-timeline-dim__status { color: #b87a20; }
+.petos-dim--warn .petos-timeline-dim__status { color: #c44a2a; }
+
+.petos-timeline-trend-placeholder {
+  text-align: center;
+  padding: var(--space-5) var(--space-4);
+  color: var(--color-text-tertiary);
+  font-size: var(--text-caption);
+}
+.petos-timeline-trend-placeholder span { font-size: 28px; display: block; margin-bottom: 6px; }
+
+.petos-timeline-records__title {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+.petos-timeline-records__empty {
+  text-align: center;
+  padding: var(--space-5);
+  color: var(--color-text-tertiary);
+  font-size: var(--text-caption);
+}
+.petos-timeline-record-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px 14px;
+  background: var(--color-card);
+  border: 1px solid rgba(255, 184, 77, 0.08);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-2);
+  cursor: pointer;
+  font-family: var(--font-family);
+  text-align: left;
+}
+.petos-timeline-record-item__type {
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-soft);
+  font-size: var(--text-micro);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  flex-shrink: 0;
+}
+.petos-timeline-record-item__title {
+  flex: 1;
+  font-size: var(--text-caption);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.petos-timeline-record-item__date {
+  font-size: var(--text-micro);
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}

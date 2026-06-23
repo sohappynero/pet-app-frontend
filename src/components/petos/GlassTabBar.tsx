@@ -14,7 +14,7 @@ export interface GlassTabBarProps {
 
 const DEFAULT_ITEMS: TabItem[] = [
   { key: "home", label: "首页", icon: "🏠" },
-  { key: "insights", label: "洞察", icon: "💡" },
+  { key: "insights", label: "会员专区", icon: "🌟" },
   { key: "timeline", label: "成长", icon: "📖" },
   { key: "mine", label: "我的", icon: "👤" },
 ];
