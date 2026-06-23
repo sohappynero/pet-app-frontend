@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Bell, FileText, Heart, UserRound, MessageCircle } from "lucide-react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import RouterGlassTabBar from "./petos/RouterGlassTabBar";
 import { fetchPets, fetchUserInfo } from "../lib/api";
 import {
   clearSessionUser,
@@ -125,14 +125,15 @@ export default function AppShell() {
   if (!user) return null;
 
   const path = location.pathname;
-  const isOnboardingMode = pets.length === 0 && path === "/app";
+  const isOnboardingMode = path === "/app/pets/add";
 
   // 子详情页隐藏底部导航栏（添加记录、记录详情是独立全屏页面）
   const hideTabBar =
     path.startsWith("/app/feedback") ||
     path.startsWith("/app/help") ||
     path.startsWith("/app/add-record") ||
-    path.startsWith("/app/record/");
+    path.startsWith("/app/record/") ||
+    path.startsWith("/app/pets/add");
 
   return (
     <div className={`my-shell ${isOnboardingMode ? "onboarding-mode" : ""}`}>
@@ -163,47 +164,7 @@ export default function AppShell() {
         </div>
       </div>
 
-      {!isOnboardingMode && !hideTabBar ? (
-        <nav className="bottom-tabbar">
-          <div className="bottom-tabbar-inner bottom-tabbar-5col">
-            <NavLink to="/app/pets" className={({ isActive }) => `tab-item ${isActive ? "active" : ""}`}>
-              <Heart size={22} strokeWidth={2.1} />
-              <span>首页</span>
-              <span className="tab-deco tab-deco-star">✦</span>
-            </NavLink>
-
-            <NavLink
-              to="/app/records"
-              className={`tab-item ${path.startsWith("/app/records") || path.startsWith("/app/add-record") ? "active" : ""}`}
-            >
-              <FileText size={22} strokeWidth={2.1} />
-              <span>健康记录</span>
-              <span className="tab-deco tab-deco-heart">♥</span>
-            </NavLink>
-
-            {/* 中间凸起的宠物心声入口 */}
-            <div className="tab-chat-center">
-              <button type="button" className="tab-chat-btn" onClick={() => navigate("/app/chat")}>
-                <MessageCircle size={24} strokeWidth={2.2} />
-                <span>会员专区</span>
-                <span className="tab-deco tab-deco-paw">🐾</span>
-              </button>
-            </div>
-
-            <NavLink to="/app/reminders" className={({ isActive }) => `tab-item ${isActive ? "active" : ""}`}>
-              <Bell size={22} strokeWidth={2.1} />
-              <span>提醒</span>
-              <span className="tab-deco tab-deco-dot">●</span>
-            </NavLink>
-
-            <NavLink to="/app/mine" className={({ isActive }) => `tab-item ${isActive ? "active" : ""}`}>
-              <UserRound size={20} strokeWidth={2.1} />
-              <span>我的</span>
-              <span className="tab-deco tab-deco-paw">🐾</span>
-            </NavLink>
-          </div>
-        </nav>
-      ) : null}
+      {!hideTabBar ? <RouterGlassTabBar /> : null}
     </div>
   );
 }

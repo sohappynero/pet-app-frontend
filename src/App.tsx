@@ -8,7 +8,6 @@ import Mine from "./pages/Mine";
 import Pets from "./pages/Pets";
 import Records from "./pages/Records";
 import RecordDetail from "./pages/RecordDetail";
-import AiAnalysis from "./pages/AiAnalysis";
 import BeautyAnalysis from "./pages/BeautyAnalysis";
 import RecordsCalendar from "./pages/RecordsCalendar";
 import Register from "./pages/Register";
@@ -17,8 +16,6 @@ import ReminderSettings from "./pages/ReminderSettings";
 import FeedbackCenter from "./pages/FeedbackCenter";
 import HelpCenter from "./pages/HelpCenter";
 import PrivacySettings from "./pages/PrivacySettings";
-import TokenRefreshTest from "./pages/TokenRefreshTest";
-import TestNewFeatures from "./pages/TestNewFeatures";
 import PetChat from "./pages/PetChat";
 import VipSubscribe from "./pages/VipSubscribe";
 import FeatureVote from "./pages/FeatureVote";
@@ -26,6 +23,9 @@ import WeightTrendAnalysis from "./pages/WeightTrendAnalysis";
 import HealthReportAnalysis from "./pages/HealthReportAnalysis";
 import DietAnalysis from "./pages/DietAnalysis";
 import ExerciseAnalysis from "./pages/ExerciseAnalysis";
+import HomePetOS from "./pages/HomePetOS";
+import Insights from "./pages/Insights";
+import Timeline from "./pages/Timeline";
 
 function RequireAuth() {
   const user = getSessionUser();
@@ -43,15 +43,17 @@ export default function App() {
 
         <Route element={<RequireAuth />}>
           <Route path="/app" element={<AppShell />}>
-            <Route index element={<Dashboard />} />
+            <Route index element={<HomePetOS />} />
+            <Route path="insights" element={<Insights />} />
+            <Route path="timeline" element={<Timeline />} />
             <Route path="mine" element={<Mine />} />
             <Route path="pets" element={<Pets />} />
+            <Route path="pets/add" element={<Dashboard />} />
             <Route path="records" element={<Records />} />
             <Route path="record/:id" element={<RecordDetail />} />
             <Route path="records-calendar" element={<RecordsCalendar />} />
             <Route path="add-record" element={<AddRecord />} />
             <Route path="reminders" element={<Reminders />} />
-            <Route path="ai-analysis" element={<AiAnalysis />} />
             <Route path="beauty-analysis" element={<BeautyAnalysis />} />
             <Route path="weight-trend-analysis" element={<WeightTrendAnalysis />} />
             <Route path="health-report-analysis" element={<HealthReportAnalysis />} />
@@ -67,8 +69,6 @@ export default function App() {
           </Route>
         </Route>
 
-        <Route path="token-refresh-test" element={<TokenRefreshTest />} />
-        <Route path="test-new-features" element={<TestNewFeatures />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

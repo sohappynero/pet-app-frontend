@@ -1,0 +1,473 @@
+/* PetOS 视觉系统 — 仅依赖 tokens.css 中的 CSS 变量
+ * 所有具名 class 以 .petos- 前缀，避免与 index.css 旧选择器冲突。
+ */
+
+/* ======== 页面骨架 ======== */
+.petos-page {
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* 给毛玻璃看的"色彩源"——隐形径向光斑，让 backdrop-filter 有东西可糊 */
+.petos-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(255, 184, 77, 0.35) 0%, transparent 38%),
+    radial-gradient(circle at 6% 92%, rgba(126, 217, 87, 0.22) 0%, transparent 42%),
+    radial-gradient(circle at 92% 96%, rgba(123, 199, 255, 0.20) 0%, transparent 38%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.petos-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.petos-content {
+  padding: var(--space-4) var(--space-4) calc(var(--space-7) + 76px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ======== 毛玻璃通用基底 ======== */
+.petos-glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: var(--glass-border);
+  box-shadow: var(--glass-inset-highlight), var(--shadow-glass-nav);
+  position: relative;
+}
+.petos-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: var(--glass-noise);
+  opacity: 0.6;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+.petos-glass > * {
+  position: relative;
+  z-index: 1;
+}
+
+.petos-glass--strong {
+  background: var(--glass-bg-strong);
+  border: var(--glass-border-strong);
+  box-shadow: var(--glass-inset-highlight), var(--shadow-glass-tab);
+}
+
+/* ======== 顶部 Glass Nav ======== */
+.petos-nav {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: var(--space-3);
+  z-index: 10;
+}
+.petos-nav__brand {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+.petos-nav__brand em {
+  font-style: normal;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+.petos-nav__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+.petos-nav__icon {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.55);
+  border: 0.5px solid rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-caption);
+  color: var(--color-text-primary);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 2px 6px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+}
+
+/* ======== 问候 + 宠物名 ======== */
+.petos-greet {
+  padding: var(--space-1) var(--space-2);
+}
+.petos-greet__hi {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  letter-spacing: -0.01em;
+}
+.petos-greet__name {
+  font-size: var(--text-display-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  margin-top: var(--space-1);
+}
+.petos-greet__name em {
+  font-style: normal;
+  color: var(--color-primary);
+}
+
+/* ======== Hero 区：头像悬浮 + Hero 卡 ======== */
+.petos-hero-stack {
+  position: relative;
+}
+
+.petos-hero {
+  background: linear-gradient(160deg, #ffffff 0%, #fff3e0 100%);
+  border: 1px solid rgba(255, 184, 77, 0.18);
+  border-radius: 28px;
+  padding: 20px 18px 18px;
+  position: relative;
+  box-shadow: var(--shadow-hero);
+  overflow: hidden;
+  min-height: 150px;
+}
+.petos-hero::after {
+  content: "";
+  position: absolute;
+  right: -40px;
+  top: -40px;
+  width: 140px;
+  height: 140px;
+  border-radius: var(--radius-full);
+  background: radial-gradient(circle, rgba(255, 184, 77, 0.22) 0%, transparent 70%);
+  pointer-events: none;
+}
+.petos-hero__label {
+  font-size: 11.5px;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.06em;
+}
+.petos-hero__score {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-top: var(--space-1);
+  font-feature-settings: "tnum";
+}
+.petos-hero__num {
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.petos-hero__unit {
+  font-size: 22px;
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+.petos-hero__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  background: rgba(126, 217, 87, 0.14);
+  color: #4a9b2a;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  font-size: 11.5px;
+  font-weight: var(--font-weight-medium);
+}
+.petos-hero__status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-success);
+}
+
+/* 头像独立悬浮在 Hero 卡右上方，上下浮动 4s 一周期 */
+.petos-hero-photo {
+  position: absolute;
+  right: 24px;
+  top: -54px;
+  width: 168px;
+  height: 168px;
+  border-radius: var(--radius-full);
+  background: radial-gradient(circle at 35% 25%, #ffe6c8 0%, #e89a4d 70%, #b6712b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 92px;
+  box-shadow: var(--shadow-photo), 0 16px 32px rgba(232, 154, 77, 0.40);
+  border: 4px solid rgba(255, 255, 255, 0.85);
+  z-index: 4;
+  animation: petos-float 4s ease-in-out infinite;
+  pointer-events: none;
+}
+.petos-hero-photo::after {
+  content: "";
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  background: radial-gradient(ellipse, rgba(232, 154, 77, 0.25) 0%, transparent 70%);
+  filter: blur(4px);
+  animation: petos-shadow 4s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes petos-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+@keyframes petos-shadow {
+  0%, 100% { transform: translateX(-50%) scale(1);   opacity: 0.7; }
+  50%      { transform: translateX(-50%) scale(0.85); opacity: 0.4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .petos-hero-photo,
+  .petos-hero-photo::after {
+    animation: none;
+  }
+}
+
+/* ======== AI 引文 ======== */
+.petos-quote {
+  padding: 14px 16px;
+  background: var(--color-card);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 184, 77, 0.12);
+  font-size: 13.5px;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  box-shadow: var(--shadow-card);
+}
+.petos-quote__who {
+  font-size: 10.5px;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+/* ======== 主 CTA ======== */
+.petos-cta {
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 20px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-cta);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+}
+.petos-cta__arrow {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ======== Mini Stats ======== */
+.petos-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+.petos-stat {
+  background: var(--color-card);
+  border: 1px solid rgba(255, 184, 77, 0.10);
+  border-radius: 18px;
+  padding: 12px 14px;
+}
+.petos-stat__lbl {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+.petos-stat__val {
+  font-size: 20px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-top: 2px;
+  letter-spacing: -0.02em;
+  font-feature-settings: "tnum";
+}
+.petos-stat__unit {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-left: 2px;
+  font-weight: var(--font-weight-medium);
+}
+.petos-stat__delta {
+  font-size: 11px;
+  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.petos-stat--blue .petos-stat__delta {
+  color: #5ba8e8;
+}
+.petos-stat--green .petos-stat__delta {
+  color: #4a9b2a;
+}
+
+/* ======== 底部 Tab Bar ======== */
+.petos-tabbar {
+  position: fixed;
+  bottom: 14px;
+  left: 14px;
+  right: 14px;
+  max-width: 452px;
+  margin: 0 auto;
+  padding: 10px 8px 12px;
+  border-radius: 30px;
+  display: flex;
+  justify-content: space-around;
+  z-index: 20;
+}
+.petos-tab {
+  flex: 1;
+  text-align: center;
+  font-size: 10.5px;
+  color: #b5a887;
+  font-weight: var(--font-weight-medium);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+}
+.petos-tab__ico {
+  font-size: 20px;
+  display: block;
+  margin-bottom: 2px;
+  filter: grayscale(1) opacity(0.45);
+}
+.petos-tab--on {
+  color: var(--color-primary);
+}
+.petos-tab--on .petos-tab__ico {
+  filter: none;
+}
+
+/* ======== 多宠物切换条 ======== */
+.petos-pet-switcher {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding: var(--space-1) 14px var(--space-2);
+  margin: 0 calc(-1 * var(--space-4));
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.petos-pet-switcher::-webkit-scrollbar {
+  display: none;
+}
+.petos-pet-switcher__item {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+.petos-pet-switcher__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: var(--color-card);
+  border: 2px solid var(--color-divider);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: 24px;
+  transition: border-color var(--duration-fast) var(--ease);
+}
+.petos-pet-switcher__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.petos-pet-switcher__name {
+  font-size: var(--text-micro);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  max-width: 56px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.petos-pet-switcher__item--on .petos-pet-switcher__avatar {
+  border-color: var(--color-primary);
+  border-width: 4px;
+}
+.petos-pet-switcher__item--on .petos-pet-switcher__name {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ======== 空状态 ======== */
+.petos-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-7) var(--space-4);
+  gap: var(--space-3);
+}
+.petos-empty-state__icon {
+  font-size: 56px;
+  filter: grayscale(0.3) opacity(0.85);
+  line-height: 1;
+}
+.petos-empty-state__title {
+  font-size: var(--text-h2);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.petos-empty-state__desc {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.petos-empty-state__cta {
+  margin-top: var(--space-4);
+  width: 100%;
+  max-width: 280px;
+}
