@@ -168,7 +168,7 @@ export default function Pets() {
           </div>
           <h3>还没有宠物档案</h3>
           <p>请先添加宠物后，再查看首页健康概览。</p>
-          <button type="button" className="pet-home-view-all" onClick={() => navigate("/app?add=1")}>
+          <button type="button" className="pet-home-view-all" onClick={() => navigate("/app/pets/add")}>
             去添加宠物
           </button>
         </section>
@@ -501,7 +501,7 @@ export default function Pets() {
                 );
               })}
             </div>
-            <button type="button" className="ph3d-add-pet-btn" onClick={() => { setSwitchOpen(false); navigate("/app?add=1"); }}>
+            <button type="button" className="ph3d-add-pet-btn" onClick={() => { setSwitchOpen(false); navigate("/app/pets/add"); }}>
               <PawPrint size={16} />
               添加新宠物
             </button>

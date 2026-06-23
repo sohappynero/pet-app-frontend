@@ -126,7 +126,7 @@ export default function HomePetOS() {
   return (
     <div className="petos-page">
       <div className="petos-content">
-        <GlassNav />
+        <GlassNav onAddClick={() => navigate("/app/pets/add")} />
 
         <div className="petos-greet">
           <div className="petos-greet__hi">

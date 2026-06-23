@@ -471,3 +471,445 @@
   width: 100%;
   max-width: 280px;
 }
+
+/* ======== 表单系统 (.petos-form-*) ======== */
+
+.petos-form-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) 0;
+}
+.petos-form-topbar__back {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-card);
+  border: 1px solid var(--color-divider);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  font-size: 18px;
+}
+.petos-form-topbar__title {
+  font-size: var(--text-h2);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.petos-form-step-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.petos-form-step-header__emoji {
+  font-size: 28px;
+}
+.petos-form-step-header__title {
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+.petos-form-step-header__index {
+  font-size: var(--text-micro);
+  color: var(--color-text-tertiary);
+}
+
+.petos-form-progress {
+  height: 4px;
+  background: var(--color-divider);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-5);
+  overflow: hidden;
+}
+.petos-form-progress__fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  transition: width var(--duration-normal) var(--ease);
+}
+
+.petos-form-card {
+  background: var(--color-card);
+  border: 1px solid rgba(255, 184, 77, 0.10);
+  border-radius: 20px;
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+}
+
+.petos-form-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+.petos-form-required {
+  color: var(--color-warning);
+  font-size: 12px;
+}
+
+.petos-form-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-body);
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  background: var(--color-bg);
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease);
+}
+.petos-form-input:focus {
+  border-color: var(--color-primary);
+}
+.petos-form-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.petos-form-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-body);
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  background: var(--color-bg);
+  outline: none;
+  resize: vertical;
+  transition: border-color var(--duration-fast) var(--ease);
+}
+.petos-form-textarea:focus {
+  border-color: var(--color-primary);
+}
+
+/* Toggle / Tag 组 */
+.petos-form-toggle-group {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.petos-form-toggle {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-divider);
+  background: var(--color-bg);
+  font-size: var(--text-caption);
+  font-family: var(--font-family);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
+}
+.petos-form-toggle--on {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.petos-form-tags {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.petos-form-tag {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-divider);
+  background: var(--color-bg);
+  font-size: var(--text-caption);
+  font-family: var(--font-family);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
+}
+.petos-form-tag--on {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Gender 按钮 */
+.petos-form-gender-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+.petos-form-gender-btn {
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-divider);
+  background: var(--color-bg);
+  font-size: var(--text-body);
+  font-family: var(--font-family);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--duration-fast) var(--ease);
+}
+.petos-form-gender-btn--on {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Switch 开关 */
+.petos-form-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.petos-form-switch {
+  width: 44px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: var(--color-divider);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background var(--duration-fast) var(--ease);
+  flex-shrink: 0;
+}
+.petos-form-switch--on {
+  background: var(--color-primary);
+}
+.petos-form-switch__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: transform var(--duration-fast) var(--ease);
+}
+.petos-form-switch--on .petos-form-switch__thumb {
+  transform: translateX(20px);
+}
+
+/* 体型选择 */
+.petos-form-size-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-2);
+}
+.petos-form-size-btn {
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--color-divider);
+  background: var(--color-bg);
+  font-family: var(--font-family);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
+}
+.petos-form-size-btn--on {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+.petos-form-size-btn strong {
+  display: block;
+  font-size: var(--text-caption);
+  color: var(--color-text-primary);
+}
+.petos-form-size-btn small {
+  font-size: var(--text-micro);
+  color: var(--color-text-tertiary);
+}
+
+/* 底部固定按钮区 */
+.petos-form-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--space-3) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-divider);
+  z-index: 15;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.petos-form-footer__row {
+  display: flex;
+  gap: var(--space-3);
+}
+.petos-form-btn-prev {
+  flex: 1;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1.5px solid var(--color-divider);
+  background: var(--color-card);
+  font-size: var(--text-body);
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.petos-form-btn-prev:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.petos-form-btn-next {
+  flex: 2;
+  padding: 14px;
+  border-radius: 16px;
+  border: none;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: var(--text-body);
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  box-shadow: var(--shadow-cta);
+}
+.petos-form-btn-next:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 预览卡片 */
+.petos-form-preview-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.petos-form-preview-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #ffe6c8, #e89a4d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+.petos-form-preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+.petos-form-preview-grid > div {
+  padding: 8px 12px;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+}
+.petos-form-preview-grid span {
+  font-size: var(--text-micro);
+  color: var(--color-text-tertiary);
+  display: block;
+}
+.petos-form-preview-grid strong {
+  font-size: var(--text-caption);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* 提示文字 */
+.petos-form-error {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 138, 101, 0.10);
+  color: var(--color-warning);
+  font-size: var(--text-caption);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.petos-form-tip {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-soft);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.petos-form-weight-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.petos-form-weight-wrap input {
+  flex: 1;
+}
+.petos-form-weight-unit {
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-weight-medium);
+}
+.petos-form-weight-hint {
+  font-size: var(--text-micro);
+  color: var(--color-text-tertiary);
+  margin-top: 4px;
+}
+.petos-form-weight-error {
+  font-size: var(--text-micro);
+  color: var(--color-warning);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.petos-form-date-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-body);
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  background: var(--color-bg);
+  outline: none;
+}
+.petos-form-date-input:focus {
+  border-color: var(--color-primary);
+}
+
+/* Avatar overlay */
+.petos-form-avatar-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 11px;
+  text-align: center;
+}
+.petos-form-avatar-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-caption);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-3);
+}
+.petos-form-avatar-remove {
+  background: none;
+  border: none;
+  color: var(--color-warning);
+  cursor: pointer;
+  font-size: var(--text-caption);
+  font-family: var(--font-family);
+}
