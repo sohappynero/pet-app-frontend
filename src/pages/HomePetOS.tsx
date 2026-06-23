@@ -5,6 +5,7 @@ import HeroCard from "../components/petos/HeroCard";
 import PetSwitcher from "../components/petos/PetSwitcher";
 import SpeechBubble from "../components/ui/SpeechBubble";
 import { useShell } from "../hooks/useShell";
+import { fetchAnalysisDashboard } from "../lib/api";
 import {
   getCheckInStatus,
   getDailyDigest,
@@ -66,6 +67,8 @@ export default function HomePetOS() {
   const [checkIn, setCheckIn] = useState<CheckInStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [checkinExpanded, setCheckinExpanded] = useState(false);
+  const [healthScore, setHealthScore] = useState<number | null>(null);
+  const [scoreGrade, setScoreGrade] = useState<string>("");
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   function petProfile(pet: Pet): PetProfileLike {
@@ -99,10 +102,14 @@ export default function HomePetOS() {
     if (!selectedPet) {
       setDigest(null);
       setCheckIn(null);
+      setHealthScore(null);
+      setScoreGrade("");
       return;
     }
     let cancelled = false;
     setLoading(true);
+    setHealthScore(null);
+    setScoreGrade("");
     Promise.all([
       getDailyDigest({
         id: selectedPet.id,
@@ -119,6 +126,17 @@ export default function HomePetOS() {
       setCheckIn(c);
       setLoading(false);
     });
+    fetchAnalysisDashboard(selectedPet.id)
+      .then((data) => {
+        if (cancelled) return;
+        setHealthScore(data.overall_score);
+        setScoreGrade(data.score_grade);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setHealthScore(null);
+        setScoreGrade("");
+      });
     return () => {
       cancelled = true;
     };
@@ -181,7 +199,7 @@ export default function HomePetOS() {
           />
         ) : null}
 
-        <HeroCard score={100} unit="" statusText="状态正常" petVisual={petVisualOf(selectedPet)} />
+        <HeroCard score={healthScore ?? "--"} unit="" statusText={scoreGrade ? `等级 ${scoreGrade}` : "--"} petVisual={petVisualOf(selectedPet)} />
 
         <div className="petos-quote">
           <div className="petos-quote__who">

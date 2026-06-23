@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 
 export interface HeroCardProps {
   label?: string;
-  score: number;
+  score: number | string;
   unit?: string;
   statusText?: string;
   /** 宠物形象。默认 emoji；项目里有真实照片可传 <img /> 或自定义节点 */
