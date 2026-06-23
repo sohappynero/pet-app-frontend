@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GlassNav from "../components/petos/GlassNav";
 import HeroCard from "../components/petos/HeroCard";
@@ -8,8 +8,13 @@ import { useShell } from "../hooks/useShell";
 import {
   getCheckInStatus,
   getDailyDigest,
+  postCheckIn,
   type CheckInStatus,
+  type CheckInAte,
+  type CheckInActive,
+  type CheckInMood,
   type DailyDigest,
+  type PetProfileLike,
 } from "../lib/home.mock";
 import type { Pet } from "../types";
 
@@ -60,6 +65,35 @@ export default function HomePetOS() {
   const [digest, setDigest] = useState<DailyDigest | null>(null);
   const [checkIn, setCheckIn] = useState<CheckInStatus | null>(null);
   const [loading, setLoading] = useState(false);
+  const [checkinExpanded, setCheckinExpanded] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  function petProfile(pet: Pet): PetProfileLike {
+    return { id: pet.id, name: pet.name, species: pet.species, breed: pet.breed, age: pet.age, weight_kg: pet.weight_kg };
+  }
+
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedPet) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const url = reader.result as string;
+      const d = await postCheckIn(petProfile(selectedPet), { photoToday: { url, takenAt: new Date().toISOString() } });
+      setDigest(d);
+      const s = await getCheckInStatus(selectedPet.id);
+      setCheckIn(s);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleSelect = async (field: "ate" | "active" | "mood", value: string) => {
+    if (!selectedPet) return;
+    const d = await postCheckIn(petProfile(selectedPet), { [field]: value });
+    setDigest(d);
+    const s = await getCheckInStatus(selectedPet.id);
+    setCheckIn(s);
+  };
 
   useEffect(() => {
     if (!selectedPet) {
@@ -122,6 +156,7 @@ export default function HomePetOS() {
   const bubbleTime = digest?.generatedAt ? relativeTime(digest.generatedAt) : "";
   const weightDisplay = selectedPet.weight_kg ?? "--";
   const hasPhoto = checkIn?.photoToday != null;
+  const isAllDone = hasPhoto && checkIn?.ate != null && checkIn?.active != null && checkIn?.mood != null;
 
   return (
     <div className="petos-page">
@@ -159,10 +194,56 @@ export default function HomePetOS() {
           )}
         </div>
 
-        <button type="button" className="petos-cta">
+        <input ref={photoInputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handlePhoto} />
+        <button type="button" className={hasPhoto ? "petos-cta petos-cta--done" : "petos-cta"} onClick={() => photoInputRef.current?.click()}>
+          {hasPhoto && checkIn?.photoToday?.url ? (
+            <img src={checkIn.photoToday.url} alt="" className="petos-cta__thumb" />
+          ) : null}
           <span>{hasPhoto ? "今日已记录" : "📸 给我留个影"}</span>
-          <span className="petos-cta__arrow">→</span>
+          <span className="petos-cta__arrow">{hasPhoto ? "↻" : "→"}</span>
         </button>
+
+        <div className="petos-checkin">
+          {isAllDone && !checkinExpanded ? (
+            <div className="petos-checkin__summary">
+              <span className="petos-checkin__done">✓ 今日打卡完成</span>
+              <button type="button" className="petos-checkin__edit" onClick={() => setCheckinExpanded(true)}>修改</button>
+            </div>
+          ) : (
+            <>
+              {isAllDone && (
+                <div className="petos-checkin__summary">
+                  <span className="petos-checkin__done">✓ 今日打卡完成</span>
+                  <button type="button" className="petos-checkin__edit" onClick={() => setCheckinExpanded(false)}>收起</button>
+                </div>
+              )}
+              <div className="petos-checkin__row">
+                <div className="petos-checkin__label">🍽️ 吃了吗</div>
+                <div className="petos-checkin__pills">
+                  {([["normal", "正常"], ["less", "偏少"], ["much", "偏多"]] as [CheckInAte, string][]).map(([v, l]) => (
+                    <button key={v} type="button" className={`petos-checkin__pill${checkIn?.ate === v ? " petos-checkin__pill--on" : ""}`} onClick={() => handleSelect("ate", v)}>{l}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="petos-checkin__row">
+                <div className="petos-checkin__label">🏃 动了吗</div>
+                <div className="petos-checkin__pills">
+                  {([["normal", "正常"], ["less", "偏少"], ["much", "偏多"]] as [CheckInActive, string][]).map(([v, l]) => (
+                    <button key={v} type="button" className={`petos-checkin__pill${checkIn?.active === v ? " petos-checkin__pill--on" : ""}`} onClick={() => handleSelect("active", v)}>{l}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="petos-checkin__row">
+                <div className="petos-checkin__label">😊 状态如何</div>
+                <div className="petos-checkin__pills">
+                  {([["happy", "开心"], ["normal", "一般"], ["low", "低落"]] as [CheckInMood, string][]).map(([v, l]) => (
+                    <button key={v} type="button" className={`petos-checkin__pill${checkIn?.mood === v ? " petos-checkin__pill--on" : ""}`} onClick={() => handleSelect("mood", v)}>{l}</button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
 
         <div className="petos-stats">
           <div className="petos-stat petos-stat--blue">
