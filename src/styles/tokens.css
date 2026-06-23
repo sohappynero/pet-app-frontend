@@ -55,4 +55,25 @@
   --duration-fast: 150ms;
   --duration-normal: 300ms;
   --duration-slow: 600ms;
+
+  /* === PetOS 增补：大字号 === */
+  --text-display-lg: 2.125rem;  /* 34px — Hero 宠物名 */
+  --text-hero: 3rem;            /* 48px — 健康分大数字 */
+
+  /* === PetOS 增补：毛玻璃 === */
+  --glass-blur: 40px;
+  --glass-saturate: 200%;
+  --glass-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 249, 242, 0.28) 100%);
+  --glass-bg-strong: linear-gradient(180deg, rgba(255, 255, 255, 0.50) 0%, rgba(255, 249, 242, 0.32) 100%);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.55);
+  --glass-border-strong: 1px solid rgba(255, 255, 255, 0.60);
+  --glass-inset-highlight: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 0 0 0.5px rgba(255, 184, 77, 0.12) inset;
+  --glass-noise: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+
+  /* === PetOS 增补：阴影 === */
+  --shadow-glass-nav: 0 12px 32px rgba(255, 184, 77, 0.14), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-glass-tab: 0 16px 40px rgba(255, 184, 77, 0.18), 0 4px 10px rgba(0, 0, 0, 0.05);
+  --shadow-cta: 0 10px 24px rgba(255, 184, 77, 0.35);
+  --shadow-hero: 0 8px 24px rgba(255, 184, 77, 0.10);
+  --shadow-photo: 0 12px 24px rgba(232, 154, 77, 0.35), inset 0 -4px 8px rgba(0, 0, 0, 0.08);
 }
