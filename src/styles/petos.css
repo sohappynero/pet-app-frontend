@@ -1003,3 +1003,128 @@
   font-family: var(--font-family);
   cursor: pointer;
 }
+
+/* ======== Mine 页面 ======== */
+.petos-mine-profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-card);
+  border: 1px solid rgba(255, 184, 77, 0.12);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+.petos-mine-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #ffe6c8, #e89a4d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.petos-mine-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.petos-mine-avatar__letter {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+}
+.petos-mine-info__name {
+  font-size: var(--text-h2);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+.petos-mine-info__meta {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.petos-mine-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 14px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+}
+.petos-mine-row__emoji {
+  font-size: 20px;
+  width: 28px;
+  text-align: center;
+}
+.petos-mine-row__label {
+  flex: 1;
+  text-align: left;
+  font-size: var(--text-body);
+  color: var(--color-text-primary);
+}
+.petos-mine-row__right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+}
+.petos-mine-divider {
+  height: 1px;
+  background: var(--color-divider);
+  margin-left: 44px;
+}
+
+.petos-mine-services__title {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+.petos-mine-services__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+.petos-mine-service-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 8px;
+  background: var(--color-card);
+  border: 1px solid rgba(255, 184, 77, 0.08);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-family);
+}
+.petos-mine-service-card__emoji {
+  font-size: 24px;
+}
+.petos-mine-service-card__label {
+  font-size: var(--text-micro);
+  color: var(--color-text-secondary);
+}
+
+.petos-mine-logout {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  background: none;
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  font-size: var(--text-body);
+  font-family: var(--font-family);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+}
