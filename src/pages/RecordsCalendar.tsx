@@ -132,7 +132,7 @@ export default function RecordsCalendar() {
   return (
     <main className="record-calendar-page">
       <header className="record-calendar-topbar">
-        <button className="rc-back-btn" onClick={() => navigate("/app/records")}> 
+        <button className="rc-back-btn" onClick={() => navigate("/app/timeline/records")}> 
           <ChevronLeft size={20} />
         </button>
         <h1>日历视图</h1>
@@ -222,7 +222,7 @@ export default function RecordsCalendar() {
         ) : (
           <div className="rc-selected-list">
             {selectedDateRecords.slice(0, 3).map((item) => (
-              <button key={item.id} onClick={() => navigate(`/app/add-record?edit=${item.id}`)}>
+              <button key={item.id} onClick={() => navigate(`/app/timeline/add-record?edit=${item.id}`)}>
                 {item.title || "健康记录"}
               </button>
             ))}

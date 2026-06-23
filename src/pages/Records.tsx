@@ -711,7 +711,7 @@ export default function Records() {
                 <button
                   key={`${record.id}-${record.record_type}`}
                   className="h3d-record-item"
-                  onClick={() => navigate(`/app/record/${record.id}?type=${record.record_type}`)}
+                  onClick={() => navigate(`/app/timeline/record/${record.id}?type=${record.record_type}`)}
                 >
                   <div className="h3d-record-icon" style={{ background: bg }}>
                     <div className="h3d-record-icon-inner" style={{ background: gradient }}>

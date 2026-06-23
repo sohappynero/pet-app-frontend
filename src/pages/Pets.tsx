@@ -302,7 +302,7 @@ export default function Pets() {
             </div>
             {scoreGrade && <span className="health-capsule-tag">{scoreGrade}</span>}
           </div>
-          <div className="health-capsule" onClick={() => navigate("/app/reminders")}>
+          <div className="health-capsule" onClick={() => navigate("/app/mine/reminders")}>
             <span className="health-capsule-icon" style={{ background: "linear-gradient(135deg, #F5A962, #E8944A)" }}>
               <Bell size={16} />
             </span>
@@ -312,7 +312,7 @@ export default function Pets() {
             </div>
             {pendingCount > 0 && <span className="health-capsule-dot" />}
           </div>
-          <div className="health-capsule" onClick={() => navigate("/app/records")}>
+          <div className="health-capsule" onClick={() => navigate("/app/timeline/records")}>
             <span className="health-capsule-icon" style={{ background: "linear-gradient(135deg, #7EC8E3, #5BA8C4)" }}>
               <FileText size={16} />
             </span>
@@ -321,7 +321,7 @@ export default function Pets() {
               <span className="health-capsule-label">健康记录</span>
             </div>
           </div>
-          <div className="health-capsule" onClick={() => navigate("/app/records")}>
+          <div className="health-capsule" onClick={() => navigate("/app/timeline/records")}>
             <span className="health-capsule-icon" style={{ background: "linear-gradient(135deg, #C4A8D8, #A88BC4)" }}>
               <Scale size={16} />
             </span>
@@ -342,7 +342,7 @@ export default function Pets() {
 
         <div className="ghibi-card-grid">
           {/* 体重记录 */}
-          <button type="button" className="ghibi-card-mini ghibi-card-weight" onClick={() => navigate(`/app/add-record?type=weight&pet_id=${currentPet?.id}`)}>
+          <button type="button" className="ghibi-card-mini ghibi-card-weight" onClick={() => navigate(`/app/timeline/add-record?type=weight&pet_id=${currentPet?.id}`)}>
             <div className="ghibi-mini-icon-wrap">
               <Scale size={22} strokeWidth={1.5} />
             </div>
@@ -351,7 +351,7 @@ export default function Pets() {
           </button>
 
           {/* 疫苗记录 */}
-          <button type="button" className="ghibi-card-mini ghibi-card-vaccine" onClick={() => navigate(`/app/add-record?type=vaccine&pet_id=${currentPet?.id}`)}>
+          <button type="button" className="ghibi-card-mini ghibi-card-vaccine" onClick={() => navigate(`/app/timeline/add-record?type=vaccine&pet_id=${currentPet?.id}`)}>
             <div className="ghibi-mini-icon-wrap">
               <Shield size={22} strokeWidth={1.5} />
             </div>
@@ -360,7 +360,7 @@ export default function Pets() {
           </button>
 
           {/* 驱虫记录 */}
-          <button type="button" className="ghibi-card-mini ghibi-card-deworm" onClick={() => navigate(`/app/add-record?type=deworm&pet_id=${currentPet?.id}`)}>
+          <button type="button" className="ghibi-card-mini ghibi-card-deworm" onClick={() => navigate(`/app/timeline/add-record?type=deworm&pet_id=${currentPet?.id}`)}>
             <div className="ghibi-mini-icon-wrap">
               <Shield size={22} strokeWidth={1.5} />
             </div>
@@ -369,7 +369,7 @@ export default function Pets() {
           </button>
 
           {/* 体检记录 */}
-          <button type="button" className="ghibi-card-mini ghibi-card-checkup" onClick={() => navigate(`/app/add-record?type=checkup&pet_id=${currentPet?.id}`)}>
+          <button type="button" className="ghibi-card-mini ghibi-card-checkup" onClick={() => navigate(`/app/timeline/add-record?type=checkup&pet_id=${currentPet?.id}`)}>
             <div className="ghibi-mini-icon-wrap">
               <Heart size={22} strokeWidth={1.5} />
             </div>
@@ -378,7 +378,7 @@ export default function Pets() {
           </button>
 
           {/* 饮食记录 */}
-          <button type="button" className="ghibi-card-mini ghibi-card-diet" onClick={() => navigate(`/app/add-record?type=diet&pet_id=${currentPet?.id}`)}>
+          <button type="button" className="ghibi-card-mini ghibi-card-diet" onClick={() => navigate(`/app/timeline/add-record?type=diet&pet_id=${currentPet?.id}`)}>
             <div className="ghibi-mini-icon-wrap">
               <Utensils size={22} strokeWidth={1.5} />
             </div>
@@ -387,7 +387,7 @@ export default function Pets() {
           </button>
 
           {/* 美容护理 */}
-          <button type="button" className="ghibi-card-mini ghibi-card-beauty" onClick={() => navigate(`/app/add-record?type=beauty&pet_id=${currentPet?.id}`)}>
+          <button type="button" className="ghibi-card-mini ghibi-card-beauty" onClick={() => navigate(`/app/timeline/add-record?type=beauty&pet_id=${currentPet?.id}`)}>
             <div className="ghibi-mini-icon-wrap">
               <Scissors size={22} strokeWidth={1.5} />
             </div>
@@ -396,7 +396,7 @@ export default function Pets() {
           </button>
 
           {/* 日常观察 */}
-          <button type="button" className="ghibi-card-mini ghibi-card-obs" onClick={() => navigate(`/app/add-record?type=observation&pet_id=${currentPet?.id}`)}>
+          <button type="button" className="ghibi-card-mini ghibi-card-obs" onClick={() => navigate(`/app/timeline/add-record?type=observation&pet_id=${currentPet?.id}`)}>
             <div className="ghibi-mini-icon-wrap">
               <Eye size={22} strokeWidth={1.5} />
             </div>
@@ -410,7 +410,7 @@ export default function Pets() {
       {/* ═══ 功能投票入口卡片 ═══ */}
       <section className="px-4 mt-3">
         <button
-          onClick={() => navigate("/app/feature-vote")}
+          onClick={() => navigate("/app/mine/feature-vote")}
           className="w-full rounded-2xl p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md text-left active:scale-[0.98] transition mb-4"
         >
           <div className="flex items-center gap-3">
@@ -428,7 +428,7 @@ export default function Pets() {
 
       {/* ═══ 待办提醒条（条件显示）═══ */}
       {pendingCount > 0 && (
-        <section className="reminder-bar" onClick={() => navigate("/app/reminders")}>
+        <section className="reminder-bar" onClick={() => navigate("/app/mine/reminders")}>
           <span className="reminder-bar-icon">
             <Bell size={16} />
           </span>

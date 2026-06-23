@@ -11,7 +11,7 @@ const TAB_TO_PATH = {
 type TabKey = keyof typeof TAB_TO_PATH;
 
 function pathToTabKey(pathname: string): TabKey | "" {
-  if (pathname === "/app" || pathname === "/app/") return "home";
+  if (pathname === "/app" || pathname === "/app/" || pathname.startsWith("/app/chat")) return "home";
   if (pathname.startsWith("/app/insights")) return "insights";
   if (pathname.startsWith("/app/timeline")) return "timeline";
   if (pathname.startsWith("/app/mine")) return "mine";

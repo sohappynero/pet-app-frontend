@@ -212,7 +212,7 @@ export default function PetChat() {
             <p>专属特权让我们更好地陪伴彼此</p>
           </div>
         </div>
-        <button className="vip-open-btn" onClick={() => navigate("/app/vip-subscribe")}>立即开通</button>
+        <button className="vip-open-btn" onClick={() => navigate("/app/mine/vip")}>立即开通</button>
       </section>
 
       {/* Privileges */}
@@ -230,7 +230,7 @@ export default function PetChat() {
                 className="vip-privilege-item"
                 onClick={() => {
                   if (item.id === "emotion") setShowPhotoMind(prev => !prev);
-                  if (item.id === "analysis") navigate("/app/ai-analysis");
+                  if (item.id === "analysis") navigate("/app/insights");
                 }}
               >
                 <span className="vip-privilege-icon" style={{ background: item.bg, color: item.color }}>
@@ -648,7 +648,7 @@ export default function PetChat() {
         petImage={petImage}
         onUpgrade={() => {
           setShowQuotaModal(false);
-          navigate("/app/vip-subscribe");
+          navigate("/app/mine/vip");
         }}
       />
     </main>

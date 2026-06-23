@@ -461,7 +461,7 @@ export default function RecordDetail() {
               <button 
                 type="button" 
                 className="rd-action-btn rd-edit-btn"
-                onClick={() => navigate(`/app/add-record?edit=${record.id}&type=${record.record_type}`)}
+                onClick={() => navigate(`/app/timeline/add-record?edit=${record.id}&type=${record.record_type}`)}
                 title="编辑记录"
               >
                 <Edit3 size={18} />
@@ -889,7 +889,7 @@ export default function RecordDetail() {
         <button
           type="button"
           className="rd-primary-btn"
-          onClick={() => navigate(`/app/add-record?edit=${record!.id}&type=${record!.record_type}`)}
+          onClick={() => navigate(`/app/timeline/add-record?edit=${record!.id}&type=${record!.record_type}`)}
         >
           <Edit3 size={18} />
           <span>编辑此记录</span>

@@ -475,7 +475,7 @@ export default function Reminders() {
               <h1 className="rm3d-hero-title">提醒管理</h1>
               <p className="rm3d-hero-desc">管理宠物健康提醒，不会遗漏重要事项</p>
 
-              <button className="rm3d-settings-btn" onClick={() => navigate("/app/reminder-settings")}>
+              <button className="rm3d-settings-btn" onClick={() => navigate("/app/mine/reminder-settings")}>
                 <Bell size={14} />
                 <span>设置</span>
               </button>

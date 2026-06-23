@@ -273,7 +273,7 @@ export default function DietAnalysis() {
         isOpen={showQuotaModal}
         onClose={() => setShowQuotaModal(false)}
         quotaData={quotaErrorData}
-        onUpgrade={() => navigate("/vip")}
+        onUpgrade={() => navigate("/app/mine/vip")}
       />
     </main>
   );

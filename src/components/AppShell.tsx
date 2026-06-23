@@ -129,10 +129,10 @@ export default function AppShell() {
 
   // 子详情页隐藏底部导航栏（添加记录、记录详情是独立全屏页面）
   const hideTabBar =
-    path.startsWith("/app/feedback") ||
-    path.startsWith("/app/help") ||
-    path.startsWith("/app/add-record") ||
-    path.startsWith("/app/record/") ||
+    path.startsWith("/app/mine/feedback") ||
+    path.startsWith("/app/mine/help") ||
+    path.startsWith("/app/timeline/add-record") ||
+    path.startsWith("/app/timeline/record/") ||
     path.startsWith("/app/pets/add");
 
   return (

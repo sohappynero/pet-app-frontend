@@ -720,7 +720,7 @@ export default function AddRecord() {
 
       setMessage("记录添加成功 🎉");
       setForm(s => ({ ...emptyForm, pet_id: s.pet_id }));
-      setTimeout(() => navigate("/app/records"), 800);
+      setTimeout(() => navigate("/app/timeline/records"), 800);
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
       console.error("[AddRecord] 提交失败:", err);
