@@ -799,6 +799,13 @@ export function fetchDashboard(phone: string, petId?: number) {
   return request<ApiResp<DashboardData>>(`/api/v1/dashboard?${params.toString()}`);
 }
 
+export function fetchWeightChart(petId: number): Promise<{ points: Array<{ date: string; kg: number }> }> {
+  return request<any>(`/api/v1/dashboard/statistics/weight-chart?pet_id=${petId}`).then((raw) => {
+    const points = raw?.points ?? raw?.data ?? (Array.isArray(raw) ? raw : []);
+    return { points };
+  });
+}
+
 
 export function changePassword(payload: { old_password: string; new_password: string }) {
   return request<ApiResp>("/api/v1/users/password", {

@@ -52,13 +52,13 @@ type HealthFilter = "all" | "weight" | "vaccine" | "deworm" | "diet" | "checkup"
 
 const filterItems: { key: HealthFilter; label: string; icon: React.ReactNode; color: string; bg: string }[] = [
   { key: "all", label: "全部", icon: <Sparkles size={14} />, color: "#667eea", bg: "rgba(102,126,234,0.12)" },
-  { key: "weight", label: "体重", icon: <Scale size={14} />, color: "#f0932b", bg: "rgba(240,147,43,0.12)" },
-  { key: "vaccine", label: "疫苗", icon: <Syringe size={14} />, color: "#6c5ce7", bg: "rgba(108,92,231,0.12)" },
-  { key: "deworm", label: "驱虫", icon: <Pill size={14} />, color: "#f5576c", bg: "rgba(245,87,108,0.12)" },
+  { key: "weight", label: "体重", icon: <Scale size={14} />, color: "#FFB84D", bg: "rgba(240,147,43,0.12)" },
+  { key: "vaccine", label: "疫苗", icon: <Syringe size={14} />, color: "#FFB84D", bg: "rgba(108,92,231,0.12)" },
+  { key: "deworm", label: "驱虫", icon: <Pill size={14} />, color: "#FF8A65", bg: "rgba(245,87,108,0.12)" },
   { key: "diet", label: "饮食", icon: <Heart size={14} />, color: "#00b894", bg: "rgba(0,184,148,0.12)" },
   { key: "checkup", label: "体检", icon: <Stethoscope size={14} />, color: "#74b9ff", bg: "rgba(116,185,255,0.12)" },
-  { key: "beauty", label: "美容", icon: <Sparkles size={14} />, color: "#fd79a8", bg: "rgba(253,121,168,0.12)" },
-  { key: "observation", label: "日常观察", icon: <Eye size={14} />, color: "#6c5ce7", bg: "rgba(108,92,231,0.12)" },
+  { key: "beauty", label: "美容", icon: <Sparkles size={14} />, color: "#FF8A65", bg: "rgba(253,121,168,0.12)" },
+  { key: "observation", label: "日常观察", icon: <Eye size={14} />, color: "#FFB84D", bg: "rgba(108,92,231,0.12)" },
 ];
 
 function isDietRecord(record: HealthRecord) {
@@ -201,23 +201,23 @@ type IconInfo = { icon: React.ReactNode; bg: string; color: string; gradient: st
 function getIconInfo(record: HealthRecord): IconInfo {
   // 按优先级匹配类型图标
   if (record.record_type === "vaccine")
-    return { icon: <Syringe size={20} />, bg: "#f0edfc", color: "#6c5ce7", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" };
+    return { icon: <Syringe size={20} />, bg: "#f0edfc", color: "#FFB84D", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" };
   if (record.record_type === "deworm")
-    return { icon: <Pill size={20} />, bg: "#fff0f3", color: "#f5576c", gradient: "linear-gradient(135deg, #f5576c 0%, #f093fb 100%)" };
+    return { icon: <Pill size={20} />, bg: "#fff0f3", color: "#FF8A65", gradient: "linear-gradient(135deg, #FF8A65 0%, #f093fb 100%)" };
   if (record.record_type === "checkup")
     return { icon: <Stethoscope size={20} />, bg: "#eaf4ff", color: "#74b9ff", gradient: "linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%)" };
   if (record.record_type === "beauty" || isBeautyRecord(record))
-    return { icon: <Sparkles size={20} />, bg: "#fff0f5", color: "#fd79a8", gradient: "linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%)" };
+    return { icon: <Sparkles size={20} />, bg: "#fff0f5", color: "#FF8A65", gradient: "linear-gradient(135deg, #FF8A65 0%, #fdcb6e 100%)" };
   if (record.record_type === "visit")
-    return { icon: <Activity size={20} />, bg: "#fef0e8", color: "#e17055", gradient: "linear-gradient(135deg, #e17055 0%, #f6b93b 100%)" };
+    return { icon: <Activity size={20} />, bg: "#fef0e8", color: "#FF8A65", gradient: "linear-gradient(135deg, #FF8A65 0%, #f6b93b 100%)" };
   if (record.weight_kg !== null && !Number.isNaN(Number(record.weight_kg)))
-    return { icon: <Scale size={20} />, bg: "#fef9e7", color: "#f0932b", gradient: "linear-gradient(135deg, #f9ca24 0%, #f0932b 100%)" };
+    return { icon: <Scale size={20} />, bg: "#fef9e7", color: "#FFB84D", gradient: "linear-gradient(135deg, #f9ca24 0%, #FFB84D 100%)" };
   if (isDietRecord(record))
     return { icon: <Heart size={20} />, bg: "#e8f8f0", color: "#00b894", gradient: "linear-gradient(135deg, #00b894 0%, #55efc4 100%)" };
   if (record.record_type === "observation")
-    return { icon: <Eye size={20} />, bg: "#f0e8ff", color: "#6c5ce7", gradient: "linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%)" };
+    return { icon: <Eye size={20} />, bg: "#f0e8ff", color: "#FFB84D", gradient: "linear-gradient(135deg, #a29bfe 0%, #FFB84D 100%)" };
   if (record.record_type === "external")
-    return { icon: <FileText size={20} />, bg: "#fef9e7", color: "#e17055", gradient: "linear-gradient(135deg, #fdcb6e 0%, #e17055 100%)" };
+    return { icon: <FileText size={20} />, bg: "#fef9e7", color: "#FF8A65", gradient: "linear-gradient(135deg, #fdcb6e 0%, #FF8A65 100%)" };
   return { icon: <FileText size={20} />, bg: "#f5f0eb", color: "#8b7355", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" };
 }
 
@@ -692,7 +692,7 @@ export default function Records() {
             <div className="h3d-empty-circle">
               <div className="h3d-empty-ring h3d-ring-1" />
               <div className="h3d-empty-ring h3d-ring-2" />
-              <div className="h3d-empty-emoji"><Stethoscope size={22} color="#6c5ce7" /></div>
+              <div className="h3d-empty-emoji"><Stethoscope size={22} color="#FFB84D" /></div>
             </div>
 
             <h4 className="h3d-empty-title">暂无健康记录</h4>

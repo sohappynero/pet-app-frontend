@@ -75,13 +75,13 @@ function WeightChart({ records }: { records: { date: string; weight: number; ide
         {/* 渐变定义 */}
         <defs>
           <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#6366f1" stopOpacity="0.02" />
+            <stop offset="0%" stopColor="#FFB84D" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#FFB84D" stopOpacity="0.02" />
           </linearGradient>
           <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor="#818cf8" />
-            <stop offset="50%" stopColor="#6366f1" />
-            <stop offset="100%" stopColor="#4f46e5" />
+            <stop offset="50%" stopColor="#FFB84D" />
+            <stop offset="100%" stopColor="#E8A030" />
           </linearGradient>
           <linearGradient id="idealGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#34d399" stopOpacity="0.25" />
@@ -110,8 +110,8 @@ function WeightChart({ records }: { records: { date: string; weight: number; ide
           const y = padding.top + chartH - ((r.weight - minW) / range) * chartH;
           return (
             <g key={i}>
-              <circle cx={x} cy={y} r="5" fill="#fff" stroke="#6366f1" strokeWidth="2.5" className="wt-data-point" />
-              <circle cx={x} cy={y} r="3" fill="#6366f1" />
+              <circle cx={x} cy={y} r="5" fill="#fff" stroke="#FFB84D" strokeWidth="2.5" className="wt-data-point" />
+              <circle cx={x} cy={y} r="3" fill="#FFB84D" />
               {/* 数值标签 */}
               {records.length <= 10 && (
                 <text x={x} y={y - 12} textAnchor="middle" className="wt-chart-label">
@@ -413,7 +413,7 @@ export default function WeightTrendAnalysis() {
               <circle
                 cx="60" cy="60" r="52"
                 fill="none"
-                stroke={overallScore >= 80 ? "#6366f1" : overallScore >= 65 ? "#f59e0b" : "#ef4444"}
+                stroke={overallScore >= 80 ? "#FFB84D" : overallScore >= 65 ? "#f59e0b" : "#ef4444"}
                 strokeWidth="10"
                 strokeLinecap="round"
                 strokeDasharray={`${overallScore * 3.27} 327`}

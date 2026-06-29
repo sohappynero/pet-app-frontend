@@ -4,13 +4,13 @@
 
 .beauty-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #fdf2f8 0%, #faf5ff 100%);
+  background: linear-gradient(180deg, #FFF9F2 0%, #FFF5EE 100%);
   padding-bottom: 20px;
 }
 
 /* ── 渐变头部 ─────────────────────────────── */
 .beauty-header {
-  background: linear-gradient(135deg, #f9a8d4 0%, #f472b6 25%, #c084fc 50%, #a78bfa 75%, #818cf8 100%);
+  background: linear-gradient(135deg, #FFB84D 0%, #FFD9A0 50%, #FF8A65 100%);
   padding: 48px 18px 32px;
   position: relative;
   overflow: hidden;
@@ -137,7 +137,7 @@
 }
 .beauty-hero-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #fef08a, #fde68a, #fbcfe8, #f9a8d4);
+  background: linear-gradient(90deg, #fef08a, #fde68a, #fbcfe8, #FFD9A0);
   border-radius: 999px;
   transition: width 1.2s ease;
   box-shadow: 0 0 10px rgba(249, 168, 212, 0.5);
@@ -201,7 +201,7 @@
   align-items: center;
   justify-content: center;
   color: #c026d3;
-  background: linear-gradient(135deg, #fdf4ff, #fae8ff);
+  background: linear-gradient(135deg, #FFF9F2, #FFE8D0);
   box-shadow: 0 2px 8px rgba(192, 38, 211, 0.15);
 }
 
@@ -213,7 +213,7 @@
 
 .beauty-care-time {
   font-size: 11px;
-  color: #a855f7;
+  color: #FFB84D;
   font-weight: 500;
 }
 
@@ -254,7 +254,7 @@
   align-items: center;
   justify-content: center;
   color: #db2777;
-  background: linear-gradient(135deg, #fdf2f8, #fce7f3);
+  background: linear-gradient(135deg, #FFF9F2, #FFE8D0);
   box-shadow: 0 2px 8px rgba(219, 39, 119, 0.15);
 }
 
@@ -321,7 +321,7 @@
 
 .beauty-detail-label {
   font-size: 14px;
-  color: #7c3aed;
+  color: #E8A030;
   font-weight: 500;
 }
 
@@ -379,7 +379,7 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f9a8d4, #ec4899);
+  background: linear-gradient(135deg, #FFD9A0, #FF8A65);
   color: #fff;
   font-size: 12px;
   font-weight: 700;
@@ -401,7 +401,7 @@
 }
 
 .beauty-tips-card {
-  background: linear-gradient(135deg, #fdf4ff 0%, #faf5ff 100%);
+  background: linear-gradient(135deg, #FFF9F2 0%, #FFF5EE 100%);
   border-radius: 18px;
   padding: 18px;
   border: 1px solid rgba(168, 85, 247, 0.12);

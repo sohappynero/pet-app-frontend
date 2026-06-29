@@ -20,7 +20,7 @@ import { getLocalAvatar } from "../lib/pet-avatar";
 type TabKey = "urgent" | "pending" | "weekly" | "done";
 
 const TAB_LIST: { key: TabKey; label: string; icon: React.ReactNode; color: string }[] = [
-  { key: "urgent", label: "紧急", icon: <AlertCircle size={14} />, color: "#f5576c" },
+  { key: "urgent", label: "紧急", icon: <AlertCircle size={14} />, color: "#FF8A65" },
   { key: "pending", label: "待办", icon: <Clock size={14} />, color: "#667eea" },
   { key: "weekly", label: "周期", icon: <Repeat size={14} />, color: "#00b894" },
   { key: "done", label: "已完成", icon: <CheckCircle2 size={14} />, color: "#a29bfe" },
@@ -46,12 +46,12 @@ const weekdayOptions: { value: number; label: string }[] = [
 const monthlyDayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
 
 const categoryList = [
-  { name: "疫苗", icon: <Syringe size={16} />, color: "#6c5ce7", bg: "rgba(108,92,231,0.12)" },
-  { name: "驱虫", icon: <Bell size={16} />, color: "#f5576c", bg: "rgba(245,87,108,0.12)" },
+  { name: "疫苗", icon: <Syringe size={16} />, color: "#FFB84D", bg: "rgba(108,92,231,0.12)" },
+  { name: "驱虫", icon: <Bell size={16} />, color: "#FF8A65", bg: "rgba(245,87,108,0.12)" },
   { name: "体检", icon: <Stethoscope size={16} />, color: "#74b9ff", bg: "rgba(116,185,255,0.12)" },
-  { name: "体重", icon: <Scale size={16} />, color: "#f0932b", bg: "rgba(240,147,43,0.12)" },
+  { name: "体重", icon: <Scale size={16} />, color: "#FFB84D", bg: "rgba(240,147,43,0.12)" },
   { name: "饮食", icon: <UtensilsCrossed size={16} />, color: "#00b894", bg: "rgba(0,184,148,0.12)" },
-  { name: "美容护理", icon: <Sparkles size={16} />, color: "#fd79a8", bg: "rgba(253,121,168,0.12)" },
+  { name: "美容护理", icon: <Sparkles size={16} />, color: "#FF8A65", bg: "rgba(253,121,168,0.12)" },
   { name: "其他", icon: <Pin size={16} />, color: "#8b7355", bg: "rgba(139,115,85,0.12)" },
 ];
 

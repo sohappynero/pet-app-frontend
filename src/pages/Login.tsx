@@ -63,9 +63,9 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-dvh flex items-center justify-center py-10 px-4 overflow-x-hidden">
-      <div className="bg-blob animate-float-slow" style={{ width: 320, height: 320, background: "#ffc8e8", top: -80, left: -100 }} />
-      <div className="bg-blob animate-float" style={{ width: 260, height: 260, background: "#b4f0ff", bottom: -60, right: -80 }} />
+    <div className="relative min-h-dvh flex items-center justify-center py-10 px-4 overflow-x-hidden" style={{ background: '#FFF9F2' }}>
+      <div className="bg-blob animate-float-slow" style={{ width: 320, height: 320, background: "#FFD9A0", top: -80, left: -100 }} />
+      <div className="bg-blob animate-float" style={{ width: 260, height: 260, background: "#FFF0E6", bottom: -60, right: -80 }} />
       <span className="paw-deco" style={{ top: "12%", left: "8%" }}>🐾</span>
 
       <div className="relative z-10 w-full max-w-4xl">
@@ -73,7 +73,7 @@ export default function Login() {
           <div className="hidden md:flex flex-col items-center gap-6 animate-fade-in">
             <Mascot size="lg" animate />
             <div className="text-center">
-              <h1 className="text-4xl font-bold" style={{ background: "linear-gradient(135deg, #ff7cb8, #8c58ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              <h1 className="text-4xl font-bold" style={{ background: "linear-gradient(135deg, #FFB84D, #FF8A65)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                 宠物健康屋
               </h1>
               <p className="text-base mt-2" style={{ color: "var(--text-sub)" }}>🐶 陪伴你和毛孩子的每一天 🐱</p>

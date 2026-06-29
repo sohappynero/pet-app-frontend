@@ -55,7 +55,7 @@ function RadarChart({ dimensions }: { dimensions: { label: string; value: number
         <defs>
           <linearGradient id="radarFill" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#ec4899" stopOpacity="0.08" />
+            <stop offset="100%" stopColor="#FF8A65" stopOpacity="0.08" />
           </linearGradient>
           <filter id="radarGlow">
             <feGaussianBlur stdDeviation="2" result="blur" />
@@ -325,11 +325,11 @@ export default function HealthReportAnalysis() {
 
     // 雷达图维度 — 使用后端真实评分
     const radarDimensions = [
-      { label: "体重", value: dims?.weight?.score ?? 0, max: 100, color: "#6366f1" },
-      { label: "食欲", value: dims?.diet?.score ?? 0, max: 100, color: "#ec4899" },
+      { label: "体重", value: dims?.weight?.score ?? 0, max: 100, color: "#FFB84D" },
+      { label: "食欲", value: dims?.diet?.score ?? 0, max: 100, color: "#FF8A65" },
       { label: "精神", value: dims?.mental?.score ?? 0, max: 100, color: "#f59e0b" },
       { label: "毛发", value: dims?.grooming?.score ?? 0, max: 100, color: "#10b981" },
-      { label: "消化", value: dims?.diet?.score ?? 0, max: 100, color: "#8b5cf6" },
+      { label: "消化", value: dims?.diet?.score ?? 0, max: 100, color: "#FFB84D" },
       { label: "活力", value: dims?.exercise?.score ?? 0, max: 100, color: "#ef4444" },
     ];
 

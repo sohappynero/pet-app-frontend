@@ -183,7 +183,7 @@ export default function VipSubscribe() {
       {/* 会员专属特权卡片 */}
       <section className="vip-sub-privileges">
         <h3 className="vip-sub-section-title">
-          <Sparkles size={14} fill="#A78BFA" color="#A78BFA" />
+          <Sparkles size={14} fill="#FFB84D" color="#FFB84D" />
           会员专属特权
         </h3>
         <div className="vip-privilege-grid">

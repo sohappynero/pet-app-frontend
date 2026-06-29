@@ -3,13 +3,14 @@ import {
   Heart,
   FileText,
   Brain,
-  BookOpen,
   Bell,
-  ShoppingBag,
+  Crown,
+  Vote,
   Settings,
   X,
   ChevronRight,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { Pet } from '../types';
 
 export interface DrawerProps {
@@ -21,14 +22,13 @@ export interface DrawerProps {
 }
 
 const MENU_ITEMS = [
-  { icon: Heart, label: '我的宠物', key: 'pets', emoji: '🐾', highlight: true },
-  { icon: FileText, label: '健康记录', key: 'health', emoji: '📋' },
-  { icon: Brain, label: 'AI 分析', key: 'ai', emoji: '📊' },
-  { icon: BookOpen, label: '心情日记', key: 'diary', emoji: '💛' },
-  { icon: Bell, label: '喂食提醒', key: 'feeding', emoji: '🔔' },
-  { icon: Bell, label: '提醒中心', key: 'reminders', emoji: '🔔' },
-  { icon: ShoppingBag, label: '商城中心', key: 'shop', emoji: '🛍️' },
-  { icon: Settings, label: '设置', key: 'settings', emoji: '⚙️' },
+  { label: '我的宠物', key: 'pets', emoji: '🐾', path: '/app/mine/pets', highlight: true },
+  { label: '健康记录', key: 'health', emoji: '📋', path: '/app/records' },
+  { label: 'AI 分析', key: 'ai', emoji: '📊', path: '/app/insights/analysis' },
+  { label: '提醒中心', key: 'reminders', emoji: '🔔', path: '/app/mine/reminders' },
+  { label: '会员中心', key: 'vip', emoji: '👑', path: '/app/mine/vip' },
+  { label: '功能投票', key: 'vote', emoji: '🗳️', path: '/app/mine/feature-vote' },
+  { label: '设置', key: 'settings', emoji: '⚙️', path: '/app/mine/privacy' },
 ] as const;
 
 /**
@@ -48,9 +48,16 @@ const Drawer: React.FC<DrawerProps> = ({
   selectedPet,
   onPetSwitch,
 }) => {
+  const navigate = useNavigate();
+
   function petAvatarUrl(pet: Pet): string | null {
     return (pet as any)._resolved_avatar_url || pet.avatar_url || pet.image_url || null;
   }
+
+  const handleMenuClick = (path: string) => {
+    onClose();
+    navigate(path);
+  };
 
   return (
     <>
@@ -155,13 +162,11 @@ const Drawer: React.FC<DrawerProps> = ({
         </button>
 
         {/* 菜单项列表 */}
-        <nav className="px-4 pt-2"> {/* 从pt-16→pt-2：品牌区域已占据顶部空间 */}
+        <nav className="px-4 pt-2">
           {MENU_ITEMS.map((item) => (
             <button
               key={item.key}
-              onClick={() => {
-                /* TODO: 路由跳转 */
-              }}
+              onClick={() => handleMenuClick(item.path)}
               className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all duration-200 hover:bg-white/25 active:bg-white/35 group ${
                 item.highlight ? 'drawer-menu-item--active' : ''
               }`}

@@ -87,13 +87,14 @@ export default function Mine() {
 
   const mainMenus: MenuItem[] = [
     { label: "我的宠物", emoji: "🐾", rightText: `${petCount} 只`, to: "/app/mine/pets" },
-    { label: "健康报告", emoji: "📋", rightText: "查看全部", to: "/app/timeline/records" },
+    { label: "健康报告", emoji: "📋", rightText: "查看全部", to: "/app/records/list" },
     { label: "提醒设置", emoji: "🔔", rightText: pendingCount > 0 ? `${pendingCount} 条` : "管理", to: "/app/mine/reminders" },
-    { label: "病历共享", emoji: "📤", rightText: "查看", to: "/app/timeline/records" },
+    { label: "会员中心", emoji: "👑", rightText: "查看", to: "/app/mine/vip" },
     { label: "智能分析", emoji: "🧠", rightText: "查看", to: "/app/insights" },
   ];
 
   const secondMenus: MenuItem[] = [
+    { label: "功能投票", emoji: "🗳️", rightText: "参与", to: "/app/mine/feature-vote" },
     { label: "隐私设置", emoji: "🔒", rightText: "设置", to: "/app/mine/privacy" },
     { label: "帮助中心", emoji: "❓", rightText: "查看", to: "/app/mine/help" },
     { label: "吐槽中心", emoji: "💬", rightText: "反馈", to: "/app/mine/feedback" },

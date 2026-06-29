@@ -213,7 +213,7 @@
 .hr-radar-svg { max-width: 280px; height: auto; }
 
 .hr-radar-label { font-size: 11px; fill: #94a3b8; font-weight: 600; }
-.hr-radar-value { font-size: 11px; fill: #7c3aed; font-weight: 800; }
+.hr-radar-value { font-size: 11px; fill: #E8A030; font-weight: 800; }
 
 .hr-dimension-list {
   display: flex; flex-direction: column; gap: 10px;
@@ -223,7 +223,7 @@
 .hr-dimension-item { display: flex; align-items: center; gap: 10px; font-size: 13px; }
 .hr-dim-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
 .hr-dim-name { width: 44px; font-weight: 600; color: #475569; }
-.hr-dim-val { width: 36px; font-weight: 700; color: #7c3aed; }
+.hr-dim-val { width: 36px; font-weight: 700; color: #E8A030; }
 .hr-dim-bar { flex: 1; height: 6px; background: rgba(148,163,184,0.2); border-radius: 3px; overflow: hidden; }
 .hr-dim-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
 

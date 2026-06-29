@@ -28,7 +28,7 @@ interface PrivilegeItem {
 }
 
 const VIP_PRIVILEGES: PrivilegeItem[] = [
-  { id: "emotion", icon: Smile, label: "情绪识别", desc: "读懂小情绪", color: "#A78BFA", bg: "#F3E8FF" },
+  { id: "emotion", icon: Smile, label: "情绪识别", desc: "读懂小情绪", color: "#FFB84D", bg: "#FFF0E6" },
 ];
 
 export default function PetChat() {
@@ -432,8 +432,8 @@ export default function PetChat() {
                           title: "照片情绪识别",
                           desc: "上传宠物照片后，我们会尝试分析开心、放松、紧张、害怕、兴奋等情绪状态。",
                           note: "温馨提示：情绪识别仅供参考，不能替代专业兽医诊断哦~",
-                          color: "#A78BFA",
-                          bg: "#F3E8FF",
+                          color: "#FFB84D",
+                          bg: "#FFF0E6",
                         },
                         {
                           icon: Stethoscope,
@@ -512,7 +512,7 @@ export default function PetChat() {
                       </div>
 
                       <div className="vip-privacy-card">
-                        <div className="vip-privacy-card-icon" style={{ background: "#F3E8FF", color: "#A78BFA" }}>
+                        <div className="vip-privacy-card-icon" style={{ background: "#FFF0E6", color: "#FFB84D" }}>
                           <Sparkles size={18} />
                         </div>
                         <div className="vip-privacy-card-body">

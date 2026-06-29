@@ -45,14 +45,30 @@ const PetBackground: React.FC<PetBackgroundProps> = ({
           transition: `opacity ${isTransitioning ? 500 : 0}ms ease-in-out`,
         }}
       />
-      {/* 氛围渐变遮罩 — 暖黄奶油色调叠层（目标设计风格） */}
-      {/* 增强版：右侧暖光更强，模拟被灯照射的效果（参考图氛围） */}
+      {/* 暖色暗角 — 深棕色四周渐暗，营造温馨包围感 */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse 70% 65% at 50% 45%, transparent 15%, rgba(40,25,10,0.55) 60%, rgba(20,12,5,0.80) 100%)',
+          transition: 'all 500ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+        }}
+      />
+      {/* 整体暖色调滤镜 — 琥珀色叠加 */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(180deg, rgba(120,70,20,0.32) 0%, rgba(80,45,15,0.26) 50%, rgba(60,35,10,0.40) 100%)',
+          mixBlendMode: 'multiply',
+          transition: 'all 500ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+        }}
+      />
+      {/* 右上暖光源 — 模拟灯光照射 */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background: isDrawerOpen
-            ? 'radial-gradient(120% 100% at 85% 40%, rgba(255,220,150,0.15) 0%, rgba(247,231,211,0.32) 40%, rgba(180,160,130,0.20) 80%, rgba(150,130,100,0.12) 100%)'
-            : 'radial-gradient(110% 105% at 85% 15%, rgba(255,225,165,0.22) 0%, rgba(255,240,215,0.18) 30%, rgba(255,225,180,0.14) 50%, rgba(250,220,195,0.10) 70%, transparent 92%)',
+            ? 'none'
+            : 'radial-gradient(ellipse 55% 65% at 82% 12%, rgba(255,190,80,0.38) 0%, rgba(255,170,60,0.18) 35%, transparent 65%)',
           transition: 'all 500ms cubic-bezier(0.2, 0.8, 0.2, 1)',
         }}
       />

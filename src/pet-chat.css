@@ -4348,7 +4348,7 @@
 
 .vip-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #FFF5F7 0%, #FFF0F3 30%, #FFFAFB 100%);
+  background: linear-gradient(180deg, #FFF9F2 0%, #FFF5EE 30%, #FFF9F2 100%);
   padding-bottom: 40px;
 }
 
@@ -4716,8 +4716,8 @@
 .vip-quota-hint {
   font-size: 12px;
   font-weight: 600;
-  color: #A78BFA;
-  background: #F3E8FF;
+  color: #FFB84D;
+  background: #FFF0E6;
   padding: 3px 10px;
   border-radius: 20px;
   white-space: nowrap;
@@ -5573,7 +5573,7 @@
 
 .vip-sub-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #FFF5F7 0%, #FFFAFB 40%, #FFF 100%);
+  background: linear-gradient(180deg, #FFF9F2 0%, #FFF5EE 40%, #FFFAF5 100%);
   padding-bottom: 40px;
 }
 
@@ -5707,7 +5707,7 @@
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(251, 113, 133, 0.18);
   border-color: #FB7185 !important;
-  background: linear-gradient(145deg, #FFF0F3, #FFE8ED) !important;
+  background: linear-gradient(145deg, #FFF5EE, #FFF0E6) !important;
 }
 
 .vip-sub-plan-tag {
@@ -5959,7 +5959,7 @@
   display: grid;
   place-items: center;
   margin-bottom: 2px;
-  background: linear-gradient(135deg, #F8F4FF, #FFF5F7);
+  background: linear-gradient(135deg, #F8F4FF, #FFF9F2);
 }
 
 .vip-privilege-card.highlighted .vp-icon-wrap {
@@ -6029,7 +6029,7 @@
   width: 100%;
   height: calc(100vh - 64px);
   max-height: calc(100vh - 64px);
-  background: linear-gradient(180deg, #FFF5F7 0%, #FFFAFB 100%);
+  background: linear-gradient(180deg, #FFF9F2 0%, #FFFAFB 100%);
   border-radius: 20px 20px 0 0;
   padding: 0 14px 16px 16px;
   overflow: hidden;
@@ -7004,7 +7004,7 @@
 }
 .qm-sparkle.s3 {
   top: 55%; left: 10%;
-  color: #A78BFA;
+  color: #FFB84D;
   animation-delay: 1.2s;
 }
 .qm-sparkle.s4 {
@@ -7044,7 +7044,7 @@
 
 .qm-feature {
   display: inline-block;
-  background: linear-gradient(135deg, #F3E8FF, #FCE7F3);
+  background: linear-gradient(135deg, #FFF0E6, #FCE7F3);
   color: #7C3AED;
   font-size: 11.5px;
   font-weight: 600;
@@ -7122,7 +7122,7 @@
 
 .qm-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #A78BFA, #F472B6);
+  background: linear-gradient(90deg, #FFB84D, #F472B6);
   border-radius: 3px;
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }

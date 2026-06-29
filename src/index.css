@@ -3,25 +3,25 @@
 @tailwind utilities;
 
 :root {
-  --primary: #6366f1;
-  --primary-dark: #4f46e5;
-  --primary-light: #818cf8;
-  --secondary: #ec4899;
-  --accent: #06b6d4;
-  --success: #10b981;
-  --warning: #f59e0b;
+  --primary: #FFB84D;
+  --primary-dark: #E8A030;
+  --primary-light: #FFD9A0;
+  --secondary: #FF8A65;
+  --accent: #FFB84D;
+  --success: #7ED957;
+  --warning: #FF8A65;
   --error: #ef4444;
-  --text: #1f2937;
-  --text-sub: #6b7280;
-  --text-light: #9ca3af;
-  --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
-  --bg-tertiary: #f3f4f6;
-  --border-color: #e5e7eb;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --text: #2A2A2A;
+  --text-sub: #6B6B6B;
+  --text-light: #9C9C9C;
+  --bg-primary: #FFF9F2;
+  --bg-secondary: #FFF5EE;
+  --bg-tertiary: #FFF0E6;
+  --border-color: #F0EBE2;
+  --shadow-sm: 0 1px 2px 0 rgba(255, 184, 77, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(255, 184, 77, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(255, 184, 77, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(255, 184, 77, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
 }
 
 * {
@@ -213,9 +213,9 @@ body::before {
   width: 44px;
   flex-shrink: 0;
   border-radius: 12px 0 0 12px;
-  background: linear-gradient(135deg, #f3e8ff, #fce7f3);
-  border-right: 1.5px solid #e9d5ff;
-  color: #a855f7;
+  background: linear-gradient(135deg, #FFF0E6, #FFE8D0);
+  border-right: 1.5px solid #FFD9A0;
+  color: #FFB84D;
 }
 
 .pet-input.login-has-icon {
@@ -1244,7 +1244,7 @@ body::before {
   height: 48px;
   border: none;
   border-radius: 14px;
-  background: linear-gradient(135deg, #f472b6, #c084fc);
+  background: linear-gradient(135deg, #FF8A65, #FF8A65);
   color: #fff;
   font-size: 10px;
   font-weight: 700;
@@ -1264,7 +1264,7 @@ body::before {
 }
 
 .tab-chat-btn:hover {
-  background: linear-gradient(135deg, #ec4899, #a855f7);
+  background: linear-gradient(135deg, #FF8A65, #FFB84D);
   transform: translateY(-4px) scale(1.05);
   box-shadow:
     0 -4px 22px rgba(192, 132, 252, 0.45),
@@ -1424,7 +1424,7 @@ body::before {
 }
 
 .first-home-feature-icon.purple svg {
-  color: #8b5cf6;
+  color: #FFB84D;
 }
 
 .first-home-feature-icon.amber {
@@ -2085,7 +2085,7 @@ body::before {
 
 .pet-size-check {
   font-size: 20px;
-  background: linear-gradient(135deg, #e8907a, #f0932b);
+  background: linear-gradient(135deg, #e8907a, #FFB84D);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -2169,7 +2169,7 @@ body::before {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #f9ca24, #f0932b);
+  background: linear-gradient(90deg, #f9ca24, #FFB84D);
   opacity: 0.7;
 }
 
@@ -2244,7 +2244,7 @@ body::before {
 }
 
 .pet-health-card-allergy::before {
-  background: linear-gradient(90deg, #a29bfe, #6c5ce7);
+  background: linear-gradient(90deg, #a29bfe, #FFB84D);
   right: 16%;
 }
 
@@ -2840,7 +2840,7 @@ body::before {
 .pet-home-tone-purple {
   background: #f3ecff;
   border-color: #e2d6ff;
-  color: #8b5cf6;
+  color: #FFB84D;
 }
 
 .pet-home-tone-amber {
@@ -3511,7 +3511,7 @@ body::before {
 
 .hr-record-icon.tone-pink {
   background: #ffeaf5;
-  color: #ec4899;
+  color: #FF8A65;
 }
 
 
@@ -3750,9 +3750,9 @@ body::before {
 }
 
 .hr2-filter-item.active {
-  background: #ec4899;
+  background: #FF8A65;
   color: #fff;
-  border-color: #ec4899;
+  border-color: #FF8A65;
   box-shadow: 0 2px 6px rgba(236, 72, 153, 0.3);
 }
 
@@ -4346,7 +4346,7 @@ body::before {
   background: #f0eaff;
   display: grid;
   place-items: center;
-  color: #7c3aed;
+  color: #E8A030;
   flex: none;
 }
 
@@ -4372,7 +4372,7 @@ body::before {
 .remind-item-tag {
   font-size: 11px;
   font-weight: 700;
-  color: #7c3aed;
+  color: #E8A030;
   background: #f0eaff;
   border-radius: 999px;
   padding: 2px 10px;
@@ -4867,7 +4867,7 @@ body::before {
 ═══════════════════════════════════════════ */
 .rs-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #fdf2f8 0%, #faf5ff 40%, #f5f3ff 100%);
+  background: linear-gradient(180deg, #FFF9F2 0%, #FFF5EE 40%, #FFF5EE 100%);
   display: flex;
   flex-direction: column;
   font-family: 'ZCOOL KuaiLe', cursive;
@@ -4879,7 +4879,7 @@ body::before {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: linear-gradient(135deg, #f9a8d4 0%, #f472b6 25%, #c084fc 55%, #a78bfa 85%, #818cf8 100%);
+  background: linear-gradient(135deg, #FFD9A0 0%, #FF8A65 25%, #FF8A65 55%, #FFD9A0 85%, #818cf8 100%);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -4984,7 +4984,7 @@ body::before {
 
 .rs-row-desc {
   font-size: 12.5px;
-  color: #a855f7;
+  color: #FFB84D;
   line-height: 1.4;
 }
 
@@ -5002,7 +5002,7 @@ body::before {
 }
 
 .rs-toggle.on {
-  background: linear-gradient(135deg, #f472b6, #c084fc);
+  background: linear-gradient(135deg, #FF8A65, #FF8A65);
   box-shadow: 0 2px 8px rgba(192, 132, 252, 0.4);
 }
 
@@ -5025,7 +5025,7 @@ body::before {
 /* 声音/震动选项列表 */
 .rs-sub-label {
   font-size: 13.5px;
-  color: #a78bfa;
+  color: #FFD9A0;
   margin: 0 0 10px;
   font-weight: 500;
 }
@@ -5042,7 +5042,7 @@ body::before {
   text-align: left;
   padding: 13px 16px;
   border-radius: 14px;
-  border: 1.5px solid #e9d5ff;
+  border: 1.5px solid #FFD9A0;
   background: rgba(255, 255, 255, 0.8);
   font-size: 14.5px;
   font-weight: 500;
@@ -5053,13 +5053,13 @@ body::before {
 }
 
 .rs-option-btn:hover {
-  border-color: #c084fc;
-  background: #faf5ff;
+  border-color: #FF8A65;
+  background: #FFF5EE;
 }
 
 .rs-option-btn.active {
-  border-color: #c084fc;
-  background: linear-gradient(135deg, #fdf4ff, #fae8ff);
+  border-color: #FF8A65;
+  background: linear-gradient(135deg, #FFF9F2, #FFE8D0);
   color: #a21caf;
   font-weight: 600;
   box-shadow: 0 2px 10px rgba(192, 132, 252, 0.18);
@@ -5077,7 +5077,7 @@ body::before {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1.5px solid #c084fc;
+  border: 1.5px solid #FF8A65;
   background: rgba(250, 245, 255, 1);
   color: #a21caf;
   font-size: 17px;
@@ -5090,7 +5090,7 @@ body::before {
   line-height: 1;
 }
 .rs-stepper-btn:hover {
-  background: #f3e8ff;
+  background: #FFF0E6;
   box-shadow: 0 2px 6px rgba(192, 132, 252, 0.25);
 }
 
@@ -5126,7 +5126,7 @@ body::before {
 
 .rs-action-badge {
   font-size: 13px;
-  color: #a78bfa;
+  color: #FFD9A0;
   flex-shrink: 0;
 }
 
@@ -5141,7 +5141,7 @@ body::before {
 
 /* 提醒方式 - 可展开单选卡片 */
 .rs-mode-card {
-  border: 1.8px solid #e9d5ff;
+  border: 1.8px solid #FFD9A0;
   border-radius: 16px;
   padding: 16px 16px 12px;
   cursor: pointer;
@@ -5150,8 +5150,8 @@ body::before {
 }
 
 .rs-mode-card.active {
-  border-color: #c084fc;
-  background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%);
+  border-color: #FF8A65;
+  background: linear-gradient(135deg, #FFF9F2 0%, #FFE8D0 100%);
   box-shadow: 0 2px 12px rgba(192, 132, 252, 0.15);
 }
 
@@ -5176,7 +5176,7 @@ body::before {
 }
 
 .rs-radio.on {
-  border-color: #c084fc;
+  border-color: #FF8A65;
 }
 
 .rs-radio.on::after {
@@ -5184,7 +5184,7 @@ body::before {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #c084fc, #a78bfa);
+  background: linear-gradient(135deg, #FF8A65, #FFD9A0);
   position: absolute;
 }
 
@@ -5202,7 +5202,7 @@ body::before {
 
 .rs-mode-desc {
   font-size: 13px;
-  color: #a78bfa;
+  color: #FFD9A0;
 }
 
 .rs-mode-card.active .rs-mode-label {
@@ -5210,7 +5210,7 @@ body::before {
 }
 
 .rs-mode-card.active .rs-mode-desc {
-  color: #c084fc;
+  color: #FF8A65;
 }
 
 .rs-mode-divider {
@@ -5230,7 +5230,7 @@ body::before {
   flex: 1;
   padding: 11px 0;
   border-radius: 12px;
-  border: 1.5px solid #e9d5ff;
+  border: 1.5px solid #FFD9A0;
   background: rgba(255, 255, 255, 0.8);
   font-size: 14px;
   font-weight: 500;
@@ -5240,13 +5240,13 @@ body::before {
 }
 
 .rs-vibrate-btn:hover {
-  border-color: #c084fc;
-  background: #faf5ff;
+  border-color: #FF8A65;
+  background: #FFF5EE;
 }
 
 .rs-vibrate-btn.active {
-  border-color: #c084fc;
-  background: linear-gradient(135deg, #fdf4ff, #fae8ff);
+  border-color: #FF8A65;
+  background: linear-gradient(135deg, #FFF9F2, #FFE8D0);
   color: #a21caf;
   font-weight: 700;
   box-shadow: 0 2px 8px rgba(192, 132, 252, 0.2);
@@ -5271,7 +5271,7 @@ body::before {
   padding: 15px 0;
   border-radius: 16px;
   border: none;
-  background: linear-gradient(135deg, #f472b6 0%, #c084fc 50%, #a78bfa 100%);
+  background: linear-gradient(135deg, #FF8A65 0%, #FF8A65 50%, #FFD9A0 100%);
   color: #fff;
   font-size: 17px;
   font-weight: 700;
@@ -5311,7 +5311,7 @@ body::before {
   justify-content: space-between;
   padding: 14px 16px 10px;
   background: #fff;
-  border-bottom: 1px solid #fce7f3;
+  border-bottom: 1px solid #FFE8D0;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -5332,7 +5332,7 @@ body::before {
 }
 
 .fc-back-btn:hover {
-  background: #fce7f3;
+  background: #FFE8D0;
 }
 
 .fc-header-title {
@@ -5448,7 +5448,7 @@ body::before {
   width: 100%;
   min-height: 110px;
   border-radius: 10px;
-  border: 1.5px solid #fce7f3;
+  border: 1.5px solid #FFE8D0;
   background: #fff;
   padding: 12px 12px 28px;
   font-size: 14px;
@@ -5514,7 +5514,7 @@ body::before {
   width: 100%;
   padding: 12px 14px;
   border-radius: 10px;
-  border: 1.5px solid #fce7f3;
+  border: 1.5px solid #FFE8D0;
   background: #fff;
   font-size: 14px;
   color: #1f2d46;
@@ -5535,7 +5535,7 @@ body::before {
 /* 常见问题 */
 .fc-faq-item {
   padding: 10px 0;
-  border-bottom: 1px solid #fce7f3;
+  border-bottom: 1px solid #FFE8D0;
 }
 
 .fc-faq-item:last-child {
@@ -8422,7 +8422,7 @@ body::before {
   left: 18%;
   right: 60%;
   height: 3px;
-  background: linear-gradient(90deg, #f9ca24, #f0932b);
+  background: linear-gradient(90deg, #f9ca24, #FFB84D);
   border-radius: 0 0 4px 4px;
   opacity: 0.7;
 }
@@ -8824,7 +8824,7 @@ body::before {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #FFB84D 0%, #E8A030 100%);
   color: #fff;
   display: grid;
   place-items: center;
@@ -8990,7 +8990,7 @@ body::before {
 .ph3d-float-star {
   top: 40%; right: -8px;
   width: 30px; height: 30px;
-  background: linear-gradient(135deg, #f9ca24, #f0932b, #f9ca24);
+  background: linear-gradient(135deg, #f9ca24, #FFB84D, #f9ca24);
   color: #fff;
   animation: floatDeco 3s ease-in-out infinite, sparkleStar 1.5s ease-in-out infinite, starRotate 4s linear infinite;
   box-shadow: 0 0 14px rgba(251, 194, 36, 0.6), 0 0 28px rgba(240, 147, 43, 0.35);
@@ -8999,7 +8999,7 @@ body::before {
 .ph3d-float-paw {
   bottom: 8%; left: 10%;
   width: 28px; height: 28px;
-  background: linear-gradient(135deg, #a78bfa, #8b5cf6, #a78bfa);
+  background: linear-gradient(135deg, #FFD9A0, #FFB84D, #FFD9A0);
   color: #fff;
   animation: floatDeco 3s ease-in-out infinite, sparklePaw 2.5s ease-in-out infinite;
   box-shadow: 0 0 10px rgba(167, 139, 250, 0.55), 0 0 20px rgba(139, 92, 246, 0.3);
@@ -9380,8 +9380,8 @@ body::before {
 }
 .ph3d-stat-health::before { background: linear-gradient(90deg, #ff6b81, #ff4757); }
 .ph3d-stat-records::before { background: linear-gradient(90deg, #667eea, #764ba2); }
-.ph3d-stat-weight::before { background: linear-gradient(90deg, #f9ca24, #f0932b); }
-.ph3d-stat-alerts::before { background: linear-gradient(90deg, #a29bfe, #6c5ce7); }
+.ph3d-stat-weight::before { background: linear-gradient(90deg, #f9ca24, #FFB84D); }
+.ph3d-stat-alerts::before { background: linear-gradient(90deg, #a29bfe, #FFB84D); }
 
 .ph3d-stat-icon-wrap {
   width: 44px;
@@ -9394,8 +9394,8 @@ body::before {
 }
 .ph3d-stat-icon-wrap.health { background: linear-gradient(135deg, #fff0f0, #ffe4e8); color: #ff4757; }
 .ph3d-stat-icon-wrap.records { background: linear-gradient(135deg, #eef0ff, #e8ecfe); color: #667eea; }
-.ph3d-stat-icon-wrap.weight { background: linear-gradient(135deg, #fef9e7, #fef3e0); color: #f0932b; }
-.ph3d-stat-icon-wrap.alerts { background: linear-gradient(135deg, #f3e8ff, #ede4fd); color: #6c5ce7; }
+.ph3d-stat-icon-wrap.weight { background: linear-gradient(135deg, #fef9e7, #fef3e0); color: #FFB84D; }
+.ph3d-stat-icon-wrap.alerts { background: linear-gradient(135deg, #FFF0E6, #FFF0E6); color: #FFB84D; }
 
 .ph3d-icon-pulse {
   position: absolute;
@@ -10716,7 +10716,7 @@ body::before {
   height: 34px;
   border-radius: 10px;
   background: linear-gradient(135deg, #fef9e7, #fef3e0);
-  color: #f0932b;
+  color: #FFB84D;
   display: grid;
   place-items: center;
 }
@@ -10840,10 +10840,10 @@ body::before {
 .h3d-ws-item:active { transform: scale(0.95); }
 .h3d-ws-icon { opacity: 0.7; }
 .h3d-ws-item.active .h3d-ws-icon { opacity: 1; }
-.h3d-ws-vaccine { color: #6c5ce7; }
+.h3d-ws-vaccine { color: #FFB84D; }
 .h3d-ws-deworm { color: #f5576c; }
-.h3d-ws-checkup { color: #74b9ff; }
-.h3d-ws-beauty { color: #fd79a8; }
+.h3d-ws-checkup { color: #7BC7FF; }
+.h3d-ws-beauty { color: #FF8A65; }
 .h3d-ws-num {
   font-size: 16px;
   font-weight: 800;
@@ -10977,8 +10977,8 @@ body::before {
 .h3d-fe-1 { top: -4px; left: -2px; width: 34px; height: 34px; background: #667eea; animation-delay: 0s; }
 .h3d-fe-2 { top: 8px; right: 0; width: 32px; height: 32px; background: #00b894; animation-delay: 0.6s; }
 .h3d-fe-3 { bottom: 30px; left: -6px; width: 30px; height: 30px; background: #f5576c; animation-delay: 1.2s; }
-.h3d-fe-4 { bottom: 38px; right: -4px; width: 30px; height: 30px; background: #fd79a8; animation-delay: 1.8s; }
-.h3d-fe-5 { top: 24px; left: 50%; transform: translateX(-50%); width: 28px; height: 28px; background: #6c5ce7; animation-delay: 2.4s; }
+.h3d-fe-4 { bottom: 38px; right: -4px; width: 30px; height: 30px; background: #FF8A65; animation-delay: 1.8s; }
+.h3d-fe-5 { top: 24px; left: 50%; transform: translateX(-50%); width: 28px; height: 28px; background: #FFB84D; animation-delay: 2.4s; }
 
 /* 让 SVG 图标填满容器并显示为白色 */
 .h3d-float-ele > svg {
@@ -11029,7 +11029,7 @@ body::before {
   height: 56px;
   border-radius: 50%;
   /* 鲜明紫色背景让图标清晰可见 */
-  background: linear-gradient(135deg, #667eea, #8b5cf6);
+  background: linear-gradient(135deg, #667eea, #FFB84D);
   display: grid;
   place-items: center;
   z-index: 1;
@@ -11067,7 +11067,7 @@ body::before {
 .h3d-empty-fancy .h3d-empty-btn {
   padding: 11px 22px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #fd79a8 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #FF8A65 100%);
   font-size: 13px;
   font-weight: 700;
   box-shadow: 0 4px 20px rgba(102,126,234,0.35), 0 2px 8px rgba(118,75,162,0.2);
@@ -11654,7 +11654,7 @@ body::before {
 .rm3d-stat-urgent { background: linear-gradient(135deg, #f5576c, #ff6b81); }
 .rm3d-stat-pending { background: linear-gradient(135deg, #667eea, #764ba2); }
 .rm3d-stat-weekly { background: linear-gradient(135deg, #00b894, #55efc4); }
-.rm3d-stat-done { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+.rm3d-stat-done { background: linear-gradient(135deg, #a29bfe, #FFB84D); }
 .rm3d-stat-info {
   display: flex;
   flex-direction: column;
@@ -11778,8 +11778,8 @@ body::before {
 .rm3d-fe-1 { top: -4px; left: -2px; width: 34px; height: 34px; background: #f5576c; animation-delay: 0s; }
 .rm3d-fe-2 { top: 8px; right: 0; width: 32px; height: 32px; background: #667eea; animation-delay: 0.6s; }
 .rm3d-fe-3 { bottom: 30px; left: -6px; width: 30px; height: 30px; background: #00b894; animation-delay: 1.2s; }
-.rm3d-fe-4 { bottom: 38px; right: -4px; width: 30px; height: 30px; background: #fd79a8; animation-delay: 1.8s; }
-.rm3d-fe-5 { top: 24px; left: 50%; transform: translateX(-50%); width: 28px; height: 28px; background: #f0932b; animation-delay: 2.4s; }
+.rm3d-fe-4 { bottom: 38px; right: -4px; width: 30px; height: 30px; background: #FF8A65; animation-delay: 1.8s; }
+.rm3d-fe-5 { top: 24px; left: 50%; transform: translateX(-50%); width: 28px; height: 28px; background: #FFB84D; animation-delay: 2.4s; }
 
 /* 让 SVG 图标填满容器并显示为白色 */
 .rm3d-float-ele > svg {
@@ -11860,7 +11860,7 @@ body::before {
 .rm3d-empty-fancy .rm3d-empty-add-btn {
   padding: 11px 22px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #fd79a8 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #FF8A65 100%);
   font-size: 13px;
   font-weight: 700;
   box-shadow: 0 4px 20px rgba(102,126,234,0.35), 0 2px 8px rgba(118,75,162,0.2);
@@ -11879,7 +11879,7 @@ body::before {
   height: 80px;
   border-radius: 50%;
   /* 紫色渐变背景，让白色图标清晰可见 */
-  background: linear-gradient(135deg, #667eea, #8b5cf6);
+  background: linear-gradient(135deg, #667eea, #FFB84D);
   display: grid;
   place-items: center;
   color: #fff;
@@ -12391,12 +12391,12 @@ body::before {
   flex-shrink: 0;
 }
 
-.qm-icon-weight { background: linear-gradient(135deg, #fbc531, #f0932b); color: #fff; }
+.qm-icon-weight { background: linear-gradient(135deg, #fbc531, #FFB84D); color: #fff; }
 .qm-icon-vaccine { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
 .qm-icon-deworm { background: linear-gradient(135deg, #f5576c, #ff6b81); color: #fff; }
-.qm-icon-checkup { background: linear-gradient(135deg, #74b9ff, #a29bfe); color: #fff; }
+.qm-icon-checkup { background: linear-gradient(135deg, #7BC7FF, #a29bfe); color: #fff; }
 .qm-icon-diet { background: linear-gradient(135deg, #00b894, #55efc4); color: #fff; }
-.qm-icon-beauty { background: linear-gradient(135deg, #fd79a8, #fdcb6e); color: #fff; }
+.qm-icon-beauty { background: linear-gradient(135deg, #FF8A65, #fdcb6e); color: #fff; }
 
 .qm-header-text {
   flex: 1;
@@ -12559,12 +12559,12 @@ body::before {
 .qm-btn-primary:hover:not(:disabled) { transform: translateY(-1px); }
 .qm-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.qm-btn-weight { background: linear-gradient(135deg, #fbc531, #f0932b); box-shadow: 0 4px 14px rgba(240,147,43,0.35); }
+.qm-btn-weight { background: linear-gradient(135deg, #fbc531, #FFB84D); box-shadow: 0 4px 14px rgba(240,147,43,0.35); }
 .qm-btn-vaccine { background: linear-gradient(135deg, #667eea, #764ba2); }
 .qm-btn-deworm { background: linear-gradient(135deg, #f5576c, #ff6b81); box-shadow: 0 4px 14px rgba(245,87,108,0.35); }
-.qm-btn-checkup { background: linear-gradient(135deg, #74b9ff, #a29bfe); box-shadow: 0 4px 14px rgba(116,185,255,0.35); }
+.qm-btn-checkup { background: linear-gradient(135deg, #7BC7FF, #a29bfe); box-shadow: 0 4px 14px rgba(116,185,255,0.35); }
 .qm-btn-diet { background: linear-gradient(135deg, #00b894, #55efc4); box-shadow: 0 4px 14px rgba(0,184,148,0.35); }
-.qm-btn-beauty { background: linear-gradient(135deg, #fd79a8, #fdcb6e); box-shadow: 0 4px 14px rgba(253,121,168,0.35); }
+.qm-btn-beauty { background: linear-gradient(135deg, #FF8A65, #fdcb6e); box-shadow: 0 4px 14px rgba(253,121,168,0.35); }
 
 /* ==============================
    添加/编辑 健康记录页面 (ar-page)
@@ -12589,7 +12589,7 @@ body::before {
 .ar-hero-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(145deg, #667eea 0%, #764ba2 50%, #fd79a8 100%);
+  background: linear-gradient(145deg, #667eea 0%, #764ba2 50%, #FF8A65 100%);
 }
 .ar-hero-orb {
   position: absolute;
@@ -12680,7 +12680,7 @@ body::before {
 /* 占位圆形 */
 .ar-hero-pet-3d .ppa-placeholder {
   border-radius: 50% !important;
-  background: linear-gradient(135deg, #fdf4ff, #fae8ff, #f3e8ff);
+  background: linear-gradient(135deg, #FFF9F2, #FFE8D0, #FFF0E6);
 }
 
 /* 环绕浮动元素 - 散开效果 */
@@ -12819,7 +12819,7 @@ body::before {
 }
 .ar-tag-medical {
   background: linear-gradient(135deg, rgba(116,185,255,0.1), rgba(162,155,254,0.08));
-  color: #74b9ff;
+  color: #7BC7FF;
 }
 .ar-tag-status {
   background: linear-gradient(135deg, rgba(0,184,148,0.1), rgba(85,239,196,0.08));
@@ -12827,7 +12827,7 @@ body::before {
 }
 .ar-tag-detail {
   background: linear-gradient(135deg, rgba(240,147,43,0.1), rgba(253,203,110,0.08));
-  color: #f0932b;
+  color: #FFB84D;
 }
 .ar-card-header-arrow {
   color: #ccc;
@@ -12969,7 +12969,7 @@ body::before {
   width: 100%;
   padding: 14px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #fd79a8 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #FF8A65 100%);
   color: #fff;
   font-size: 15px;
   font-weight: 800;
@@ -13007,7 +13007,7 @@ body::before {
   padding: 10px 18px;
   border-radius: 12px;
   border: 2px dashed #d1d5db;
-  background: linear-gradient(135deg, #fafafa, #f5f3ff);
+  background: linear-gradient(135deg, #fafafa, #FFF5EE);
   color: #6b7280;
   font-size: 13px;
   font-weight: 600;
@@ -13015,9 +13015,9 @@ body::before {
   transition: all 0.25s ease;
 }
 .ar-upload-btn:hover {
-  border-color: #a78bfa;
-  background: linear-gradient(135deg, #f3edfc, #ede9fe);
-  color: #7c3aed;
+  border-color: #FFD9A0;
+  background: linear-gradient(135deg, #f3edfc, #FFF0E6);
+  color: #E8A030;
   transform: translateY(-1px);
 }
 .ar-upload-btn:active {
@@ -13101,7 +13101,7 @@ body::before {
 .ps-hero-bg { position: absolute; inset: 0; z-index: 0; }
 .ps-hero-gradient {
   position: absolute; inset: 0;
-  background: linear-gradient(145deg, #667eea 0%, #764ba2 50%, #fd79a8 100%);
+  background: linear-gradient(145deg, #667eea 0%, #764ba2 50%, #FF8A65 100%);
 }
 .ps-hero-orb {
   position: absolute; border-radius: 50%; filter: blur(45px); opacity: 0.25;
@@ -13144,7 +13144,7 @@ body::before {
 /* 安全等级卡片 */
 .ps-security-card {
   position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #fd79a8 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #FF8A65 100%);
   border-radius: 20px; padding: 18px 20px;
   display: flex; align-items: center; justify-content: space-between;
   box-shadow: 0 4px 24px rgba(102,126,234,0.35), 0 2px 8px rgba(118,75,162,0.2);
@@ -13198,8 +13198,8 @@ body::before {
   width: 38px; height: 38px; border-radius: 12px;
   display: grid; place-items: center; color: #fff; flex-shrink: 0;
 }
-.ps-si-pwd { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
-.ps-si-profile { background: linear-gradient(135deg, #fd79a8, #fdcb6e); }
+.ps-si-pwd { background: linear-gradient(135deg, #FFB84D, #a29bfe); }
+.ps-si-profile { background: linear-gradient(135deg, #FF8A65, #fdcb6e); }
 .ps-setting-label { font-size: 14px; font-weight: 700; color: #1a1a2e; margin: 0; }
 .ps-setting-hint { font-size: 11px; color: #aaa; margin: 2px 0 0; }
 .ps-action-btn {
@@ -13221,7 +13221,7 @@ body::before {
   border: 1px solid rgba(253,203,110,0.2); border-radius: 14px;
   padding: 12px 14px; margin-top: 4px;
 }
-.ps-tip-icon { color: #f0932b; flex-shrink: 0; margin-top: 2px; }
+.ps-tip-icon { color: #FFB84D; flex-shrink: 0; margin-top: 2px; }
 .ps-tip-text { font-size: 12px; color: #888; line-height: 1.55; margin: 0; }
 
 /* 弹窗 */
@@ -13264,7 +13264,7 @@ body::before {
 
 .ps-submit-btn {
   width: 100%; padding: 12px; border-radius: 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #fd79a8 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #FF8A65 100%);
   color: #fff; font-size: 14px; font-weight: 800; border: none;
   cursor: pointer; margin-top: 14px;
   box-shadow: 0 4px 18px rgba(102,126,234,0.35), 0 2px 8px rgba(118,75,162,0.2);
@@ -13292,7 +13292,7 @@ body::before {
 .hc-hero-bg { position: absolute; inset: 0; z-index: 0; }
 .hc-hero-gradient {
   position: absolute; inset: 0;
-  background: linear-gradient(145deg, #667eea 0%, #764ba2 50%, #fd79a8 100%);
+  background: linear-gradient(145deg, #667eea 0%, #764ba2 50%, #FF8A65 100%);
 }
 .hc-hero-orb {
   position: absolute; border-radius: 50%;
@@ -13423,7 +13423,7 @@ body::before {
 .hc-cta-btn {
   display: flex; align-items: center; justify-content: center; gap: 6px;
   width: 100%; padding: 12px; border-radius: 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #fd79a8 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #FF8A65 100%);
   color: #fff; font-size: 13px; font-weight: 800; border: none;
   cursor: pointer; box-shadow: 0 4px 18px rgba(102,126,234,0.35);
   transition: all 0.3s;
@@ -13454,7 +13454,7 @@ body::before {
 .fb-hero-bg { position: absolute; inset: 0; z-index: 0; }
 .fb-hero-gradient {
   position: absolute; inset: 0;
-  background: linear-gradient(145deg, #667eea 0%, #764ba2 50%, #fd79a8 100%);
+  background: linear-gradient(145deg, #667eea 0%, #764ba2 50%, #FF8A65 100%);
 }
 .fb-hero-orb {
   position: absolute; border-radius: 50%;
@@ -13528,10 +13528,10 @@ body::before {
   background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.08));
   color: #667eea;
 }
-.fb-tag-warm { background: linear-gradient(135deg, rgba(240,147,43,0.1), rgba(253,203,110,0.08)); color: #f0932b; }
-.fb-tag-blue { background: linear-gradient(135deg, rgba(116,185,255,0.1), rgba(162,155,254,0.08)); color: #74b9ff; }
+.fb-tag-warm { background: linear-gradient(135deg, rgba(240,147,43,0.1), rgba(253,203,110,0.08)); color: #FFB84D; }
+.fb-tag-blue { background: linear-gradient(135deg, rgba(116,185,255,0.1), rgba(162,155,254,0.08)); color: #7BC7FF; }
 .fb-tag-green { background: linear-gradient(135deg, rgba(0,184,148,0.1), rgba(85,239,196,0.08)); color: #00b894; }
-.fb-tag-orange { background: linear-gradient(135deg, rgba(225,112,85,0.1), rgba(253,203,110,0.08)); color: #e17055; }
+.fb-tag-orange { background: linear-gradient(135deg, rgba(225,112,85,0.1), rgba(253,203,110,0.08)); color: #FF8A65; }
 
 /* 类型选择网格 */
 .fb-type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -13599,7 +13599,7 @@ body::before {
 .fb-submit-btn {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   width: 100%; padding: 14px; border-radius: 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #fd79a8 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #FF8A65 100%);
   color: #fff; font-size: 15px; font-weight: 800; border: none;
   cursor: pointer; box-shadow: 0 4px 20px rgba(102,126,234,0.38), 0 2px 8px rgba(118,75,162,0.2);
   transition: all 0.3s; letter-spacing: 0.3px;
@@ -13815,7 +13815,7 @@ body::before {
 .ppa-placeholder-label {
   font-size: 11px;
   font-weight: 700;
-  color: #7c3aed;
+  color: #E8A030;
   letter-spacing: 1px;
 }
 .ppa-scene-small .ppa-placeholder-emoji { font-size: 28px; }
@@ -14422,7 +14422,7 @@ body::before {
   letter-spacing: 0.3px;
 }
 .ai-score-good { background: linear-gradient(145deg, #dff9fb, #c7ecee); color: #00b894; }
-.ai-score-mid  { background: linear-gradient(145deg, #fff8e1, #ffecb3); color: #e17055; }
+.ai-score-mid  { background: linear-gradient(145deg, #fff8e1, #ffecb3); color: #FF8A65; }
 .ai-score-bad  { background: linear-gradient(145deg, #ffebee, #ffcdd2); color: #d63031; }
 
 /* 卡片总结 */
@@ -14541,3 +14541,6 @@ body::before {
 
 
 
+
+/* ═══ 全局暖色背景统一 ═══ */
+.fb-page, .hc-page, .ps-page, .rs-page, .rm3d-add-page, .record-calendar-page { background: #FFF9F2; min-height: 100vh; }

@@ -52,12 +52,12 @@ function PetNameCircle({ name, size = 28 }: { name: string; size?: number }) {
 // ═══════════════════════════════════════════
 
 const recordTypes = [
-  { value: "vaccine" as RecordType, label: "疫苗", icon: <Syringe size={14} />, color: "#6c5ce7", bg: "#f3edfc" },
-  { value: "deworm" as RecordType, label: "驱虫", icon: <Sparkles size={14} />, color: "#f5576c", bg: "#fff0f3" },
+  { value: "vaccine" as RecordType, label: "疫苗", icon: <Syringe size={14} />, color: "#FFB84D", bg: "#f3edfc" },
+  { value: "deworm" as RecordType, label: "驱虫", icon: <Sparkles size={14} />, color: "#FF8A65", bg: "#fff0f3" },
   { value: "checkup" as RecordType, label: "体检", icon: <Stethoscope size={14} />, color: "#74b9ff", bg: "#e8f4ff" },
-  { value: "visit" as RecordType, label: "就诊", icon: <Hospital size={14} />, color: "#e17055", bg: "#fef0e8" },
-  { value: "beauty" as RecordType, label: "美容", icon: <Droplet size={14} />, color: "#fd79a8", bg: "#fff0f5" },
-  { value: "weight" as RecordType, label: "体重", icon: <Scale size={14} />, color: "#f0932b", bg: "#fef9e7" },
+  { value: "visit" as RecordType, label: "就诊", icon: <Hospital size={14} />, color: "#FF8A65", bg: "#fef0e8" },
+  { value: "beauty" as RecordType, label: "美容", icon: <Droplet size={14} />, color: "#FF8A65", bg: "#fff0f5" },
+  { value: "weight" as RecordType, label: "体重", icon: <Scale size={14} />, color: "#FFB84D", bg: "#fef9e7" },
   { value: "diet" as RecordType, label: "饮食", icon: <Heart size={14} />, color: "#E8590C", bg: "#FFF4EC" },
   { value: "observation" as RecordType, label: "日常观察", icon: <Heart size={14} />, color: "#00b894", bg: "#e8f8f0" },
 ];

@@ -114,16 +114,16 @@ export default function Register() {
   };
 
   return (
-    <div className="relative min-h-dvh flex items-start justify-center py-10 px-4 overflow-x-hidden">
-      <div className="bg-blob animate-float" style={{ width: 280, height: 280, background: "#ffc8e8", top: -60, right: -80 }} />
-      <div className="bg-blob animate-float-slow" style={{ width: 240, height: 240, background: "#b4f0ff", bottom: -60, left: -80 }} />
+    <div className="relative min-h-dvh flex items-start justify-center py-10 px-4 overflow-x-hidden" style={{ background: '#FFF9F2' }}>
+      <div className="bg-blob animate-float" style={{ width: 280, height: 280, background: "#FFD9A0", top: -60, right: -80 }} />
+      <div className="bg-blob animate-float-slow" style={{ width: 240, height: 240, background: "#FFF0E6", bottom: -60, left: -80 }} />
 
       <div className="relative z-10 w-full max-w-4xl mt-0">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           <div className="hidden md:flex flex-col items-center gap-5 pt-10 animate-fade-in">
             <Mascot size="lg" animate />
             <div className="text-center">
-              <h1 className="text-3xl font-bold" style={{ background: "linear-gradient(135deg, #ff7cb8, #8c58ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              <h1 className="text-3xl font-bold" style={{ background: "linear-gradient(135deg, #FFB84D, #FF8A65)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                 加入宠物健康屋
               </h1>
               <p className="text-sm mt-2" style={{ color: "var(--text-sub)" }}>和毛孩子一起开启健康之旅 💕</p>

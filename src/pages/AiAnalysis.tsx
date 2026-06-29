@@ -39,7 +39,7 @@ const quickItems: { icon: React.ReactNode; label: string; color: string; bg: str
   { icon: <TrendingUp size={24} />, label: "体重趋势", color: "#54a0ff", bg: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)", shadow: "0 4px 16px rgba(84,160,255,0.35)", tab: "trend" },
   { icon: <UtensilsCrossed size={24} />, label: "饮食分析", color: "#feca57", bg: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)", shadow: "0 4px 16px rgba(254,202,87,0.35)", tab: "diet" },
   { icon: <Dumbbell size={24} />, label: "运动建议", color: "#a55eea", bg: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)", shadow: "0 4px 16px rgba(165,94,234,0.35)", tab: "exercise" },
-  { icon: <Scissors size={24} />, label: "美容毛发", color: "#fd79a8", bg: "linear-gradient(135deg, #fdcbf5 0%, #fbc2eb 50%, #fd9fc7 100%)", shadow: "0 4px 16px rgba(253,121,168,0.35)", tab: "beauty" },
+  { icon: <Scissors size={24} />, label: "美容毛发", color: "#FF8A65", bg: "linear-gradient(135deg, #fdcbf5 0%, #fbc2eb 50%, #fd9fc7 100%)", shadow: "0 4px 16px rgba(253,121,168,0.35)", tab: "beauty" },
 ];
 
 function StatusIcon({ status }: { status: "good" | "warning" | "danger" }) {

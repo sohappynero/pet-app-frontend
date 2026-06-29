@@ -9,21 +9,9 @@ interface LampSwitchProps {
   onLightIntensityChange?: (intensity: number) => void;
 }
 
-// 拖拽配置
 const MAX_DRAG = 120;
-const TRIGGER_THRESHOLD = 80;
+const TRIGGER_THRESHOLD = 55;
 
-/**
- * LampSwitch — 迷你吊灯式猫爪拉灯
- *
- * 视觉核心：从右上角垂下的精致暖光吊灯
- * - 吸盘顶座：固定在天花板意象
- * - 细拉绳：金色渐变，随拖拽伸长
- * - 圆形灯罩：暖光发光体，带脉动光晕
- * - 猫爪吊坠：交互热区，拖拽触发切换
- *
- * 状态机：idle → dragging → triggered → transition → idle
- */
 const LampSwitch: React.FC<LampSwitchProps> = ({
   onTrigger,
   onLightIntensityChange,
@@ -33,7 +21,6 @@ const LampSwitch: React.FC<LampSwitchProps> = ({
   const startYRef = useRef<number>(0);
   const isTriggeringRef = useRef(false);
 
-  // 计算当前光强 (0~1) — 升级版：idle 更亮，dragging 范围更广
   const lightIntensity =
     lampState === 'triggered'
       ? 1.0
@@ -41,9 +28,10 @@ const LampSwitch: React.FC<LampSwitchProps> = ({
         ? Math.min(0.85, 0.22 + (dragY / MAX_DRAG) * 0.63)
         : lampState === 'transition'
           ? 0.5
-          : 0.22; // idle 从 0.15 → 0.22，灯始终有可见光晕
+          : 0.22;
 
-  // 光强变化回调
+  const glowIntensity = lightIntensity;
+
   React.useEffect(() => {
     onLightIntensityChange?.(lightIntensity);
   }, [lightIntensity, onLightIntensityChange]);
@@ -52,18 +40,16 @@ const LampSwitch: React.FC<LampSwitchProps> = ({
     e.preventDefault();
     startYRef.current = e.clientY;
     setLampState('dragging');
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   }, []);
 
   const handleDragMove = useCallback(
     (e: React.PointerEvent) => {
       if (lampState !== 'dragging') return;
       e.preventDefault();
-
       const delta = Math.max(0, e.clientY - startYRef.current);
       const clampedDelta = Math.min(delta, MAX_DRAG);
       setDragY(clampedDelta);
-
       if (clampedDelta >= TRIGGER_THRESHOLD && !isTriggeringRef.current) {
         isTriggeringRef.current = true;
         setLampState('triggered');
@@ -74,20 +60,16 @@ const LampSwitch: React.FC<LampSwitchProps> = ({
 
   const handleDragEnd = useCallback(
     (e: React.PointerEvent) => {
-      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
       if (lampState === 'triggered') {
         setLampState('transition');
         onTrigger();
-
         setTimeout(() => {
           setLampState('idle');
           setDragY(0);
           isTriggeringRef.current = false;
         }, 500);
       } else {
-        // 未达到触发阈值：先设 idle（让 CSS transition 启动），再用 rAF 延迟归零 dragY
-        // 避免猫爪和绳子"瞬归"，让弹性回弹动画有机会播放
         setLampState('idle');
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
@@ -107,130 +89,193 @@ const LampSwitch: React.FC<LampSwitchProps> = ({
         ? 'triggered'
         : '';
 
-  // 灯罩发光强度
-  const glowIntensity = lightIntensity;
-
   return (
     <>
-      {/* Light Cone — 向下扩散光锥 */}
+      {/* Light Cone */}
       <div className={`lamp-light-cone ${stateClass}`} />
 
       <div
-        className={`fixed right-0 top-0 z-30 flex flex-col items-center lamp-swing-idle`}
-        style={{ width: '86px', paddingTop: '2px' }}
+        className="fixed top-0 z-30 flex flex-col items-center lamp-swing-idle"
+        style={{ right: '0px', width: '130px', paddingTop: '2px' }}
       >
-        {/* ── 1. 吸盘顶座（天花板固定点）── */}
+        {/* 1. 顶座 */}
         <div
           style={{
             width: '28px',
             height: '10px',
-            background: 'linear-gradient(180deg, #C8B898 0%, #A89878 100%)',
-            borderRadius: '14px 14px 6px 6px',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.15), 0 2px 3px rgba(120,90,40,0.10)',
-            marginBottom: '3px',
+            background: 'linear-gradient(180deg, #D4C4A8 0%, #BBA888 100%)',
+            borderRadius: '10px 10px 4px 4px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.12)',
+            marginBottom: '1px',
           }}
         />
 
-        {/* ── 2. 拉绳 ── */}
+        {/* 2. 上方绳子 */}
         <Rope
           isDragging={lampState === 'dragging'}
           dragY={dragY}
           intensity={lightIntensity}
         />
 
-        {/* ── 3. 圆形灯罩 + Glow Halo 容器 ── */}
-        <div className="relative mt-1">
-          {/* Glow Halo — 围绕灯罩的脉动光晕（缩小） */}
-          <div className={`lamp-glow-halo lamp-glow-halo--compact ${stateClass}`} />
+        {/* 3. 灯罩 — 圆顶钟形，底部平直开口 */}
+        <div className="relative mt-0.5">
+          <div className={`lamp-glow-halo ${stateClass}`} />
 
-            {/* 灯罩本体 — 精致小型奶油色钟形（右上角不遮挡宠物） */}
+          {/* 灯罩体 — 圆顶 + 底部平开口 */}
           <div
-            className="rounded-full flex items-center justify-center relative"
+            className="relative flex items-center justify-center"
             style={{
-              width: '60px', /* 从80→60：精致小巧 */
-              height: '52px', /* 从70→52 */
-              borderRadius: '50% 50% 48% 48%', /* 钟形底部略平 */
-              background: `radial-gradient(circle at 45% 32%,
-                #FFFEFA 0%,
-                #FFF9E8 12%,
-                #FFECC8 30%, /* 规范primary色系 */
-                #FFD6A5 55%, /* 规范 primary: #FFD6A5 */
-                ${glowIntensity > 0.3 ? '#F5B942' : '#E8B84A'} 80%, /* amber */
-                ${glowIntensity > 0.3 ? '#D49A20' : '#D4A855'} 100%
+              width: '90px',
+              height: '62px',
+              borderRadius: '50% 50% 8px 8px / 42% 42% 8px 8px',
+              background: `linear-gradient(180deg,
+                #FFF8F0 0%,
+                #F5EDE0 20%,
+                #EDE3D4 45%,
+                #E5D8C6 70%,
+                #DDD0BA 100%
               )`,
+              border: '1.5px solid rgba(225, 210, 185, 0.6)',
+              borderBottom: '3px solid rgba(210, 195, 168, 0.7)',
               boxShadow: lampState !== 'idle'
-                ? `0 0 60px rgba(255, 214, 165, 0.55), 0 0 120px rgba(255, 214, 165, 0.28), 0 0 180px rgba(255, 214, 165, 0.14)` /* 触发态: #FFD6A5 */
-                : '0 0 40px rgba(255, 214, 165, 0.35), 0 0 80px rgba(255, 214, 165, 0.18), 0 0 120px rgba(255, 214, 165, 0.09)', /* idle态: #FFD6A5 */
-              border: `2px solid ${lampState !== 'idle' ? 'rgba(240, 176, 70, 0.40)' : 'rgba(190, 155, 90, 0.35)'}`,
-              transition: 'box-shadow 320ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 320ms cubic-bezier(0.2, 0.8, 0.2, 1), background 320ms cubic-bezier(0.2, 0.8, 0.2, 1), transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1)', /* UI 320ms */
-              transform: lampState === 'dragging' ? 'scale(1.05)' : 'scale(1)',
+                ? `0 10px 40px rgba(255, 175, 60, 0.5),
+                   0 4px 14px rgba(255, 150, 40, 0.25),
+                   inset 0 -12px 20px rgba(255, 195, 100, 0.4),
+                   inset 0 6px 12px rgba(255,255,255,0.35)`
+                : `0 6px 28px rgba(255, 175, 60, 0.35),
+                   0 3px 10px rgba(0,0,0,0.05),
+                   inset 0 -10px 16px rgba(255, 195, 100, 0.28),
+                   inset 0 6px 12px rgba(255,255,255,0.3)`,
+              transition: 'box-shadow 300ms ease, transform 300ms ease',
+              transform: lampState === 'dragging' ? 'scale(1.04)' : 'scale(1)',
             }}
           >
-            {/* ✨ 星星装饰图标 */}
+            {/* 猫爪印 */}
             <span
-              className="absolute pointer-events-none"
+              className="pointer-events-none"
               style={{
-                fontSize: '12px', /* 从16→12 */
-                top: '4px', /* 从6→4 */
-                left: '50%',
-                transform: 'translateX(-50%)',
-                opacity: 0.65 + glowIntensity * 0.30,
-                filter: `drop-shadow(0 0 4px rgba(255, 210, 100, ${0.45 + glowIntensity * 0.40}))`,
+                fontSize: '22px',
+                opacity: 0.5,
                 lineHeight: 1,
-              }}
-              aria-hidden="true"
-            >
-              ✨
-            </span>
-            {/* 灯罩内部高光 — 缩小 */}
-            <div
-              className="absolute rounded-full pointer-events-none"
-              style={{
-                width: '20px', /* 从26→20 */
-                height: '10px', /* 从14→10 */
-                top: '7px', /* 从10→7 */
-                left: '16px', /* 从24→16 */
-                background: 'radial-gradient(ellipse, rgba(255,255,255,0.70) 0%, transparent 75%)',
-              }}
-            />
-
-            {/* 猫爪图案在灯罩上 */}
-            <span
-              className="absolute pointer-events-none"
-              style={{
-                fontSize: '10px', /* 从13→10 */
-                bottom: '4px', /* 从6→4 */
-                right: '7px', /* 从10→7 */
-                opacity: 0.45 + glowIntensity * 0.15,
-                lineHeight: 1,
+                marginTop: '4px',
               }}
               aria-hidden="true"
             >
               🐾
             </span>
+            {/* 顶部高光 */}
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                width: '42px',
+                height: '16px',
+                top: '8px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: 'radial-gradient(ellipse, rgba(255,255,255,0.6) 0%, transparent 70%)',
+                borderRadius: '50%',
+              }}
+            />
           </div>
 
-          {/* 猫爪手柄（在灯罩下方） */}
-          <CatPawHandle
-            isDragging={lampState === 'dragging'}
-            dragY={dragY}
-            lightIntensity={lightIntensity}
-            onDragStart={handleDragStart}
-            onDragMove={handleDragMove}
-            onDragEnd={handleDragEnd}
+          {/* 底部开口发光 */}
+          <div
+            className="pointer-events-none mx-auto"
+            style={{
+              width: '90px',
+              height: '10px',
+              marginTop: '-1px',
+              background: `linear-gradient(180deg,
+                rgba(255, 200, 100, ${0.75 + glowIntensity * 0.2}) 0%,
+                rgba(255, 175, 60, ${0.45 + glowIntensity * 0.2}) 60%,
+                rgba(255, 155, 40, ${0.15 + glowIntensity * 0.1}) 100%
+              )`,
+              borderRadius: '0 0 4px 4px',
+              boxShadow: `0 6px 24px rgba(255, 180, 70, ${0.45 + glowIntensity * 0.25}), 0 2px 8px rgba(255, 160, 50, 0.3)`,
+            }}
+          />
+
+          {/* 灯下暖光辐射 — 向下扩散 */}
+          <div
+            className="absolute pointer-events-none"
+            style={{
+              bottom: '-55px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '110px',
+              height: '60px',
+              background: `radial-gradient(ellipse 80% 100% at 50% 0%,
+                rgba(255, 190, 80, ${0.5 + glowIntensity * 0.3}) 0%,
+                rgba(255, 165, 55, ${0.28 + glowIntensity * 0.2}) 35%,
+                rgba(255, 140, 40, ${0.1 + glowIntensity * 0.1}) 65%,
+                transparent 100%)`,
+              transition: 'background 300ms ease',
+            }}
+          />
+          {/* 光粒子 */}
+          <div
+            className="absolute pointer-events-none"
+            style={{
+              bottom: '-70px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '90px',
+              height: '50px',
+              background: `radial-gradient(circle 2px at 18% 30%, rgba(255,215,130,${0.5 + glowIntensity * 0.3}) 0%, transparent 100%),
+                radial-gradient(circle 2px at 75% 40%, rgba(255,195,90,${0.4 + glowIntensity * 0.25}) 0%, transparent 100%),
+                radial-gradient(circle 1.5px at 42% 65%, rgba(255,225,150,${0.35 + glowIntensity * 0.2}) 0%, transparent 100%),
+                radial-gradient(circle 2px at 82% 60%, rgba(255,205,120,${0.3 + glowIntensity * 0.2}) 0%, transparent 100%)`,
+              opacity: lampState === 'idle' ? 0.6 : 1,
+              transition: 'opacity 300ms ease',
+            }}
           />
         </div>
 
-        {/* 触发时的 ripple 效果 */}
+        {/* 4. 下方编织绳连接猫爪 */}
+        <div
+          style={{
+            width: '7px',
+            height: `${50 + dragY * 0.4}px`,
+            background: `repeating-linear-gradient(
+              180deg,
+              #E8DCC8 0px,
+              #D8CCB4 3px,
+              #C8BCA0 5px,
+              #D8CCB4 7px,
+              #E8DCC8 10px
+            )`,
+            borderRadius: '4px',
+            transition: lampState === 'dragging' ? 'none' : 'height 420ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+            boxShadow: 'inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.08)',
+          }}
+        />
+
+        {/* 5. 猫爪吊坠 */}
+        <CatPawHandle
+          isDragging={lampState === 'dragging'}
+          dragY={dragY}
+          lightIntensity={lightIntensity}
+          onDragStart={handleDragStart}
+          onDragMove={handleDragMove}
+          onDragEnd={handleDragEnd}
+        />
+
+        {/* "下拉切换宠物" — 猫爪正下方 */}
+        <div className="pointer-events-none flex flex-col items-center mt-1.5 gap-0.5">
+          <span className="text-[11px] font-semibold text-[rgba(232,190,120,0.95)] tracking-wider" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>下拉切换宠物</span>
+          <span className="text-[13px] text-[rgba(232,190,120,0.8)]" style={{ animation: 'switch-hint-bounce 2s ease-in-out infinite' }}>⌄⌄</span>
+        </div>
+
+        {/* 触发 ripple */}
         {lampState === 'triggered' && (
           <div
             className="absolute rounded-full pointer-events-none"
             style={{
-              top: '28px',
+              bottom: '30px',
               left: '50%',
               transform: 'translateX(-50%)',
-            width: '36px',
-                height: '36px',
+              width: '50px',
+              height: '50px',
               animation: 'lamp-ripple 500ms ease-out forwards',
             }}
           />

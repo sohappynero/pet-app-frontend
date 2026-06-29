@@ -17,10 +17,10 @@ type FeedbackType = "bug" | "feature" | "complaint" | "praise";
 type TagKey = string;
 
 const FEEDBACK_TYPES: { key: FeedbackType; label: string; icon: React.ReactNode; color: string; bg: string }[] = [
-  { key: "bug", label: "功能异常", icon: <Zap size={16} />, color: "#f5576c", bg: "#fff0f3" },
-  { key: "feature", label: "功能建议", icon: <Lightbulb size={16} />, color: "#f0932b", bg: "#fef5e8" },
-  { key: "complaint", label: "体验投诉", icon: <AlertCircle size={16} />, color: "#e17055", bg: "#fef0e8" },
-  { key: "praise", label: "好评表扬", icon: <Heart size={16} />, color: "#fd79a8", bg: "#fef0f6" },
+  { key: "bug", label: "功能异常", icon: <Zap size={16} />, color: "#FF8A65", bg: "#fff0f3" },
+  { key: "feature", label: "功能建议", icon: <Lightbulb size={16} />, color: "#FFB84D", bg: "#fef5e8" },
+  { key: "complaint", label: "体验投诉", icon: <AlertCircle size={16} />, color: "#FF8A65", bg: "#fef0e8" },
+  { key: "praise", label: "好评表扬", icon: <Heart size={16} />, color: "#FF8A65", bg: "#fef0f6" },
 ];
 
 const QUICK_TAGS: { key: TagKey; label: string; color?: string }[] = [

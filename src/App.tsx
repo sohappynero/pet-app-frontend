@@ -25,6 +25,7 @@ import DietAnalysis from "./pages/DietAnalysis";
 import ExerciseAnalysis from "./pages/ExerciseAnalysis";
 import HomePetOS from "./pages/HomePetOS";
 import AiAnalysis from "./pages/AiAnalysis";
+import AiHub from "./pages/AiHub";
 import VipHub from "./pages/VipHub";
 import Timeline from "./pages/Timeline";
 
@@ -53,9 +54,19 @@ export default function App() {
           <Route path="/app" element={<AppShell />}>
             {/* Home */}
             <Route index element={<HomePetOS />} />
-            <Route path="chat" element={<PetChat />} />
 
-            {/* 会员专区 */}
+            {/* Records (记录 Tab) */}
+            <Route path="records" element={<Timeline />} />
+            <Route path="records/list" element={<Records />} />
+            <Route path="records/detail/:id" element={<RecordDetail />} />
+            <Route path="records/add" element={<AddRecord />} />
+            <Route path="records/calendar" element={<RecordsCalendar />} />
+
+            {/* AI Tab */}
+            <Route path="ai" element={<AiHub />} />
+            <Route path="chat" element={<AiHub />} />
+
+            {/* 会员专区 (从我的页面进入) */}
             <Route path="insights" element={<VipHub />} />
             <Route path="insights/analysis" element={<AiAnalysis />} />
             <Route path="insights/beauty" element={<BeautyAnalysis />} />
@@ -64,7 +75,7 @@ export default function App() {
             <Route path="insights/diet" element={<DietAnalysis />} />
             <Route path="insights/exercise" element={<ExerciseAnalysis />} />
 
-            {/* Timeline */}
+            {/* Timeline legacy */}
             <Route path="timeline" element={<Timeline />} />
             <Route path="timeline/records" element={<Records />} />
             <Route path="timeline/record/:id" element={<RecordDetail />} />

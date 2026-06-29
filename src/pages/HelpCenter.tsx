@@ -27,7 +27,7 @@ interface Category {
 const CATEGORIES: Category[] = [
   {
     emoji: "🔒", label: "账户与登录", count: 3,
-    color: "#6c5ce7", bg: "#f3edfc",
+    color: "#FFB84D", bg: "#f3edfc",
     items: [
       { q: "如何注册账号？", a: "在登录页点击「注册」，填写手机号及密码即可完成注册。" },
       { q: "忘记密码怎么办？", a: "在登录页点击「忘记密码」，通过手机验证码重置密码。" },
@@ -36,7 +36,7 @@ const CATEGORIES: Category[] = [
   },
   {
     emoji: "🐾", label: "宠物管理", count: 4,
-    color: "#e17055", bg: "#fef0e8",
+    color: "#FF8A65", bg: "#fef0e8",
     items: [
       { q: "如何添加宠物？", a: "在首页点击「添加新宠物」，填写宠物基本信息并保存。" },
       { q: "可以管理多只宠物吗？", a: "支持添加多只宠物，在首页切换当前宠物查看对应数据。" },

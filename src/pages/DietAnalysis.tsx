@@ -216,7 +216,7 @@ export default function DietAnalysis() {
         <div className="diet-nutrients-grid">
           <NutrientRing label="饮食评分" current={dietScore} target={100} unit="%" color="#ef4444" />
           <NutrientRing label="观察样本" current={obsCount} target={Math.max(obsCount, 5)} unit="次" color="#10b981" />
-          <NutrientRing label="食欲状态" current={hasDietData ? dietScore : 0} target={80} unit="分" color="#8b5cf6" />
+          <NutrientRing label="食欲状态" current={hasDietData ? dietScore : 0} target={80} unit="分" color="#FFB84D" />
           <NutrientRing label="记录完整度" current={obsCount >= 5 ? 100 : Math.round(obsCount * 20)} target={100} unit="%" color="#f59e0b" />
         </div>
       </section>

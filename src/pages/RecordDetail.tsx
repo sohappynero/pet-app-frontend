@@ -61,25 +61,25 @@ type IconInfo = { icon: React.ReactNode; bg: string; color: string; gradient: st
 
 function getRecordTypeInfo(record: HealthRecord): IconInfo {
   if (record.record_type === "vaccine")
-    return { icon: <Syringe size={24} />, bg: "#f0edfc", color: "#6c5ce7", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", label: "疫苗接种" };
+    return { icon: <Syringe size={24} />, bg: "#f0edfc", color: "#FFB84D", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", label: "疫苗接种" };
   if (record.record_type === "deworm")
-    return { icon: <Pill size={24} />, bg: "#fff0f3", color: "#f5576c", gradient: "linear-gradient(135deg, #f5576c 0%, #f093fb 100%)", label: "驱虫护理" };
+    return { icon: <Pill size={24} />, bg: "#fff0f3", color: "#FF8A65", gradient: "linear-gradient(135deg, #FF8A65 0%, #f093fb 100%)", label: "驱虫护理" };
   if (record.record_type === "checkup")
     return { icon: <Stethoscope size={24} />, bg: "#eaf4ff", color: "#74b9ff", gradient: "linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%)", label: "健康体检" };
   if (record.record_type === "beauty" || isBeautyRecord(record))
-    return { icon: <Sparkles size={24} />, bg: "#fff0f5", color: "#fd79a8", gradient: "linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%)", label: "美容医护" };
+    return { icon: <Sparkles size={24} />, bg: "#fff0f5", color: "#FF8A65", gradient: "linear-gradient(135deg, #FF8A65 0%, #fdcb6e 100%)", label: "美容医护" };
   if (record.record_type === "visit")
-    return { icon: <Activity size={24} />, bg: "#fef0e8", color: "#e17055", gradient: "linear-gradient(135deg, #e17055 0%, #f6b93b 100%)", label: "就诊记录" };
+    return { icon: <Activity size={24} />, bg: "#fef0e8", color: "#FF8A65", gradient: "linear-gradient(135deg, #FF8A65 0%, #f6b93b 100%)", label: "就诊记录" };
   if (record.record_type === "weight")
-    return { icon: <Scale size={24} />, bg: "#fef9e7", color: "#f0932b", gradient: "linear-gradient(135deg, #f9ca24 0%, #f0932b 100%)", label: "体重记录" };
+    return { icon: <Scale size={24} />, bg: "#fef9e7", color: "#FFB84D", gradient: "linear-gradient(135deg, #f9ca24 0%, #FFB84D 100%)", label: "体重记录" };
   if (record.record_type === "diet" || isDietRecord(record))
     return { icon: <Heart size={24} />, bg: "#e8f8f0", color: "#00b894", gradient: "linear-gradient(135deg, #00b894 0%, #55efc4 100%)", label: "饮食记录" };
   if (record.record_type === "observation")
-    return { icon: <Eye size={24} />, bg: "#f0e8ff", color: "#6c5ce7", gradient: "linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%)", label: "日常观察" };
+    return { icon: <Eye size={24} />, bg: "#f0e8ff", color: "#FFB84D", gradient: "linear-gradient(135deg, #a29bfe 0%, #FFB84D 100%)", label: "日常观察" };
   if (record.record_type === "external")
-    return { icon: <FileText size={24} />, bg: "#fef9e7", color: "#e17055", gradient: "linear-gradient(135deg, #fdcb6e 0%, #e17055 100%)", label: "外部记录" };
+    return { icon: <FileText size={24} />, bg: "#fef9e7", color: "#FF8A65", gradient: "linear-gradient(135deg, #fdcb6e 0%, #FF8A65 100%)", label: "外部记录" };
   if (record.weight_kg !== null && !Number.isNaN(Number(record.weight_kg)))
-    return { icon: <Scale size={24} />, bg: "#fef9e7", color: "#f0932b", gradient: "linear-gradient(135deg, #f9ca24 0%, #f0932b 100%)", label: "体重记录" };
+    return { icon: <Scale size={24} />, bg: "#fef9e7", color: "#FFB84D", gradient: "linear-gradient(135deg, #f9ca24 0%, #FFB84D 100%)", label: "体重记录" };
   if (isDietRecord(record))
     return { icon: <Heart size={24} />, bg: "#e8f8f0", color: "#00b894", gradient: "linear-gradient(135deg, #00b894 0%, #55efc4 100%)", label: "饮食记录" };
   return { icon: <FileText size={24} />, bg: "#f5f0eb", color: "#8b7355", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", label: "健康记录" };
@@ -513,7 +513,7 @@ export default function RecordDetail() {
                     icon={<Syringe size={16} />}
                     label="疫苗名称"
                     value={record.title}
-                    color="#6c5ce7"
+                    color="#FFB84D"
                     fullWidth
                   />
                 )}
@@ -538,7 +538,7 @@ export default function RecordDetail() {
                     icon={<Pill size={16} />}
                     label="药品名称"
                     value={record.title}
-                    color="#f5576c"
+                    color="#FF8A65"
                     fullWidth
                   />
                 )}
@@ -554,7 +554,7 @@ export default function RecordDetail() {
                       record.deworm_type === "heartworm_prevention" ? "心丝虫预防" :
                       record.deworm_type
                     }
-                    color="#fd79a8"
+                    color="#FF8A65"
                   />
                 )}
               </>
@@ -595,7 +595,7 @@ export default function RecordDetail() {
                     icon={<Stethoscope size={16} />}
                     label="诊断结果"
                     value={record.symptom}
-                    color="#e17055"
+                    color="#FF8A65"
                     fullWidth
                   />
                 )}
@@ -621,7 +621,7 @@ export default function RecordDetail() {
                     icon={<Sparkles size={16} />}
                     label="服务项目"
                     value={record.title}
-                    color="#fd79a8"
+                    color="#FF8A65"
                     fullWidth
                   />
                 )}
@@ -673,7 +673,7 @@ export default function RecordDetail() {
                     icon={<Scale size={16} />}
                     label="体重值"
                     value={`${Number(record.weight_kg).toFixed(1)} kg`}
-                    color="#f0932b"
+                    color="#FFB84D"
                     fullWidth
                   />
                 )}
@@ -683,7 +683,7 @@ export default function RecordDetail() {
                     icon={<Activity size={16} />}
                     label="称重设备"
                     value={(record as any)._rawWeighingDevice}
-                    color="#e17055"
+                    color="#FF8A65"
                   />
                 )}
                 {/* 测量上下文（如"空腹"、"晨起称重"）— 从 notes 或 measurement_context 提取 */}
@@ -725,7 +725,7 @@ export default function RecordDetail() {
                     icon={<FileText size={16} />}
                     label="备注"
                     value={record.note}
-                    color="#6c5ce7"
+                    color="#FFB84D"
                     fullWidth
                   />
                 )}
@@ -767,7 +767,7 @@ export default function RecordDetail() {
                 icon={<Star size={16} />}
                 label="费用"
                 value={`¥${Number(record.cost).toFixed(2)}`}
-                color="#f0932b"
+                color="#FFB84D"
               />
             )}
 
@@ -777,7 +777,7 @@ export default function RecordDetail() {
                 icon={<Scale size={16} />}
                 label="体重"
                 value={`${Number(record.weight_kg).toFixed(1)} kg`}
-                color="#f0932b"
+                color="#FFB84D"
               />
             )}
 
@@ -794,7 +794,7 @@ export default function RecordDetail() {
                   record.mood === "sad" ? "低落" :
                   record.mood
                 }
-                color="#fd79a8"
+                color="#FF8A65"
               />
             )}
 

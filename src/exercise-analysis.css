@@ -4,13 +4,13 @@
 
 .exc-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #faf5ff 0%, #f3e8ff 40%, #ede9fe 80%, #e9d5ff 100%);
+  background: linear-gradient(180deg, #FFF9F2 0%, #FFF5EE 40%, #FFF0E6 100%);
   padding-bottom: 20px;
 }
 
 /* ── 渐变头部（紫色调）───────────────────────── */
 .exc-header {
-  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 30%, #c084fc 60%, #d8b4fe 85%, #e9d5ff 100%);
+  background: linear-gradient(135deg, #FFB84D 0%, #FFD9A0 50%, #FF8A65 100%);
   padding: 48px 18px 28px;
   position: relative;
   overflow: hidden;
@@ -33,7 +33,7 @@
   left: -10%;
   width: 180px;
   height: 180px;
-  background: radial-gradient(circle, #8b5cf6, transparent 70%);
+  background: radial-gradient(circle, #FFB84D, transparent 70%);
   border-radius: 50%;
   opacity: 0.2;
 }
@@ -140,7 +140,7 @@
   justify-content: center;
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
 }
-.ring-high { background: linear-gradient(135deg, #d8b4fe, #c084fc); color: #fff; }
+.ring-high { background: linear-gradient(135deg, #FFD9A0, #FF8A65); color: #fff; }
 .ring-mid { background: linear-gradient(135deg, #fde68a, #fbbf24); color: #78350f; }
 .ring-low { background: linear-gradient(135deg, #fecaca, #f87171); color: #991b1b; }
 
@@ -158,7 +158,7 @@
 }
 .exc-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #c084fc, #a78bfa, #8b5cf6);
+  background: linear-gradient(90deg, #FF8A65, #FFD9A0, #FFB84D);
   border-radius: 999px;
   transition: width 1s ease;
   display: flex;
@@ -236,7 +236,7 @@
 
 .exc-goal-track {
   height: 10px;
-  background: #f5f3ff;
+  background: #FFF5EE;
   border-radius: 999px;
   overflow: hidden;
   position: relative;
@@ -255,7 +255,7 @@
   right: -28px;
   font-size: 10.5px;
   font-weight: 700;
-  color: #7c3aed;
+  color: #E8A030;
 }
 
 /* ── 运动类型卡片 ────────────────────────────── */
@@ -277,7 +277,7 @@
 .exc-type-card:hover { transform: translateX(4px); }
 
 .exc-excellent { border-left-color: #10b981; }
-.exc-good { border-left-color: #8b5cf6; }
+.exc-good { border-left-color: #FFB84D; }
 .exc-moderate { border-left-color: #f59e0b; }
 .exc-insufficient { border-left-color: #ef4444; }
 
@@ -294,8 +294,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #7c3aed;
-  background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+  color: #E8A030;
+  background: linear-gradient(135deg, #FFF5EE, #FFF0E6);
   flex-shrink: 0;
 }
 
@@ -319,7 +319,7 @@
   border-radius: 999px;
 }
 .exc-status-excellent { color: #059669; background: #d1fae5; }
-.exc-status-good { color: #7c3aed; background: #ede9fe; }
+.exc-status-good { color: #E8A030; background: #FFF0E6; }
 .exc-status-moderate { color: #d97706; background: #fef3c7; }
 .exc-status-insufficient { color: #dc2626; background: #fee2e2; }
 
@@ -337,7 +337,7 @@
   display: flex;
   gap: 12px;
   padding-top: 10px;
-  border-top: 1px dashed #ede9fe;
+  border-top: 1px dashed #FFF0E6;
 }
 .exc-stat {
   display: flex;
@@ -347,7 +347,7 @@
   color: #6b7280;
   font-weight: 550;
 }
-.exc-stat svg { color: #a78bfa; flex-shrink: 0; }
+.exc-stat svg { color: #FFD9A0; flex-shrink: 0; }
 
 /* ── 本周运动日程 ────────────────────────────── */
 .exc-week-card {
@@ -371,13 +371,13 @@
   align-items: center;
   padding: 10px 4px 8px;
   border-radius: 12px;
-  background: #faf5ff;
+  background: #FFF5EE;
   border: 1px solid transparent;
   transition: all 0.2s ease;
 }
 .exc-day-card.day-active {
-  background: linear-gradient(135deg, #ede9fe, #ddd6fe);
-  border-color: #a78bfa;
+  background: linear-gradient(135deg, #FFF0E6, #ddd6fe);
+  border-color: #FFD9A0;
   box-shadow: 0 2px 8px rgba(139,92,246,0.15);
 }
 
@@ -398,7 +398,7 @@
 .exc-day-activity {
   font-size: 9px;
   font-weight: 550;
-  color: #7c3aed;
+  color: #E8A030;
   background: rgba(139,92,246,0.08);
   padding: 2px 5px;
   border-radius: 4px;
@@ -415,7 +415,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  background: linear-gradient(135deg, #eff6ff, #eef2ff);
+  background: linear-gradient(135deg, #eff6ff, #FFF9F2);
   border-radius: 10px;
   font-size: 12.5px;
   color: #4b5563;
@@ -454,7 +454,7 @@
 .exc-intensity-track {
   flex: 1;
   height: 22px;
-  background: #f5f3ff;
+  background: #FFF5EE;
   border-radius: 999px;
   overflow: hidden;
   position: relative;
@@ -473,7 +473,7 @@
 }
 .fill-low { background: linear-gradient(90deg, #86efac, #22c55e); }
 .fill-mid { background: linear-gradient(90deg, #fcd34d, #f59e0b); color: #78350f; }
-.fill-high { background: linear-gradient(90deg, #f472b6, #ec4899); }
+.fill-high { background: linear-gradient(90deg, #FF8A65, #FF8A65); }
 
 .exc-intensity-detail {
   font-size: 11px;
@@ -499,7 +499,7 @@
 
 /* ── 推荐方案 ═════════════════════════════════ */
 .exc-plan-card {
-  background: linear-gradient(180deg, #ffffff, #faf5ff);
+  background: linear-gradient(180deg, #ffffff, #FFF5EE);
   border-radius: 20px;
   padding: 18px;
   border: 1px solid rgba(139,92,246,0.1);
@@ -512,9 +512,9 @@
   align-items: flex-start;
   margin-bottom: 16px;
   padding-bottom: 14px;
-  border-bottom: 1px dashed #ede9fe;
+  border-bottom: 1px dashed #FFF0E6;
 }
-.exc-plan-icon { color: #7c3aed; flex-shrink: 0; margin-top: 2px; }
+.exc-plan-icon { color: #E8A030; flex-shrink: 0; margin-top: 2px; }
 .exc-plan-header h4 {
   font-size: 16px;
   font-weight: 750;
@@ -523,7 +523,7 @@
 }
 .exc-plan-header p {
   font-size: 13px;
-  color: #7c3aed;
+  color: #E8A030;
   font-weight: 500;
   margin: 0;
 }
@@ -539,12 +539,12 @@
   padding: 14px 16px;
   border-radius: 14px;
   background: #fff;
-  border: 1px solid #f5f3ff;
+  border: 1px solid #FFF5EE;
   box-shadow: 0 1px 3px rgba(139,92,246,0.04);
 }
 .exc-plan-item.plan-primary {
-  background: linear-gradient(135deg, #ede9fe, #ddd6fe);
-  border-color: #c4b5fd;
+  background: linear-gradient(135deg, #FFF0E6, #ddd6fe);
+  border-color: #FFD9A0;
 }
 
 .exc-plan-time {

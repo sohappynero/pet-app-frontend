@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Home, Globe, Plus, BookOpen, User } from "lucide-react";
+import { Home, ClipboardList, Plus, Bot, User } from "lucide-react";
 
 export interface TabItem {
   key: string;
@@ -16,9 +16,9 @@ export interface GlassTabBarProps {
 // 高级线性图标 — 替代 emoji 提升视觉质感
 const DEFAULT_ITEMS: TabItem[] = [
   { key: "home", label: "首页", icon: <Home size={22} strokeWidth={2.2} /> },
-  { key: "feed", label: "动态", icon: <Globe size={22} strokeWidth={2.2} /> },
+  { key: "records", label: "记录", icon: <ClipboardList size={22} strokeWidth={2.2} /> },
   { key: "add", label: "", icon: <Plus size={24} strokeWidth={2.5} /> },
-  { key: "diary", label: "日记", icon: <BookOpen size={22} strokeWidth={2.2} /> },
+  { key: "ai", label: "AI", icon: <Bot size={22} strokeWidth={2.2} /> },
   { key: "mine", label: "我的", icon: <User size={22} strokeWidth={2.2} /> },
 ];
 
