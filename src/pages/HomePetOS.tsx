@@ -1,167 +1,153 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import GlassNav from "../components/petos/GlassNav";
-import HeroCard from "../components/petos/HeroCard";
-import PetSwitcher from "../components/petos/PetSwitcher";
-import SpeechBubble from "../components/ui/SpeechBubble";
-import { useShell } from "../hooks/useShell";
-import { fetchAnalysisDashboard } from "../lib/api";
-import {
-  getCheckInStatus,
-  getDailyDigest,
-  postCheckIn,
-  type CheckInStatus,
-  type CheckInAte,
-  type CheckInActive,
-  type CheckInMood,
-  type DailyDigest,
-  type PetProfileLike,
-} from "../lib/home.mock";
-import type { Pet } from "../types";
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Heart, MapPin, MessageCircle, Menu, Sparkles } from 'lucide-react';
+import { useShell } from '../hooks/useShell';
+import { fetchAnalysisDashboard, fetchReminders } from '../lib/api';
+import type { Pet } from '../types';
 
-function greet(now: Date = new Date()): string {
-  const h = now.getHours();
-  if (h >= 5 && h < 12) return "早安 ☀️";
-  if (h >= 12 && h < 18) return "午安 🌤️";
-  return "晚安 🌙";
+// 4层架构组件
+import PetBackground from '../components/PetBackground';
+import GlassOverlay from '../components/GlassOverlay';
+import Drawer from '../components/Drawer';
+import LampSwitch from '../components/LampSwitch';
+import '../styles/home-dashboard.css';
+
+/* ---------- helpers ---------- */
+
+function speciesEmoji(s: Pet['species']): string {
+  if (s === 'dog') return '\uD83D\uDC15';
+  if (s === 'cat') return '\uD83D\uDC08';
+  return '\uD83E\uDD8A';
 }
 
-function relativeTime(iso: string, now: Date = new Date()): string {
-  const t = new Date(iso).getTime();
-  if (Number.isNaN(t)) return "";
-  const diff = Math.max(0, now.getTime() - t);
-  const min = Math.floor(diff / 60000);
-  if (min < 1) return "刚刚";
-  if (min < 60) return `${min} 分钟前`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr} 小时前`;
-  const day = Math.floor(hr / 24);
-  return `${day} 天前`;
+function petAvatarUrl(pet: Pet): string | null {
+  return pet._resolved_avatar_url || pet.avatar_url || pet.image_url || null;
 }
 
-function speciesEmoji(species: Pet["species"]): string {
-  if (species === "dog") return "🐕";
-  if (species === "cat") return "🐈";
-  return "🐾";
+function genderLabel(g: Pet['gender']): string {
+  if (g === 'male') return '公';
+  if (g === 'female') return '母';
+  return '--';
 }
 
-function petVisualOf(pet: Pet) {
-  const url = pet._resolved_avatar_url || pet.avatar_url || pet.image_url;
-  if (url) {
-    return (
-      <img
-        src={url}
-        alt=""
-        style={{ width: "100%", height: "100%", borderRadius: "9999px", objectFit: "cover" }}
-      />
-    );
-  }
-  return speciesEmoji(pet.species);
-}
+// 默认宠物背景图（用于全屏展示）
+const DEFAULT_PET_BACKGROUNDS = [
+  'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&q=80', // 猫
+  'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&q=80', // 狗
+];
+
+/* ---------- main component ---------- */
 
 export default function HomePetOS() {
   const navigate = useNavigate();
   const { pets, selectedPet, selectedPetId, setPetId, nickname } = useShell();
 
-  const [digest, setDigest] = useState<DailyDigest | null>(null);
-  const [checkIn, setCheckIn] = useState<CheckInStatus | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [checkinExpanded, setCheckinExpanded] = useState(false);
-  const [healthScore, setHealthScore] = useState<number | null>(null);
-  const [scoreGrade, setScoreGrade] = useState<string>("");
-  const photoInputRef = useRef<HTMLInputElement>(null);
+  // UI 状态
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isFav, setIsFav] = useState(false);
+  const [isDimmed, setIsDimmed] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [petBgIndex, setPetBgIndex] = useState(0);
+  const [ambientIntensity, setAmbientIntensity] = useState(0);
 
-  function petProfile(pet: Pet): PetProfileLike {
-    return { id: pet.id, name: pet.name, species: pet.species, breed: pet.breed, age: pet.age, weight_kg: pet.weight_kg };
-  }
+  // 光源强度变化回调（来自 LampSwitch）— 上限提升到 0.25，让环境光可见
+  const handleLightIntensityChange = React.useCallback(
+    (intensity: number) => {
+      setAmbientIntensity(intensity * 0.25); // 最大 0.25，温暖环境光覆盖
+    },
+    [],
+  );
 
-  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedPet) return;
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const url = reader.result as string;
-      const d = await postCheckIn(petProfile(selectedPet), { photoToday: { url, takenAt: new Date().toISOString() } });
-      setDigest(d);
-      const s = await getCheckInStatus(selectedPet.id);
-      setCheckIn(s);
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
-  };
+  // 数据状态
+  const [reminderCount, setReminderCount] = useState<number>(0);
+  const [recordCount, setRecordCount] = useState<number>(0);
+  const [descExpanded, setDescExpanded] = useState(false);
 
-  const handleSelect = async (field: "ate" | "active" | "mood", value: string) => {
-    if (!selectedPet) return;
-    const d = await postCheckIn(petProfile(selectedPet), { [field]: value });
-    setDigest(d);
-    const s = await getCheckInStatus(selectedPet.id);
-    setCheckIn(s);
-  };
-
+  // 加载数据
   useEffect(() => {
     if (!selectedPet) {
-      setDigest(null);
-      setCheckIn(null);
-      setHealthScore(null);
-      setScoreGrade("");
+      setReminderCount(0);
+      setRecordCount(0);
       return;
     }
+
     let cancelled = false;
-    setLoading(true);
-    setHealthScore(null);
-    setScoreGrade("");
+
     Promise.all([
-      getDailyDigest({
-        id: selectedPet.id,
-        name: selectedPet.name,
-        species: selectedPet.species,
-        breed: selectedPet.breed,
-        age: selectedPet.age,
-        weight_kg: selectedPet.weight_kg,
+      fetchAnalysisDashboard(selectedPet.id).catch((err) => {
+        console.error('[HomeDashboard] fetchAnalysisDashboard error:', err);
+        return null;
       }),
-      getCheckInStatus(selectedPet.id),
-    ]).then(([d, c]) => {
+      fetchReminders(selectedPet.phone, selectedPetId ?? undefined, 'pending')
+        .then((resp) => resp.data || [])
+        .catch(() => []),
+    ]).then(([dashboard, reminders]) => {
       if (cancelled) return;
-      setDigest(d);
-      setCheckIn(c);
-      setLoading(false);
+
+      if (dashboard) {
+        setRecordCount(
+          dashboard.stats?.record_count ||
+            dashboard.recent_records?.length ||
+            0,
+        );
+      }
+      setReminderCount(Array.isArray(reminders) ? reminders.length : 0);
     });
-    fetchAnalysisDashboard(selectedPet.id)
-      .then((data) => {
-        if (cancelled) return;
-        setHealthScore(data.overall_score);
-        setScoreGrade(data.score_grade);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setHealthScore(null);
-        setScoreGrade("");
-      });
+
     return () => {
       cancelled = true;
     };
-  }, [selectedPet?.id]);
+  }, [selectedPet?.id, selectedPet?.phone, selectedPetId]);
 
-  const greeting = useMemo(() => greet(), []);
+  const url = selectedPet ? petAvatarUrl(selectedPet) : null;
 
+  // 获取当前宠物背景图
+  const currentPetBackground =
+    url || DEFAULT_PET_BACKGROUNDS[petBgIndex % DEFAULT_PET_BACKGROUNDS.length];
+
+  // 拉灯触发宠物切换
+  const handleLampTrigger = () => {
+    if (pets.length < 2) return;
+
+    // 触发效果
+    setIsDimmed(true);
+    setIsTransitioning(true);
+
+    setTimeout(() => {
+      // 切换到下一个宠物
+      const currentIndex = pets.findIndex((p) => p.id === selectedPetId);
+      const nextIndex = (currentIndex + 1) % pets.length;
+      setPetId(pets[nextIndex].id);
+      setPetBgIndex(nextIndex);
+    }, 300);
+
+    setTimeout(() => {
+      setIsDimmed(false);
+      setIsTransitioning(false);
+    }, 700);
+  };
+
+  /* ---- render ---- */
+
+  // 无宠物空状态
   if (pets.length === 0) {
     return (
-      <div className="petos-page">
-        <div className="petos-content">
-          <GlassNav />
-          <div className="petos-empty-state">
-            <div className="petos-empty-state__icon" aria-hidden="true">🐾</div>
-            <h2 className="petos-empty-state__title">还没添加宠物</h2>
-            <p className="petos-empty-state__desc">带它来认识 PetOS 吧～</p>
-            <button
-              type="button"
-              className="petos-cta petos-empty-state__cta"
-              onClick={() => navigate("/app/pets/add")}
-            >
-              <span>添加我的第一个宠物</span>
-              <span className="petos-cta__arrow">→</span>
-            </button>
-          </div>
+      <div className="immersive-page">
+        <div className="immersive-empty">
+          <span className="immersive-empty-icon" aria-hidden="true">
+            🐾
+          </span>
+          <h2 className="immersive-empty-title">还没有添加宠物</h2>
+          <p className="immersive-empty-desc">
+            快来添加你的第一个毛孩子，开启智能健康之旅吧
+          </p>
+          <button
+            type="button"
+            className="immersive-empty-cta"
+            onClick={() => navigate('/app/pets/add')}
+          >
+            添加我的宠物 →
+          </button>
         </div>
       </div>
     );
@@ -169,118 +155,156 @@ export default function HomePetOS() {
 
   if (!selectedPet) return null;
 
-  const speaksText = digest?.speaks ?? "";
-  const speaksMood = digest?.speaksMood ?? "normal";
-  const bubbleTime = digest?.generatedAt ? relativeTime(digest.generatedAt) : "";
-  const weightDisplay = selectedPet.weight_kg ?? "--";
-  const hasPhoto = checkIn?.photoToday != null;
-  const isAllDone = hasPhoto && checkIn?.ate != null && checkIn?.active != null && checkIn?.mood != null;
-
   return (
-    <div className="petos-page">
-      <div className="petos-content">
-        <GlassNav onAddClick={() => navigate("/app/pets/add")} />
+    <div className="immersive-page">
+      {/* ===== Layer 1: 全屏宠物背景 ===== */}
+      <PetBackground
+        petImage={currentPetBackground}
+        isDrawerOpen={isDrawerOpen}
+        isDimmed={isDimmed}
+        isTransitioning={isTransitioning}
+      />
 
-        <div className="petos-greet">
-          <div className="petos-greet__hi">
-            {greeting}，{nickname || "你好"}
+      {/* ===== Layer 2: 毛玻璃遮罩 ===== */}
+      <GlassOverlay isVisible={isDrawerOpen} />
+
+      {/* ===== Layer 3: UI层 ===== */}
+      <div className="immersive-ui-layer">
+        {/* 顶部状态栏 */}
+        <header className="immersive-topbar">
+          <button
+            type="button"
+            className="immersive-menu-btn"
+            onClick={() => setIsDrawerOpen(true)}
+            aria-label="打开菜单"
+          >
+            <Menu size={22} color="#5D4E37" />
+          </button>
+
+          <div className="immersive-topbar-center">
+            <Sparkles size={14} color="#E8B84A" />
+            <span className="immersive-topbar-title" style={{ color: '#F5C56A', textShadow: '0 1px 6px rgba(80,40,10,0.25), 0 0 12px rgba(245,197,106,0.15)' }}>{selectedPet.name}，今天也要开心哦～</span>
           </div>
-          <div className="petos-greet__name">
-            {selectedPet.name}
-            <em>。</em>
-          </div>
-        </div>
 
-        {pets.length > 1 ? (
-          <PetSwitcher
-            pets={pets}
-            selectedPetId={selectedPetId}
-            onSelect={setPetId}
-          />
-        ) : null}
+          <div style={{ width: 36 }} /> {/* 占位保持居中 */}
+        </header>
 
-        <HeroCard score={healthScore ?? "--"} unit="" statusText={scoreGrade ? `等级 ${scoreGrade}` : "--"} petVisual={petVisualOf(selectedPet)} />
-
-        <div className="petos-quote">
-          <div className="petos-quote__who">
-            {selectedPet.name} · {bubbleTime || (loading ? "加载中" : "")}
-          </div>
-          {speaksText ? (
-            <SpeechBubble text={speaksText} mood={speaksMood} typewriter={false} />
-          ) : (
-            <span style={{ color: "var(--color-text-tertiary)" }}>--</span>
-          )}
-        </div>
-
-        <input ref={photoInputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handlePhoto} />
-        <button type="button" className={hasPhoto ? "petos-cta petos-cta--done" : "petos-cta"} onClick={() => photoInputRef.current?.click()}>
-          {hasPhoto && checkIn?.photoToday?.url ? (
-            <img src={checkIn.photoToday.url} alt="" className="petos-cta__thumb" />
-          ) : null}
-          <span>{hasPhoto ? "今日已记录" : "📸 给我留个影"}</span>
-          <span className="petos-cta__arrow">{hasPhoto ? "↻" : "→"}</span>
-        </button>
-
-        <div className="petos-checkin">
-          {isAllDone && !checkinExpanded ? (
-            <div className="petos-checkin__summary">
-              <span className="petos-checkin__done">✓ 今日打卡完成</span>
-              <button type="button" className="petos-checkin__edit" onClick={() => setCheckinExpanded(true)}>修改</button>
-            </div>
-          ) : (
-            <>
-              {isAllDone && (
-                <div className="petos-checkin__summary">
-                  <span className="petos-checkin__done">✓ 今日打卡完成</span>
-                  <button type="button" className="petos-checkin__edit" onClick={() => setCheckinExpanded(false)}>收起</button>
+        {/* 主内容区 - 宠物信息卡（底部浮起） */}
+        <div className={`immersive-content ${isDrawerOpen ? 'dimmed' : ''}`}>
+          <div className="immersive-pet-card immersive-pet-card--horizontal">
+            {/* 左侧：宠物头像 */}
+            <div className="immersive-avatar-section">
+              {url ? (
+                <img
+                  src={url}
+                  alt={selectedPet.name}
+                  className="immersive-pet-avatar"
+                />
+              ) : (
+                <div className="immersive-avatar-placeholder">
+                  {speciesEmoji(selectedPet.species)}
                 </div>
               )}
-              <div className="petos-checkin__row">
-                <div className="petos-checkin__label">🍽️ 吃了吗</div>
-                <div className="petos-checkin__pills">
-                  {([["normal", "正常"], ["less", "偏少"], ["much", "偏多"]] as [CheckInAte, string][]).map(([v, l]) => (
-                    <button key={v} type="button" className={`petos-checkin__pill${checkIn?.ate === v ? " petos-checkin__pill--on" : ""}`} onClick={() => handleSelect("ate", v)}>{l}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="petos-checkin__row">
-                <div className="petos-checkin__label">🏃 动了吗</div>
-                <div className="petos-checkin__pills">
-                  {([["normal", "正常"], ["less", "偏少"], ["much", "偏多"]] as [CheckInActive, string][]).map(([v, l]) => (
-                    <button key={v} type="button" className={`petos-checkin__pill${checkIn?.active === v ? " petos-checkin__pill--on" : ""}`} onClick={() => handleSelect("active", v)}>{l}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="petos-checkin__row">
-                <div className="petos-checkin__label">😊 状态如何</div>
-                <div className="petos-checkin__pills">
-                  {([["happy", "开心"], ["normal", "一般"], ["low", "低落"]] as [CheckInMood, string][]).map(([v, l]) => (
-                    <button key={v} type="button" className={`petos-checkin__pill${checkIn?.mood === v ? " petos-checkin__pill--on" : ""}`} onClick={() => handleSelect("mood", v)}>{l}</button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+            </div>
 
-        <div className="petos-stats">
-          <div className="petos-stat petos-stat--blue">
-            <div className="petos-stat__lbl">7 日体重</div>
-            <div className="petos-stat__val">
-              {weightDisplay}
-              {selectedPet.weight_kg != null && <span className="petos-stat__unit">kg</span>}
+            {/* 右侧：信息内容 */}
+            <div className="immersive-info-section">
+              {/* 标题行：名字 + 性别 + 收藏 */}
+              <div className="immersive-header-row">
+                <h1 className="immersive-pet-name">
+                  {selectedPet.name}
+                  <span className="pet-gender-symbol">
+                    {selectedPet.gender === 'male' ? '♂' : selectedPet.gender === 'female' ? '♀' : ''}
+                  </span>
+                </h1>
+                <button
+                  type="button"
+                  className={`immersive-fav-btn${isFav ? ' active' : ''}`}
+                  onClick={() => setIsFav(!isFav)}
+                  aria-label={isFav ? '取消收藏' : '收藏'}
+                >
+                  <Heart size={18} fill={isFav ? '#FFFFFF' : 'none'} stroke={isFav ? '#FFFFFF' : '#FF9EB5'} />
+                </button>
+              </div>
+
+              {/* 品种行 */}
+              <div className="immersive-breed-row">
+                <MapPin size={13} color="#C4A882" />
+                <span>{selectedPet.breed || '混血宠物'}</span>
+              </div>
+
+              {/* 属性标签组 */}
+              <div className="immersive-tags-row">
+                <div className="immersive-tag">
+                  <span className="tag-label">性别</span>
+                  <span className="tag-value">{genderLabel(selectedPet.gender)}</span>
+                </div>
+                <div className="immersive-tag">
+                  <span className="tag-label">年龄</span>
+                  <span className="tag-value">{selectedPet.age || '--'}</span>
+                </div>
+                <div className="immersive-tag">
+                  <span className="tag-label">体重</span>
+                  <span className="tag-value">
+                    {selectedPet.weight_kg != null
+                      ? `${selectedPet.weight_kg}kg`
+                      : '--'}
+                  </span>
+                </div>
+              </div>
+
+              {/* 毛发颜色 + 体型 */}
+              <div className="immersive-detail-row">
+                <span>毛发颜色: {selectedPet.color || '奶油色'}</span>
+                <span className="detail-sep">|</span>
+                <span>体型: {selectedPet.size || '小型'}</span>
+              </div>
+
+              {/* 操作行：Read More + 聊天按钮 */}
+              <div className="immersive-action-row">
+                <button
+                  type="button"
+                  className="read-more-btn"
+                  onClick={() => setDescExpanded(!descExpanded)}
+                >
+                  Read More &gt;
+                </button>
+                <button
+                  type="button"
+                  className="action-chat-btn"
+                  onClick={() => navigate('/app/chat')}
+                  aria-label="发消息"
+                >
+                  <MessageCircle size={17} color="#7C9885" />
+                </button>
+              </div>
             </div>
-            <div className="petos-stat__delta">—</div>
-          </div>
-          <div className="petos-stat petos-stat--green">
-            <div className="petos-stat__lbl">今日运动</div>
-            <div className="petos-stat__val">
-              35<span className="petos-stat__unit">min</span>
+
+            {/* 右侧边缘：下拉切换提示 */}
+            <div className="immersive-switch-hint">
+              <span>下拉切换宠物</span>
+              <span className="switch-arrow">⌄</span>
             </div>
-            <div className="petos-stat__delta">达成 ✓</div>
           </div>
         </div>
       </div>
+
+      {/* ===== Ambient Layer: 全屏环境暖光（由猫爪灯驱动） ===== */}
+      <div
+        className="lamp-ambient-layer"
+        style={{ '--ambient-opacity': ambientIntensity } as React.CSSProperties}
+      />
+
+      {/* ===== Layer 4: 左侧抽屉菜单 ===== */}
+      <Drawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        pets={pets}
+        selectedPet={selectedPet}
+      />
+
+      {/* ===== Layer 4: 右侧猫爪拉灯系统（光源核心） ===== */}
+      <LampSwitch onTrigger={handleLampTrigger} onLightIntensityChange={handleLightIntensityChange} />
     </div>
   );
 }

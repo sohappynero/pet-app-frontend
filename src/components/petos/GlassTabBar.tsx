@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { Home, Globe, Plus, BookOpen, User } from "lucide-react";
 
 export interface TabItem {
   key: string;
@@ -12,11 +13,13 @@ export interface GlassTabBarProps {
   onChange?: (key: string) => void;
 }
 
+// 高级线性图标 — 替代 emoji 提升视觉质感
 const DEFAULT_ITEMS: TabItem[] = [
-  { key: "home", label: "首页", icon: "🏠" },
-  { key: "insights", label: "会员专区", icon: "🌟" },
-  { key: "timeline", label: "成长", icon: "📖" },
-  { key: "mine", label: "我的", icon: "👤" },
+  { key: "home", label: "首页", icon: <Home size={22} strokeWidth={2.2} /> },
+  { key: "feed", label: "动态", icon: <Globe size={22} strokeWidth={2.2} /> },
+  { key: "add", label: "", icon: <Plus size={24} strokeWidth={2.5} /> },
+  { key: "diary", label: "日记", icon: <BookOpen size={22} strokeWidth={2.2} /> },
+  { key: "mine", label: "我的", icon: <User size={22} strokeWidth={2.2} /> },
 ];
 
 export default function GlassTabBar({
@@ -24,13 +27,35 @@ export default function GlassTabBar({
   activeKey,
   onChange,
 }: GlassTabBarProps) {
+  const centerIndex = Math.floor(items.length / 2);
+  const centerKey = items[centerIndex]?.key;
+
   return (
     <div
       className="petos-tabbar petos-glass petos-glass--strong"
       data-testid="petos-glass-tabbar"
     >
-      {items.map((item) => {
+      {items.map((item, idx) => {
+        const isCenter = idx === centerIndex;
         const isOn = item.key === activeKey;
+
+        if (isCenter) {
+          // 中间凸起的加号按钮
+          return (
+            <button
+              key={item.key}
+              type="button"
+              className="petos-tab petos-tab--center"
+              onClick={() => onChange?.(item.key)}
+              aria-label="添加"
+            >
+              <span className="petos-tab__ico petos-tab__ico--center" aria-hidden="true">
+                {item.icon}
+              </span>
+            </button>
+          );
+        }
+
         return (
           <button
             key={item.key}
@@ -43,7 +68,7 @@ export default function GlassTabBar({
             <span className="petos-tab__ico" aria-hidden="true">
               {item.icon}
             </span>
-            {item.label}
+            {item.label && <span className="petos-tab__label">{item.label}</span>}
           </button>
         );
       })}
