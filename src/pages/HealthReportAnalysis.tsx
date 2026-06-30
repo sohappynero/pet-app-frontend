@@ -429,7 +429,7 @@ export default function HealthReportAnalysis() {
           </div>
         )}
         {!loading && healthData.checkItems.length > 0 && healthData.checkItems.every((i) => i.status === "pending") && (
-          <div className="hr-abnormal-alert" style={{ background: "#fef3c7", borderColor: "#f59e0b" }}>
+          <div className="hr-abnormal-alert glass-panel" style={{ borderColor: "#f59e0b" }}>
             <Clock size={18} />
             <div>
               <strong>暂无体检记录：</strong> 建议每年至少进行 1-2 次全面体检，以便及时发现健康问题。

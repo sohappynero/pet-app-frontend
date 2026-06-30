@@ -143,7 +143,7 @@ export default function Dashboard() {
   const progressPct = ((step - 1) / 3) * 100;
 
   return (
-    <div className="petos-page">
+    <div className="petros-page">
       <div className="petos-content" style={{ paddingBottom: "calc(80px + env(safe-area-inset-bottom, 0px))" }}>
         {/* 顶栏 */}
         <div className="petos-form-topbar">
@@ -354,7 +354,7 @@ export default function Dashboard() {
             <div><span>过敏</span><strong>{form.hasAllergy ? "有" : "无"}</strong></div>
           </div>
           {form.specialNotes && (
-            <div style={{ marginTop: "var(--space-3)", padding: "8px 12px", background: "var(--color-bg)", borderRadius: "var(--radius-sm)" }}>
+            <div className="petos-form-preview-grid" style={{ marginTop: "var(--space-3)", gridTemplateColumns: "1fr" }}>
               <span style={{ fontSize: "var(--text-micro)", color: "var(--color-text-tertiary)" }}>备注</span>
               <p style={{ margin: 0, fontSize: "var(--text-caption)", color: "var(--color-text-primary)" }}>{form.specialNotes}</p>
             </div>

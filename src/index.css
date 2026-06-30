@@ -116,6 +116,7 @@ body::before {
   width: 100%;
   position: relative;
   z-index: 10;
+  background: #1a1a2e; /* 暗调 onboarding 背景 */
 }
 
 .app-content {
@@ -8769,11 +8770,11 @@ body::before {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(255,255,255,0.7);
-  backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: 16px;
   padding: 14px 18px;
-  border: 1px solid rgba(200,180,160,0.35);
 }
 
 .ph3d-pet-avatar-wrap {
@@ -9517,10 +9518,10 @@ body::before {
   align-items: center;
   gap: 6px;
   padding: 14px 6px 10px;
-  background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(252,250,248,0.85));
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: 16px 18px 16px 18px;
-  border: 1.5px solid rgba(180, 170, 155, 0.18);
-  box-shadow: 0 2px 8px rgba(160, 140, 120, 0.06);
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -9663,10 +9664,10 @@ body::before {
   align-items: center;
   gap: 6px;
   padding: 16px 8px 12px;
-  background: #FFFAF0;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: 18px 20px 18px 20px;
-  border: 1.5px solid rgba(180, 170, 155, 0.20);
-  box-shadow: 0 2px 8px rgba(160, 140, 120, 0.06);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
@@ -10190,8 +10191,10 @@ body::before {
 .ph3d-modal {
   width: 100%;
   max-width: 420px;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(24px) saturate(1.15);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: 24px;
-  background: #fff;
   padding: 20px 16px calc(28px + env(safe-area-inset-bottom));
   max-height: 85dvh;
   overflow-y: auto;
@@ -10698,11 +10701,11 @@ body::before {
 /* 统计卡片区 */
 .h3d-stats-section { padding: 16px 16px 0; }
 .h3d-weight-card {
-  background: #fff;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: 20px;
   padding: 18px 16px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.05);
-  border: 1px solid rgba(0,0,0,0.04);
 }
 .h3d-weight-header {
   display: flex;
@@ -11091,11 +11094,11 @@ body::before {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #fff;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: 16px;
   padding: 14px;
-  border: 1px solid rgba(0,0,0,0.04);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
   cursor: pointer;
   text-align: left;
   transition: all 0.2s;
@@ -12793,11 +12796,11 @@ body::before {
 
 /* 卡片 */
 .ar-card {
-  background: #fff;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(24px) saturate(1.15);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: 20px;
   padding: 16px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
-  border: 1px solid rgba(0,0,0,0.03);
 }
 .ar-card-header {
   display: flex;

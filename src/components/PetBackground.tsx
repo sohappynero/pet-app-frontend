@@ -21,10 +21,11 @@ const PetBackground: React.FC<PetBackgroundProps> = ({
   isDimmed,
   isTransitioning,
 }) => {
-  // 规范：default scale(1), drawer: scale(1.08) blur(12px) brightness(0.65)
+  // idle: 轻微模糊+适度亮色 — 背景作为氛围层，猫咪轮廓清晰可辨
+  // drawer: 稍强模糊+微提亮 — 抽屉打开时背景适当弱化
   const filterStyle = isDrawerOpen
-    ? 'blur(12px) brightness(0.65) saturate(0.9)'
-    : 'blur(0px) brightness(1.0) saturate(1.05)';
+    ? 'blur(10px) brightness(0.82) saturate(0.96)'
+    : 'blur(8px) brightness(0.78) saturate(0.92)';
   const scaleValue = isDrawerOpen ? 1.08 : 1; /* default=1, drawer open=1.08 */
 
   return (

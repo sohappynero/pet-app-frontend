@@ -68,7 +68,7 @@ const LampSwitch: React.FC<LampSwitchProps> = ({
           setLampState('idle');
           setDragY(0);
           isTriggeringRef.current = false;
-        }, 500);
+        }, 1200);
       } else {
         setLampState('idle');
         requestAnimationFrame(() => {
@@ -95,7 +95,7 @@ const LampSwitch: React.FC<LampSwitchProps> = ({
       <div className={`lamp-light-cone ${stateClass}`} />
 
       <div
-        className="fixed top-0 z-30 flex flex-col items-center lamp-swing-idle"
+        className={`fixed top-0 z-30 flex flex-col items-center ${lampState === 'transition' ? 'lamp-swing-dampen' : 'lamp-swing-idle'}`}
         style={{ right: '0px', width: '130px', paddingTop: '2px' }}
       >
         {/* 1. 顶座 */}
@@ -235,7 +235,7 @@ const LampSwitch: React.FC<LampSwitchProps> = ({
         <div
           style={{
             width: '7px',
-            height: `${50 + dragY * 0.4}px`,
+            height: `${140 + dragY * 0.4}px`,
             background: `repeating-linear-gradient(
               180deg,
               #E8DCC8 0px,
@@ -245,7 +245,7 @@ const LampSwitch: React.FC<LampSwitchProps> = ({
               #E8DCC8 10px
             )`,
             borderRadius: '4px',
-            transition: lampState === 'dragging' ? 'none' : 'height 420ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+            transition: lampState === 'dragging' ? 'none' : 'height 420ms cubic-bezier(0.22, 0.61, 0.36, 1)',
             boxShadow: 'inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.08)',
           }}
         />
@@ -260,10 +260,36 @@ const LampSwitch: React.FC<LampSwitchProps> = ({
           onDragEnd={handleDragEnd}
         />
 
-        {/* "下拉切换宠物" — 猫爪正下方 */}
-        <div className="pointer-events-none flex flex-col items-center mt-1.5 gap-0.5">
-          <span className="text-[11px] font-semibold text-[rgba(232,190,120,0.95)] tracking-wider" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>下拉切换宠物</span>
-          <span className="text-[13px] text-[rgba(232,190,120,0.8)]" style={{ animation: 'switch-hint-bounce 2s ease-in-out infinite' }}>⌄⌄</span>
+        {/* "下拉切换宠物" — 双箭头上下叠加(加宽开角+灯光特效) + 文字两行 */}
+        <div className="pointer-events-none flex flex-col items-center mt-2">
+          <div className="flex flex-col items-center relative" style={{ animation: 'switch-hint-bounce 2s ease-in-out infinite' }}>
+            {/* 光晕背景 */}
+            <div className="absolute inset-0 rounded-full" style={{
+              background: 'radial-gradient(circle, rgba(255,200,100,0.25) 0%, rgba(255,180,80,0.1) 50%, transparent 70%)',
+              width: '50px', height: '40px', top: '-10px',
+              filter: 'blur(4px)',
+              animation: 'arrow-glow-pulse 2s ease-in-out infinite',
+            }} />
+            <span className="text-[20px] leading-none text-[rgba(255,220,150,1)] relative" style={{
+              textShadow: `
+                0 0 6px rgba(255,200,100,0.9),
+                0 0 14px rgba(255,180,80,0.6),
+                0 0 24px rgba(255,160,60,0.35)
+              `,
+              transform: 'scaleX(1.6)',
+            }}>⌄</span>
+            <span className="text-[20px] leading-none text-[rgba(255,220,150,1)] -mt-2 relative" style={{
+              textShadow: `
+                0 0 6px rgba(255,200,100,0.9),
+                0 0 14px rgba(255,180,80,0.6),
+                0 0 24px rgba(255,160,60,0.35)
+              `,
+              transform: 'scaleX(1.6)',
+            }}>⌄</span>
+          </div>
+          <span className="text-[13px] font-medium text-white mt-3 tracking-wide leading-tight text-center" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+            下拉切换<br/>宠物
+          </span>
         </div>
 
         {/* 触发 ripple */}

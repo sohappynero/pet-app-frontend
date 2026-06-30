@@ -5,7 +5,7 @@ import AddRecordSheet from "./AddRecordSheet";
 
 const TAB_TO_PATH = {
   home: "/app",
-  records: "/app/records",
+  records: "/app/records/list",
   add: "/app/add",
   ai: "/app/ai",
   mine: "/app/mine",

@@ -64,6 +64,11 @@
   50%      { transform: translateY(3px); }
 }
 
+@keyframes arrow-glow-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.15); }
+}
+
 @keyframes lamp-ripple {
   0% {
     transform: scale(0.5);
@@ -82,6 +87,17 @@
   50%      { transform: rotate(1.2deg); }
 }
 
+/* 触发后物理阻尼摆动：3次递减晃动 → 静止 */
+@keyframes lamp-swing-dampen {
+  0%   { transform: rotate(8deg); }
+  16%  { transform: rotate(-5deg); }
+  32%  { transform: rotate(2.8deg); }
+  50%  { transform: rotate(-1.2deg); }
+  70%  { transform: rotate(0.4deg); }
+  85%  { transform: rotate(-0.1deg); }
+  100% { transform: rotate(0deg); }
+}
+
 @keyframes halo-burst {
   0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
   100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
@@ -97,6 +113,11 @@
 
 .lamp-swing-idle {
   animation: lamp-swing-idle 4s ease-in-out infinite;
+}
+
+/* 阻尼摆动：1.2s 播放完毕后停在 0° */
+.lamp-swing-dampen {
+  animation: lamp-swing-dampen 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
 }
 
 .lamp-glow-halo {
@@ -257,11 +278,13 @@
   text-shadow: 0 1px 4px rgba(212, 168, 85, 0.25);
 }
 
-.petos-tab--center {
+.petros-tab--center {
   position: relative;
-  top: -14px !important;
-  min-width: 52px !important;
-  min-height: 52px !important;
+  top: 0px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
+  width: 56px !important;
+  height: 56px !important;
   background: linear-gradient(135deg, var(--sg-accent) 0%, #F0B046 100%) !important;
   border: 2px solid rgba(255, 250, 240, 0.65) !important;
   border-radius: 50% !important;
@@ -277,16 +300,84 @@
   padding: 0 !important;
   gap: 0 !important;
 }
-.petos-tab--center:hover {
+.petros-tab--center:hover {
   transform: scale(1.1) !important;
   box-shadow:
     0 6px 24px rgba(232, 164, 59, 0.45),
     0 3px 10px rgba(220, 150, 50, 0.28) !important;
 }
-.petos-tab--center:active {
+.petros-tab--center:active {
   transform: scale(0.95) !important;
 }
-.petos-tab__ico--center {
+.petros-tab__ico--center {
   font-size: 22px !important;
   line-height: 1 !important;
+}
+
+/* ============================================
+ * 全局毛玻璃面板 — Glass Panel System
+ * 与 HomePetOS 首页风格统一的高级毛玻璃效果
+ * ============================================ */
+
+/* 基础毛玻璃面板 */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px) saturate(1.15);
+  -webkit-backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.04),
+    0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+/* 毛玻璃面板 - 大圆角版本 */
+.glass-panel--lg {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px) saturate(1.15);
+  -webkit-backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.05),
+    0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+/* 毛玻璃面板 - 强化版（更不透明） */
+.glass-panel--strong {
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 16px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* 毛玻璃面板 - 轻量版（更透明） */
+.glass-panel--light {
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.03);
+}
+
+/* 毛玻璃卡片悬浮效果 */
+.glass-panel:hover,
+.glass-panel--lg:hover {
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.06),
+    0 3px 10px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.25s ease;
+}
+
+.glass-panel--strong:hover {
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.25s ease;
 }

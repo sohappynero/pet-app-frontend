@@ -1,10 +1,7 @@
-import GlassNav from "../components/petos/GlassNav";
-
 export default function Insights() {
   return (
     <div className="petos-page">
       <div className="petos-content">
-        <GlassNav />
         <div className="petos-greet">
           <div className="petos-greet__name">洞察</div>
         </div>

@@ -294,11 +294,9 @@ export default function AiAnalysis() {
             } />
 
             {!analysisLoading && analysisData?.ai_summary && (
-              <div className="ai-summary-block" style={{
+              <div className="ai-summary-block glass-panel" style={{
                 margin: "12px 0",
                 padding: "14px 16px",
-                background: "linear-gradient(135deg, #fff5e6 0%, #ffe9d6 100%)",
-                borderRadius: 12,
                 borderLeft: "3px solid #ff9a56",
                 position: "relative",
               }}>

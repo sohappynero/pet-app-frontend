@@ -157,10 +157,10 @@ export default function FeatureVote() {
 
       {/* 票数状态卡 */}
       <div
-        className={`mx-4 mt-3 rounded-2xl p-4 ${
+        className={`mx-4 mt-3 rounded-2xl p-4 glass-panel ${
           exhausted
-            ? "bg-orange-50 border border-orange-200"
-            : "bg-white shadow-sm"
+            ? "border-orange-200"
+            : ""
         }`}
       >
         <div className="flex items-center justify-between">
@@ -197,7 +197,7 @@ export default function FeatureVote() {
           </h2>
         </div>
         {data.candidates.length === 0 ? (
-          <div className="rounded-2xl bg-white p-8 text-center text-gray-500 text-sm">
+          <div className="rounded-2xl glass-panel p-8 text-center text-gray-500 text-sm">
             本轮投票暂未开放，敬请期待
           </div>
         ) : (
@@ -234,7 +234,7 @@ export default function FeatureVote() {
                 {data.in_dev.map((it) => (
                   <div
                     key={it.id}
-                    className="rounded-xl bg-white p-3 shadow-sm"
+                    className="rounded-xl glass-panel p-3 shadow-sm"
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-900">
@@ -268,7 +268,7 @@ export default function FeatureVote() {
                 {data.launched.map((it) => (
                   <div
                     key={it.id}
-                    className="rounded-xl bg-white p-3 shadow-sm flex items-center justify-between"
+                    className="rounded-xl glass-panel p-3 shadow-sm flex items-center justify-between"
                   >
                     <span className="text-sm text-gray-900">{it.title}</span>
                     <span className="text-xs text-gray-500">
@@ -330,7 +330,7 @@ function CandidateCard({
   const myVotes = c.my_votes;
   const showPreview = hasPreview(c.key);
   return (
-    <div className="rounded-2xl bg-white shadow-sm p-4">
+    <div className="rounded-2xl glass-panel shadow-sm p-4">
       {c.cover_image && (
         <img
           src={c.cover_image}

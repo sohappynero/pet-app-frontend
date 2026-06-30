@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, LogOut, X } from "lucide-react";
-import GlassNav from "../components/petos/GlassNav";
+
 import { fetchReminders } from "../lib/api";
 import { useShell } from "../hooks/useShell";
 import { getLocalAvatar } from "../lib/pet-avatar";
@@ -103,7 +103,6 @@ export default function Mine() {
   return (
     <div className="petos-page">
       <div className="petos-content">
-        <GlassNav rightSlot={null} />
 
         {/* 用户信息卡 */}
         <div className="petos-mine-profile">

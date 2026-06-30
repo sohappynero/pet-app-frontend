@@ -205,7 +205,7 @@ export default function DietAnalysis() {
       {/* ═══ 营养素环形图 — 数据库无详细营养字段 ═══ */}
       <section className="diet-nutrients-section">
         <h2 className="diet-section-title"><Apple size={18} /> 数据来源说明</h2>
-        <div style={{ background: "#fffbeb", borderRadius: "12px", padding: "16px", borderLeft: "4px solid #f59e0b" }}>
+        <div className="glass-panel" style={{ padding: "16px", borderLeft: "4px solid #f59e0b" }}>
           <p style={{ margin: 0, color: "#92400e", fontSize: "14px", lineHeight: 1.6 }}>
             当前饮食评分 <strong>{dietLoading ? "..." : dietScore}分</strong> 基于 <strong>{obsCount}</strong> 条日常观察记录中的食欲状态计算。
             数据库暂无详细热量/蛋白质等营养数据，如需精确的营养分析，请在记录时补充更详细的喂养信息。

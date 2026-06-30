@@ -4569,10 +4569,10 @@
   align-items: center;
   gap: 5px;
   padding: 14px 6px 10px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: 16px 18px 16px 18px;
-  border: 1.5px solid rgba(200, 170, 160, 0.15);
-  box-shadow: 0 2px 8px rgba(160, 140, 120, 0.05);
   transition: all 0.3s ease;
   cursor: pointer;
 }
@@ -4677,9 +4677,10 @@
   flex-direction: column;
   gap: 6px;
   padding: 14px 16px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: 14px;
-  border: 1.5px solid rgba(200, 170, 160, 0.12);
 }
 
 .vip-voice-avatar {
@@ -4800,8 +4801,9 @@
   margin-top: 14px;
   padding: 14px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1.5px solid rgba(200, 170, 160, 0.15);
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid rgba(255,255,255,0.18);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -6029,7 +6031,9 @@
   width: 100%;
   height: calc(100vh - 64px);
   max-height: calc(100vh - 64px);
-  background: linear-gradient(180deg, #FFF9F2 0%, #FFFAFB 100%);
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(24px) saturate(1.15);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: 20px 20px 0 0;
   padding: 0 14px 16px 16px;
   overflow: hidden;

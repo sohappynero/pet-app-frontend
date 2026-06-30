@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Home, ClipboardList, Plus, Bot, User } from "lucide-react";
 
 export interface TabItem {
@@ -29,6 +29,23 @@ export default function GlassTabBar({
 }: GlassTabBarProps) {
   const centerIndex = Math.floor(items.length / 2);
   const centerKey = items[centerIndex]?.key;
+
+  // 监听抽屉状态：打开时隐藏导航栏
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    const check = () => setHidden(document.body.classList.contains('drawer-open'));
+    // 使用 MutationObserver 监听 body class 变化
+    const observer = new MutationObserver(check);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    check(); // 初始检查
+    return () => observer.disconnect();
+  }, []);
+
+  if (hidden) return null;
 
   return (
     <div

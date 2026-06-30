@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import GlassNav from "../components/petos/GlassNav";
+
 import HealthTrendChart from "../components/petos/HealthTrendChart";
 import { useShell } from "../hooks/useShell";
 import { fetchAnalysisDashboard, fetchRecords, type AnalysisDashboardData } from "../lib/api";
@@ -89,7 +89,6 @@ export default function Timeline() {
   return (
     <div className="petos-page">
       <div className="petos-content">
-        <GlassNav rightSlot={null} />
 
         <div className="petos-greet">
           <div className="petos-greet__name">成长</div>

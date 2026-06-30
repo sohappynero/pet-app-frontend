@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import GlassNav from "../components/petos/GlassNav";
 import { useShell } from "../hooks/useShell";
 
 export default function VipHub() {
@@ -10,7 +9,6 @@ export default function VipHub() {
   return (
     <div className="petos-page">
       <div className="petos-content">
-        <GlassNav rightSlot={null} />
 
         <div className="petos-greet">
           <div className="petos-greet__name">会员专区</div>

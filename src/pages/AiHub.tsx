@@ -6,7 +6,7 @@ import { getLocalAvatar } from "../lib/pet-avatar";
 import { chatWithPet, fetchPhotoMind } from "../lib/pet-mind.api";
 import type { QuotaError } from "../lib/pet-mind.api";
 import QuotaHintModal from "../components/PetChat/QuotaHintModal";
-import GlassNav from "../components/petos/GlassNav";
+
 
 interface ChatMsg {
   role: "user" | "pet";
@@ -94,7 +94,6 @@ export default function AiHub() {
   return (
     <div className="petos-page" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <div className="petos-content" style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <GlassNav rightSlot={null} />
 
         <div className="petos-greet">
           <div className="petos-greet__name">AI 伙伴</div>

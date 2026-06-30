@@ -2,25 +2,24 @@
  * 所有具名 class 以 .petos- 前缀，避免与 index.css 旧选择器冲突。
  */
 
-/* ======== 页面骨架 ======== */
-.petos-page {
+/* ======== 页面骨架 —— 暖灰毛玻璃氛围 ======== */
+.petros-page {
   min-height: 100vh;
-  background: var(--color-bg);
-  color: var(--color-text-primary);
+  background: #3C3C3C !important; /* 深灰背景 */
+  color: #3D3428 !important;
   font-family: var(--font-family);
   position: relative;
   overflow-x: hidden;
 }
 
-/* 给毛玻璃看的"色彩源"——隐形径向光斑，让 backdrop-filter 有东西可糊 */
-.petos-page::before {
+/* 暗调氛围光斑 */
+.petros-page::before {
   content: "";
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(circle at 88% 8%, rgba(255, 184, 77, 0.35) 0%, transparent 38%),
-    radial-gradient(circle at 6% 92%, rgba(126, 217, 87, 0.22) 0%, transparent 42%),
-    radial-gradient(circle at 92% 96%, rgba(123, 199, 255, 0.20) 0%, transparent 38%);
+    radial-gradient(ellipse at 80% 20%, rgba(255, 184, 77, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(180, 140, 255, 0.08) 0%, transparent 45%);
   pointer-events: none;
   z-index: 0;
 }
@@ -344,7 +343,7 @@
 /* ======== 底部 Tab Bar ======== */
 .petos-tabbar {
   position: fixed;
-  bottom: 14px;
+  bottom: 10px;
   left: 14px;
   right: 14px;
   max-width: 452px;
@@ -354,10 +353,18 @@
   display: flex;
   justify-content: space-around;
   align-items: flex-end;
-  z-index: 999;
+  z-index: 30;
+}
+
+/* 抽屉打开时导航栏完全隐藏 */
+body.drawer-open .petros-tabbar {
+  display: none !important;
 }
 .petos-tab {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   font-size: 10.5px;
   color: #b5a887;
@@ -373,7 +380,7 @@
   font-size: 20px;
   display: block;
   margin-bottom: 3px;
-  filter: grayscale(1) opacity(0.45);
+  filter: grayscale(1) opacity(0.7);
   transition: filter 200ms ease, transform 200ms ease;
 }
 .petos-tab--on {
@@ -487,19 +494,26 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-full);
-  background: var(--color-card);
-  border: 1px solid var(--color-divider);
+  background: rgba(90, 75, 60, 0.25);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(180, 160, 130, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--color-text-primary);
+  color: #f0ece4;
   font-size: 18px;
+  transition: all 0.2s ease;
+}
+.petros-form-topbar__back:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 .petos-form-topbar__title {
   font-size: var(--text-h2);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
+  color: #f0ece4;
 }
 
 .petos-form-step-header {
@@ -514,16 +528,16 @@
 .petos-form-step-header__title {
   font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
+  color: #f0ece4;
 }
 .petos-form-step-header__index {
   font-size: var(--text-micro);
-  color: var(--color-text-tertiary);
+  color: rgba(240, 236, 228, 0.4);
 }
 
 .petos-form-progress {
   height: 4px;
-  background: var(--color-divider);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-full);
   margin-bottom: var(--space-5);
   overflow: hidden;
@@ -536,11 +550,21 @@
 }
 
 .petos-form-card {
-  background: var(--color-card);
-  border: 1px solid rgba(255, 184, 77, 0.10);
+  background: rgba(90, 75, 60, 0.25);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(180, 160, 130, 0.18);
   border-radius: 20px;
   padding: var(--space-4);
-  box-shadow: var(--shadow-card);
+  box-shadow:
+    0 4px 20px rgba(60, 45, 30, 0.12),
+    inset 0 1px 0 rgba(200, 180, 155, 0.10);
+  transition: box-shadow 0.25s ease;
+}
+.petros-form-card:hover {
+  box-shadow:
+    0 8px 28px rgba(60, 45, 30, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .petos-form-label {
@@ -549,7 +573,7 @@
   gap: 6px;
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
+  color: #B0A598;
   margin-bottom: var(--space-2);
 }
 .petos-form-required {
@@ -560,62 +584,87 @@
 .petos-form-input {
   width: 100%;
   padding: 12px 14px;
-  border: 1.5px solid var(--color-divider);
+  border: 1.5px solid rgba(255, 255, 255, 0.10);
   border-radius: var(--radius-sm);
   font-size: var(--text-body);
   font-family: var(--font-family);
-  color: var(--color-text-primary);
-  background: var(--color-bg);
+  color: #f0ece4;
+  background: rgba(255, 255, 255, 0.05);
   outline: none;
-  transition: border-color var(--duration-fast) var(--ease);
+  transition: all 0.2s ease;
 }
 .petos-form-input:focus {
-  border-color: var(--color-primary);
+  border-color: rgba(255, 184, 77, 0.6);
+  background: rgba(255, 255, 255, 0.08);
 }
 .petos-form-input::placeholder {
-  color: var(--color-text-tertiary);
+  color: rgba(240, 236, 228, 0.4);
 }
 
 .petos-form-textarea {
   width: 100%;
   min-height: 80px;
   padding: 12px 14px;
-  border: 1.5px solid var(--color-divider);
+  border: 1.5px solid rgba(255, 255, 255, 0.10);
   border-radius: var(--radius-sm);
   font-size: var(--text-body);
   font-family: var(--font-family);
-  color: var(--color-text-primary);
-  background: var(--color-bg);
+  color: #f0ece4;
+  background: rgba(255, 255, 255, 0.05);
   outline: none;
   resize: vertical;
-  transition: border-color var(--duration-fast) var(--ease);
+  transition: all 0.2s ease;
 }
 .petos-form-textarea:focus {
-  border-color: var(--color-primary);
+  border-color: rgba(255, 184, 77, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 16px rgba(255, 184, 77, 0.12)
 }
 
-/* Toggle / Tag 组 */
+/* Toggle / Tag 组 —— 毛玻璃胶囊 + 猫爪灯照明选中态 */
+/* Toggle (物种) —— 截图匹配 */
+.petros-form-toggle-group,
 .petos-form-toggle-group {
   display: flex;
-  gap: var(--space-2);
+  gap: var(--space-4);
   flex-wrap: wrap;
 }
+.petros-form-toggle,
 .petos-form-toggle {
-  padding: 8px 16px;
-  border-radius: var(--radius-full);
-  border: 1.5px solid var(--color-divider);
-  background: var(--color-bg);
+  position: relative;
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(180, 160, 130, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   font-size: var(--text-caption);
   font-family: var(--font-family);
-  color: var(--color-text-secondary);
+  color: #D4C4A8;
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease);
+  transition: all 0.25s ease;
 }
-.petos-form-toggle--on {
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft);
-  color: var(--color-text-primary);
-  font-weight: var(--font-weight-medium);
+.petros-form-toggle:hover,
+.petos-form-toggle:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(200, 175, 140, 0.35);
+  color: #E0D4C4;    
+}
+
+/* 选中态 —— 橙色边框 + 暖底 + 发光 */
+.petros-form-toggle--on,
+.petros-form-toggle--on,
+.petros-form-toggle--on:hover,
+.petos-form-toggle--on:hover {
+  background: rgba(235, 165, 55, 0.18);
+  border-color: rgba(235, 165, 55, 0.60);
+  box-shadow:
+    0 0 16px rgba(212, 148, 62, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  color: #D4943E;
+  font-weight: var(--font-weight-semibold);
+  color: #D4943E;
+  font-weight: var(--font-weight-semibold);
 }
 
 .petos-form-tags {
@@ -624,46 +673,122 @@
   flex-wrap: wrap;
 }
 .petos-form-tag {
-  padding: 6px 12px;
+  padding: 7px 14px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-divider);
-  background: var(--color-bg);
+  border: 1px solid rgba(150, 130, 100, 0.24);
+  background: rgba(170, 150, 120, 0.17);
   font-size: var(--text-caption);
   font-family: var(--font-family);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all var(--duration-fast) var(--ease);
+  color: #D4C4A8;
 }
 .petos-form-tag--on {
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft);
-  color: var(--color-text-primary);
+  border-color: rgba(235, 165, 55, 0.70);
+  background: rgba(255, 215, 145, 0.25);
+  color: #B87A20;
   font-weight: var(--font-weight-medium);
 }
 
-/* Gender 按钮 */
+
+
+/* Tags (品种/颜色) —— 截图匹配 */
+.petros-form-tags {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.petros-form-tag {
+  position: relative;
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(180, 160, 130, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  font-size: var(--text-caption);
+  font-family: var(--font-family);
+  color: #D4C4A8;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.petros-form-tag:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(200, 175, 140, 0.35);
+  color: #E0D4C4;
+}
+
+/* 选中态 —— 橙色边框 + 暖底 + 发光 */
+.petros-form-tag--on,
+.petros-form-tag--on:hover {
+  background: rgba(235, 165, 55, 0.18);
+  border-color: rgba(235, 165, 55, 0.60);
+  box-shadow:
+    0 0 16px rgba(212, 148, 62, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  color: #D4943E;
+  font-weight: var(--font-weight-semibold);
+}
+
+.petros-form-gender-group,
 .petos-form-gender-group {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
-.petos-form-gender-btn {
-  padding: 12px;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--color-divider);
-  background: var(--color-bg);
+/* 男孩：亮蓝色按钮 */
+.petros-form-gender-btn:first-child,
+.petos-form-gender-btn:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 24px;
+  border-radius: 14px;
+  border: none;
+  background: #4A9EFF;
   font-size: var(--text-body);
   font-family: var(--font-family);
-  color: var(--color-text-secondary);
+  color: #FFFFFF;
   cursor: pointer;
   text-align: center;
-  transition: all var(--duration-fast) var(--ease);
+  transition: all 0.2s ease;
 }
-.petos-form-gender-btn--on {
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft);
-  color: var(--color-text-primary);
-  font-weight: var(--font-weight-medium);
+.petros-form-gender-btn:first-child:hover,
+.petos-form-gender-btn:first-child:hover {
+  background: #3A8EEF;
+}
+.petros-form-gender-btn--on:first-child,
+.petos-form-gender-btn--on:first-child {
+  background: #2D7DD8;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.35);
+}
+/* 女孩：亮红色/粉色按钮 */
+.petros-form-gender-btn:last-child,
+.petos-form-gender-btn:last-child {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 24px;
+  border-radius: 14px;
+  border: none;
+  background: #FF6B8A;
+  font-size: var(--text-body);
+  font-family: var(--font-family);
+  color: #FFFFFF;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+.petros-form-gender-btn:last-child:hover,
+.petos-form-gender-btn:last-child:hover {
+  background: #EF5B7A;
+}
+.petros-form-gender-btn--on:last-child,
+.petos-form-gender-btn--on:last-child {
+  background: #DF4B6A;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(255, 107, 138, 0.35);
 }
 
 /* Switch 开关 */
@@ -676,15 +801,16 @@
   width: 44px;
   height: 24px;
   border-radius: var(--radius-full);
-  background: var(--color-divider);
-  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   cursor: pointer;
   position: relative;
-  transition: background var(--duration-fast) var(--ease);
+  transition: all 0.25s ease;
   flex-shrink: 0;
 }
 .petos-form-switch--on {
-  background: var(--color-primary);
+  background: linear-gradient(135deg, #FFB84D, #FF9A3D);
+  box-shadow: 0 0 12px rgba(255, 184, 77, 0.35);
 }
 .petos-form-switch__thumb {
   position: absolute;
@@ -710,25 +836,25 @@
 .petos-form-size-btn {
   padding: 10px 8px;
   border-radius: var(--radius-sm);
-  border: 1.5px solid var(--color-divider);
-  background: var(--color-bg);
+  border: 1.5px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.04);
   font-family: var(--font-family);
   text-align: center;
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease);
 }
 .petos-form-size-btn--on {
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft);
+  border-color: rgba(255, 184, 77, 0.5);
+  background: rgba(255, 184, 77, 0.12);
 }
 .petos-form-size-btn strong {
   display: block;
   font-size: var(--text-caption);
-  color: var(--color-text-primary);
+  color: #f0ece4;
 }
 .petos-form-size-btn small {
   font-size: var(--text-micro);
-  color: var(--color-text-tertiary);
+  color: rgba(240, 236, 228, 0.45);
 }
 
 /* 底部固定按钮区 */
@@ -738,11 +864,14 @@
   left: 0;
   right: 0;
   padding: var(--space-3) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
-  background: var(--color-bg);
-  border-top: 1px solid var(--color-divider);
+  background: rgba(20, 20, 40, 0.7);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 15;
   max-width: 480px;
   margin: 0 auto;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.3);
 }
 .petos-form-footer__row {
   display: flex;
@@ -752,13 +881,20 @@
   flex: 1;
   padding: 14px;
   border-radius: 16px;
-  border: 1.5px solid var(--color-divider);
-  background: var(--color-card);
+  border: 1.5px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.06);
   font-size: var(--text-body);
   font-family: var(--font-family);
   font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
+  color: rgba(240, 236, 228, 0.6);
   cursor: pointer;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition: all 0.2s ease;
+}
+.petos-form-btn-prev:hover:not(:disabled) {
+  background: rgba(255, 250, 245, 0.75);
+  border-color: rgba(160, 140, 110, 0.40);
 }
 .petos-form-btn-prev:disabled {
   opacity: 0.4;
@@ -793,7 +929,10 @@
   width: 64px;
   height: 64px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, #ffe6c8, #e89a4d);
+  background: linear-gradient(135deg, rgba(255,230,200,0.25), rgba(232,154,77,0.15));
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -801,6 +940,12 @@
   overflow: hidden;
   cursor: pointer;
   position: relative;
+  transition: all 0.25s ease;
+}
+.petros-form-preview-avatar:hover {
+  transform: scale(1.04);
+  border-color: rgba(255, 184, 77, 0.4);
+  box-shadow: 0 4px 16px rgba(255, 184, 77, 0.15);
 }
 .petos-form-preview-grid {
   display: grid;
@@ -809,17 +954,20 @@
 }
 .petos-form-preview-grid > div {
   padding: 8px 12px;
-  background: var(--color-bg);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-sm);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 .petos-form-preview-grid span {
   font-size: var(--text-micro);
-  color: var(--color-text-tertiary);
+  color: rgba(240, 236, 228, 0.35);
   display: block;
 }
 .petos-form-preview-grid strong {
   font-size: var(--text-caption);
-  color: var(--color-text-primary);
+  color: #f0ece4;
   font-weight: var(--font-weight-medium);
 }
 
@@ -827,19 +975,25 @@
 .petos-form-error {
   padding: 10px 14px;
   border-radius: var(--radius-sm);
-  background: rgba(255, 138, 101, 0.10);
-  color: var(--color-warning);
+  background: rgba(255, 138, 101, 0.15);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 138, 101, 0.25);
+  color: #ffaa88;
   font-size: var(--text-caption);
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.petos-form-tip {
+.petros-form-tip {
   padding: 10px 14px;
   border-radius: var(--radius-sm);
-  background: var(--color-primary-soft);
+  background: rgba(255, 184, 77, 0.08);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 184, 77, 0.12);
   font-size: var(--text-caption);
-  color: var(--color-text-secondary);
+  color: rgba(240, 236, 228, 0.6);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -854,17 +1008,17 @@
 }
 .petos-form-weight-unit {
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: rgba(240, 236, 228, 0.4);
   font-weight: var(--font-weight-medium);
 }
 .petos-form-weight-hint {
   font-size: var(--text-micro);
-  color: var(--color-text-tertiary);
+  color: rgba(240, 236, 228, 0.35);
   margin-top: 4px;
 }
 .petos-form-weight-error {
   font-size: var(--text-micro);
-  color: var(--color-warning);
+  color: #ffaa88;
   margin-top: 4px;
   display: flex;
   align-items: center;
@@ -873,16 +1027,18 @@
 .petos-form-date-input {
   width: 100%;
   padding: 12px 14px;
-  border: 1.5px solid var(--color-divider);
+  border: 1.5px solid rgba(255, 255, 255, 0.10);
   border-radius: var(--radius-sm);
   font-size: var(--text-body);
   font-family: var(--font-family);
-  color: var(--color-text-primary);
-  background: var(--color-bg);
+  color: #f0ece4;
+  background: rgba(255, 255, 255, 0.05);
   outline: none;
 }
 .petos-form-date-input:focus {
-  border-color: var(--color-primary);
+  border-color: rgba(255, 184, 77, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 16px rgba(255, 184, 77, 0.12);
 }
 
 /* Avatar overlay */
@@ -902,16 +1058,19 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background: var(--color-primary-soft);
+  background: rgba(255, 184, 77, 0.08);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 184, 77, 0.12);
   border-radius: var(--radius-sm);
   font-size: var(--text-caption);
-  color: var(--color-text-primary);
+  color: #f0ece4;
   margin-bottom: var(--space-3);
 }
 .petos-form-avatar-remove {
   background: none;
   border: none;
-  color: var(--color-warning);
+  color: #ffaa88;
   cursor: pointer;
   font-size: var(--text-caption);
   font-family: var(--font-family);

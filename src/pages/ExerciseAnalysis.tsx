@@ -232,7 +232,7 @@ export default function ExerciseAnalysis() {
       {/* ═══ 运动目标进度 — 数据说明 ═══ */}
       <section className="exc-goals-section">
         <h2 className="exc-section-title"><Target size={18} /> 数据来源</h2>
-        <div style={{ background: "#f5f3ff", borderRadius: "12px", padding: "16px", borderLeft: "4px solid #FFB84D" }}>
+        <div className="glass-panel" style={{ padding: "16px", borderLeft: "4px solid #FFB84D" }}>
           <p style={{ margin: 0, color: "#5b21b6", fontSize: "14px", lineHeight: 1.6 }}>
             当前运动活力评分 <strong>{excLoading ? "..." : exerciseScore}分</strong> 基于 <strong>{obsCount}</strong> 条日常观察记录计算。
             数据库暂无详细运动时长数据，如需精确分析，请在观察记录中补充活动量信息。

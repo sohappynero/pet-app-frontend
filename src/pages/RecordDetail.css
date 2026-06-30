@@ -170,11 +170,10 @@
 }
 
 .rd-card {
-  background: white;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(24px) saturate(1.15);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: 20px;
-  box-shadow: 
-    0 4px 6px rgba(0,0,0,0.04),
-    0 10px 30px rgba(0,0,0,0.06);
   padding: 20px;
   overflow: hidden;
 }
@@ -442,9 +441,9 @@
   left: 0;
   right: 0;
   padding: 12px 16px;
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(0,0,0,0.05);
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(24px) saturate(1.15);
+  border-top: 1px solid rgba(255,255,255,0.18);
   z-index: 100;
 }
 
