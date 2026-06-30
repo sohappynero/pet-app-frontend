@@ -663,7 +663,7 @@ export default function AddRecord() {
         }
         case "diet": {
           // 饮食记录 → 存入 pet_feeding_records 表（独立表，不再混入 observation）
-          if (!form.title.trim() && !form.appetite?.trim()) {
+          if (!form.title.trim() && !form.symptom?.trim()) {
             throw new Error("请填写食物名称或食量");
           }
           await createDiet({
@@ -672,8 +672,8 @@ export default function AddRecord() {
             feeding_time: form.record_time || undefined,
             meal_type: 'snack',  // 默认为零食/加餐
             main_food_type: form.title.trim() || undefined,
-            main_food_amount: form.appetite ? parseFloat(form.appetite) : undefined,
-            notes: form.note.trim() || `饮食记录：${form.title.trim() || ""}${form.appetite ? ` ${form.appetite}` : ""}`,
+            main_food_amount: form.symptom?.trim() ? parseFloat(form.symptom.trim()) || undefined : undefined,
+            notes: form.note.trim() || `饮食记录：${form.title.trim() || ""}${form.symptom?.trim() ? ` ${form.symptom.trim()}` : ""}`,
             photo_urls: parseImages(),
           } as any);
           break;

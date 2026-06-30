@@ -329,7 +329,7 @@ export default function HealthReportAnalysis() {
       { label: "食欲", value: dims?.diet?.score ?? 0, max: 100, color: "#FF8A65" },
       { label: "精神", value: dims?.mental?.score ?? 0, max: 100, color: "#f59e0b" },
       { label: "毛发", value: dims?.grooming?.score ?? 0, max: 100, color: "#10b981" },
-      { label: "消化", value: dims?.diet?.score ?? 0, max: 100, color: "#FFB84D" },
+      { label: "免疫", value: dims?.immunity?.score ?? 0, max: 100, color: "#FFB84D" },
       { label: "活力", value: dims?.exercise?.score ?? 0, max: 100, color: "#ef4444" },
     ];
 

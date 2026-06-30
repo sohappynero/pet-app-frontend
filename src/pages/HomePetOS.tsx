@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MapPin, MessageCircle, Menu, Sparkles, Plus } from 'lucide-react';
+import { Heart, MapPin, Menu, Sparkles, Plus } from 'lucide-react';
 import { useShell } from '../hooks/useShell';
 import { fetchAnalysisDashboard, fetchReminders, fetchWeightChart } from '../lib/api';
 import type { AnalysisDashboardData } from '../lib/api';
@@ -133,7 +133,6 @@ export default function HomePetOS() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [petBgIndex, setPetBgIndex] = useState(0);
   const [ambientIntensity, setAmbientIntensity] = useState(0);
-  const [descExpanded, setDescExpanded] = useState(false);
   const [dashboard, setDashboard] = useState<AnalysisDashboardData | null>(null);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [weightPoints, setWeightPoints] = useState<Array<{ date: string; kg: number }>>([]);
@@ -405,24 +404,6 @@ export default function HomePetOS() {
                 <span>体型: {(selectedPet as any).size || '小型'}</span>
               </div>
 
-              {/* 操作行 */}
-              <div className="flex items-center justify-between pt-2 border-t border-white/[0.12]">
-                <button
-                  type="button"
-                  className="text-[11.5px] font-bold text-[#E8DCC8] bg-transparent border-none cursor-pointer py-1 tracking-wide transition-colors duration-150 hover:text-[#FFFDF8]"
-                  onClick={() => setDescExpanded(!descExpanded)}
-                >
-                  Read More &gt;
-                </button>
-                <button
-                  type="button"
-                  className="w-[34px] h-[34px] flex items-center justify-center bg-[rgba(124,152,133,0.12)] backdrop-blur-[12px] border border-[rgba(124,152,133,0.15)] rounded-full cursor-pointer transition-all duration-200 hover:bg-[rgba(124,152,133,0.22)] hover:scale-110"
-                  onClick={() => navigate('/app/chat')}
-                  aria-label="发消息"
-                >
-                  <MessageCircle size={17} color="#7C9885" />
-                </button>
-              </div>
             </div>
 
           </div>

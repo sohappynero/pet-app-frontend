@@ -110,6 +110,7 @@ export default function AiAnalysis() {
   const [analysisLoading, setAnalysisLoading] = useState(true);
   const [showQuotaModal, setShowQuotaModal] = useState(false);
   const [quotaErrorData, setQuotaErrorData] = useState<QuotaError | null>(null);
+  const [hintDismissed, setHintDismissed] = useState(false);
 
   const currentPet = useMemo(() => selectedPet || pets[0] || null, [selectedPet, pets]);
 
@@ -142,6 +143,7 @@ export default function AiAnalysis() {
       return;
     }
     setAnalysisLoading(true);
+    setHintDismissed(false);
     fetchAnalysisDashboard(effectivePetId)
       .then((data) => setAnalysisData(data))
       .catch((err: any) => {
@@ -245,6 +247,15 @@ export default function AiAnalysis() {
           <input type="text" placeholder="搜索分析结果..." className="ai-search-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
         </div>
       </section>
+
+      {/* 新数据提示 banner */}
+      {!analysisLoading && analysisData?.hint === "has_new_data" && !hintDismissed && (
+        <div className="ai-hint-banner">
+          <AlertCircle size={16} />
+          <span>{analysisData.hint_message || "您有新的健康记录，当前分数可能已不准确，建议重新生成"}</span>
+          <button onClick={() => setHintDismissed(true)}>×</button>
+        </div>
+      )}
 
       {/* Tab */}
       <section className="ai-tabs-section">

@@ -14221,6 +14221,29 @@ body::before {
 }
 .ai-search-input::placeholder { color: #b2bec3; }
 
+/* ── Hint Banner ─────────────────────────────────────────── */
+.ai-hint-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px 12px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border-radius: 10px;
+  border-left: 3px solid #ff9a56;
+  font-size: 13px;
+  color: #5a3a1a;
+}
+.ai-hint-banner button {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #999;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
 /* ── Tab 栏 ─────────────────────────────────────────────── */
 .ai-tabs-section {
   padding: 14px 0 4px;

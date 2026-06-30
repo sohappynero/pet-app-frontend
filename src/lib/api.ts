@@ -1124,9 +1124,47 @@ export interface AnalysisDashboardData {
   ai_summary?: string | null;
   /** 该 ai_summary 是否来自当天缓存 */
   ai_summary_from_cache?: boolean;
+  /** 后端提示：分数有效但有新数据，建议重新生成 */
+  hint?: "has_new_data" | null;
+  hint_message?: string | null;
 }
 
 /** 获取AI分析仪表盘数据（纯DB计算，真实数据） */
 export function fetchAnalysisDashboard(petId: number): Promise<AnalysisDashboardData> {
   return request<AnalysisDashboardData>(`/api/v1/analysis/dashboard/${petId}`);
+}
+
+
+// ═══ 设备推送 Token 管理 ═══
+
+export interface DeviceRegisterPayload {
+  device_token: string;
+  platform: "ios" | "android";
+  device_name?: string;
+}
+
+export interface DeviceInfo {
+  id: number;
+  device_token: string;
+  platform: string;
+  device_name: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export function registerDevice(data: DeviceRegisterPayload): Promise<DeviceInfo> {
+  return request<DeviceInfo>("/api/v1/devices/register", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function unregisterDevice(token: string): Promise<{ message: string }> {
+  return request<{ message: string }>(`/api/v1/devices/${encodeURIComponent(token)}`, {
+    method: "DELETE",
+  });
+}
+
+export function listDevices(): Promise<DeviceInfo[]> {
+  return request<DeviceInfo[]>("/api/v1/devices");
 }

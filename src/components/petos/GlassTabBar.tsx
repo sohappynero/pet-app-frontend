@@ -18,7 +18,7 @@ const DEFAULT_ITEMS: TabItem[] = [
   { key: "home", label: "首页", icon: <Home size={22} strokeWidth={2.2} /> },
   { key: "records", label: "记录", icon: <ClipboardList size={22} strokeWidth={2.2} /> },
   { key: "add", label: "", icon: <Plus size={24} strokeWidth={2.5} /> },
-  { key: "ai", label: "AI", icon: <Bot size={22} strokeWidth={2.2} /> },
+  { key: "ai", label: "会员专区", icon: <Bot size={22} strokeWidth={2.2} /> },
   { key: "mine", label: "我的", icon: <User size={22} strokeWidth={2.2} /> },
 ];
 
