@@ -259,7 +259,7 @@ const Drawer: React.FC<DrawerProps> = ({
               </span>
               <span
                 className="text-[15px] font-medium"
-                style={{ color: '#5D4E37' }}
+                style={{ color: '#FFFFFF', textShadow: '0 0 10px rgba(255,220,140,0.9), 0 0 24px rgba(255,184,77,0.5), 0 2px 8px rgba(0,0,0,0.2)' }}
               >
                 {item.label}
               </span>

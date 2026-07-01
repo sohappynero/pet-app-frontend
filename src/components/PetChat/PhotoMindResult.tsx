@@ -139,18 +139,9 @@ export function PhotoMindResultCard({
         <div className="pmr-header-left">
           <span className="pmr-header-icon">📸</span>
           <span className="pmr-header-title">照片心声</span>
-          {/* 情绪标签 */}
-          <span className="pmr-emotion-badge" style={{ "--badge-color": emotionConfig.color } as React.CSSProperties}>
-            {emotionConfig.emoji} {emotionConfig.label}
-          </span>
         </div>
 
         <div className="pmr-header-right">
-          {/* 幽默度 */}
-          <span className="pmr-humor-tag">
-            {humorConfig.emoji} {humorConfig.label}
-          </span>
-
           {/* 展开/折叠按钮 */}
           {expandable && (
             <button

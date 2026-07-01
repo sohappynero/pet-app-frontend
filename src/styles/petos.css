@@ -1510,3 +1510,253 @@ body.drawer-open .petros-tabbar {
   color: var(--color-text-tertiary);
   flex-shrink: 0;
 }
+
+/* ======== 会员专区 VipHub ======== */
+.vip-zone {
+  min-height: 100vh;
+  padding: var(--space-4) var(--space-4) calc(var(--space-7) + 86px);
+  max-width: 480px;
+  margin: 0 auto;
+  background: linear-gradient(180deg, #fff9f5 0%, #fff0e8 100%);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+}
+
+.vz-greet {
+  margin-bottom: var(--space-4);
+  text-align: center;
+}
+
+.vz-greet__title {
+  font-size: var(--text-h1);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vz-greet__sparkle {
+  font-size: 0.9em;
+}
+
+.vz-greet__paw {
+  font-size: 0.85em;
+  opacity: 0.9;
+}
+
+.vz-greet__sub {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-1);
+  letter-spacing: 0.04em;
+}
+
+/* VIP 开通横条 */
+.vz-banner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 16px;
+  margin-bottom: var(--space-4);
+  background: linear-gradient(135deg, #ffd6e8 0%, #ffc4d9 50%, #ffb8d0 100%);
+  border: none;
+  border-radius: 20px;
+  box-shadow:
+    0 6px 20px rgba(224, 107, 139, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vz-banner:active {
+  transform: scale(0.98);
+}
+
+.vz-banner__icon-wrap {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.vz-banner__icon-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(139, 48, 82, 0.12);
+}
+
+.vz-banner__crown {
+  color: #d4943e;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08));
+}
+
+.vz-banner__heart {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  color: #e06b8b;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08));
+}
+
+.vz-banner__ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  animation: vz-ring-pulse 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes vz-ring-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.08); opacity: 0.2; }
+}
+
+.vz-banner__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vz-banner__title {
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-semibold);
+  color: #7a2746;
+}
+
+.vz-banner__title em {
+  font-style: normal;
+  color: #b83e68;
+  font-weight: 700;
+}
+
+.vz-banner__desc {
+  font-size: var(--text-caption);
+  color: #9b4060;
+}
+
+.vz-banner__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  background: #fff;
+  border-radius: var(--radius-full);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+  color: #e06b8b;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(139, 48, 82, 0.1);
+}
+
+/* 功能卡片列表 */
+.vz-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.vz-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 16px;
+  background: var(--color-card);
+  border: 1px solid rgba(255, 184, 77, 0.12);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vz-card:active {
+  transform: scale(0.98);
+}
+
+.vz-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.vz-card__icon--chart {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  color: #d4943e;
+}
+
+.vz-card__icon--voice {
+  background: linear-gradient(135deg, #ffe6f0 0%, #ffd6e8 100%);
+  color: #e06b8b;
+}
+
+.vz-card__icon-main {
+  position: relative;
+  z-index: 1;
+}
+
+.vz-card__icon-spark {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  color: var(--color-primary);
+  opacity: 0.9;
+}
+
+.vz-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vz-card__title {
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.vz-card__desc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+.vz-card__desc span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.vz-card__arrow {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 184, 77, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
