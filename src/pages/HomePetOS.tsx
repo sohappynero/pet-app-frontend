@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MapPin, Menu, Sparkles, Plus } from 'lucide-react';
+import { Heart, MapPin, Menu, Sparkles, Plus, Camera, Loader2 } from 'lucide-react';
 import { useShell } from '../hooks/useShell';
 import { fetchAnalysisDashboard, fetchReminders, fetchWeightChart } from '../lib/api';
+import { handleAvatarFileUpload } from '../lib/pet-avatar';
 import type { AnalysisDashboardData } from '../lib/api';
 import type { Pet, Reminder } from '../types';
 
@@ -126,12 +127,16 @@ const DEFAULT_PET_BACKGROUNDS = [
 
 export default function HomePetOS() {
   const navigate = useNavigate();
-  const { pets, selectedPet, selectedPetId, setPetId } = useShell();
+  const { pets, selectedPet, selectedPetId, setPetId, refreshPets } = useShell();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isFav, setIsFav] = useState(false);
   const [isDimmed, setIsDimmed] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [petBgIndex, setPetBgIndex] = useState(0);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [avatarOverride, setAvatarOverride] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
   const [ambientIntensity, setAmbientIntensity] = useState(0);
   const [dashboard, setDashboard] = useState<AnalysisDashboardData | null>(null);
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -162,8 +167,9 @@ export default function HomePetOS() {
   }, [selectedPet?.id, selectedPet?.phone, selectedPetId]);
 
   const avatarUrl = selectedPet ? petAvatarUrl(selectedPet) : null;
+  const displayAvatar = avatarOverride || avatarUrl;
   const currentPetBackground =
-    avatarUrl || DEFAULT_PET_BACKGROUNDS[petBgIndex % DEFAULT_PET_BACKGROUNDS.length];
+    displayAvatar || DEFAULT_PET_BACKGROUNDS[petBgIndex % DEFAULT_PET_BACKGROUNDS.length];
 
   const handleLampTrigger = () => {
     if (pets.length < 2) return;
@@ -181,6 +187,43 @@ export default function HomePetOS() {
       setIsDimmed(false);
       setIsTransitioning(false);
     }, 700);
+  };
+
+  // 切换宠物时清掉上一只宠物的头像预览覆盖
+  useEffect(() => {
+    setAvatarOverride(null);
+    setAvatarError(null);
+  }, [selectedPetId]);
+
+  const handleAvatarClick = () => {
+    if (isUploadingAvatar) return;
+    avatarInputRef.current?.click();
+  };
+
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // 允许重复选择同一文件
+    if (!file || !selectedPet) return;
+
+    setAvatarError(null);
+    setIsUploadingAvatar(true);
+    try {
+      const result = await handleAvatarFileUpload(
+        file,
+        selectedPet.id,
+        (dataUrl) => setAvatarOverride(dataUrl), // 压缩后即时预览
+      );
+      if (result.serverSynced) {
+        await refreshPets(); // 拉取后端最新头像后清掉本地覆盖
+        setAvatarOverride(null);
+      } else if (result.error) {
+        setAvatarError(result.error);
+      }
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : '头像更新失败');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
   };
 
   /* ---- empty state ---- */
@@ -343,18 +386,49 @@ export default function HomePetOS() {
             {/* 方向光叠加 */}
             <div className="absolute top-0 right-0 bottom-0 w-[65%] pointer-events-none z-[1] opacity-80 mix-blend-screen bg-gradient-to-r from-transparent via-[rgba(255,230,200,0.03)] to-[rgba(255,214,165,0.09)]" />
 
-            {/* 左侧：宠物头像 */}
+            {/* 左侧：宠物头像 — 点击更换 */}
             <div className="flex-shrink-0 pt-0.5">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={selectedPet.name}
-                  className="w-[76px] h-[76px] object-cover rounded-[var(--sg-radius-sm)] shadow-[var(--sg-shadow-md)] border-2 border-white/30"
-                />
-              ) : (
-                <div className="w-[76px] h-[76px] flex items-center justify-center text-[34px] bg-gradient-to-br from-[rgba(255,228,188,0.5)] to-[rgba(255,214,165,0.4)] rounded-[var(--sg-radius-sm)] border-2 border-white/20">
-                  {speciesEmoji(selectedPet.species)}
-                </div>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleAvatarFileChange}
+              />
+              <button
+                type="button"
+                className="group relative w-[76px] h-[76px] rounded-[var(--sg-radius-sm)] cursor-pointer transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
+                style={{ background: 'transparent', border: 'none', padding: 0 }}
+                onClick={handleAvatarClick}
+                disabled={isUploadingAvatar}
+                aria-label="更换宠物头像"
+              >
+                {displayAvatar ? (
+                  <img
+                    src={displayAvatar}
+                    alt={selectedPet.name}
+                    className="w-[76px] h-[76px] object-cover rounded-[var(--sg-radius-sm)] shadow-[var(--sg-shadow-md)] border-2 border-white/30"
+                  />
+                ) : (
+                  <div className="w-[76px] h-[76px] flex items-center justify-center text-[34px] bg-gradient-to-br from-[rgba(255,228,188,0.5)] to-[rgba(255,214,165,0.4)] rounded-[var(--sg-radius-sm)] border-2 border-white/20">
+                    {speciesEmoji(selectedPet.species)}
+                  </div>
+                )}
+
+                {/* 相机角标 */}
+                <span className="absolute -bottom-1 -right-1 w-6 h-6 flex items-center justify-center bg-[rgba(60,45,30,0.72)] backdrop-blur-[8px] rounded-full border border-white/30 shadow-[var(--sg-shadow-sm)]">
+                  <Camera size={13} color="#FFF3E0" />
+                </span>
+
+                {/* 上传中遮罩 */}
+                {isUploadingAvatar && (
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-[var(--sg-radius-sm)]">
+                    <Loader2 size={24} color="#FFF3E0" className="animate-spin" />
+                  </span>
+                )}
+              </button>
+              {avatarError && (
+                <p className="mt-1 text-[10px] text-[#FFB4A0] max-w-[76px] leading-tight">{avatarError}</p>
               )}
             </div>
 

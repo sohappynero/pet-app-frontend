@@ -57,7 +57,7 @@ const Rope: React.FC<RopeProps> = ({ isDragging, dragY, intensity = 0.15 }) => {
             <stop offset="100%" stopColor="#B8AC88" />
           </linearGradient>
           {/* 阴影 */}
-          <filter id="ropeShadow" x="-50%" y="-10%" x="200%" y2="130%">
+          <filter id="ropeShadow" x="-50%" y="-10%" width="200%" height="130%">
             <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" floodColor={isDragging ? "rgba(180,140,80,0.3)" : "rgba(140,110,60,0.15)"} />
           </filter>
         </defs>

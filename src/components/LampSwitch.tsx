@@ -254,7 +254,7 @@ const LampSwitch: React.FC<LampSwitchProps> = ({
                 <stop offset="82%" stopColor="#BEB294" />
                 <stop offset="100%" stopColor="#B2A688" />
               </linearGradient>
-              <filter id="lowerRopeShadow" x="-50%" y="-10%" x="200%" y2="130%">
+              <filter id="lowerRopeShadow" x="-50%" y="-10%" width="200%" height="130%">
                 <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor={lampState !== 'idle' ? "rgba(180,140,80,0.28)" : "rgba(140,110,60,0.14)"} />
               </filter>
             </defs>
