@@ -73,6 +73,14 @@ export default function Dashboard() {
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
   const [weightError, setWeightError] = useState("");
+  const [weightShake, setWeightShake] = useState(false);
+
+  // 触发体重输入框晃动 + 错误提示
+  const triggerWeightShake = (msg: string) => {
+    setWeightError(msg);
+    setWeightShake(true);
+    setTimeout(() => setWeightShake(false), 500); // 动画持续 500ms
+  };
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -87,6 +95,10 @@ export default function Dashboard() {
       if (!form.name.trim()) { setMsg("请输入宠物名字"); return; }
       if (!form.breed.trim()) { setMsg("请选择品种"); return; }
       if (form.gender === "unknown") { setMsg("请选择性别"); return; }
+    }
+    if (step === 2) {
+      // 体重校验：有错误则阻止进入下一步
+      if (weightError) { return; }
     }
     setStep((s) => Math.min(s + 1, 4));
   };
@@ -109,6 +121,7 @@ export default function Dashboard() {
 
   const submitGuide = async () => {
     if (!form.name.trim()) { setMsg("请输入宠物名字"); return; }
+    if (weightError) { setMsg("请先修正体重输入"); setStep(2); return; }
     if (!form.breed.trim()) { setMsg("请选择品种"); setStep(1); return; }
     if (form.gender === "unknown") { setMsg("请选择性别"); setStep(1); return; }
     setSaving(true);
@@ -256,15 +269,15 @@ export default function Dashboard() {
         <div className="petos-form-card">
           <label className="petos-form-label">⚖️ 体重（kg，选填）</label>
           <div className="petos-form-weight-wrap">
-            <input className="petos-form-input" type="number" placeholder="例如: 5.5" step={0.1} value={form.weightKg} onChange={(e) => {
+            <input className={`petos-form-input ${weightShake ? "wt-shake" : ""}`} type="number" placeholder="例如: 5.5" step={0.1} value={form.weightKg} onChange={(e) => {
               const val = e.target.value;
               update("weightKg", val);
               if (!val || val.trim() === "") { setWeightError(""); return; }
               const w = parseFloat(val);
-              if (isNaN(w) || w <= 0) { setWeightError("体重必须大于 0kg"); return; }
-              if (form.bodySize === "small") { setWeightError(w > 10 ? "小型宠物体重大于 10kg，请确认" : ""); }
-              else if (form.bodySize === "medium") { setWeightError(w < 10 ? "中型宠物体重小于 10kg" : w > 25 ? "中型宠物体重大于 25kg" : ""); }
-              else if (form.bodySize === "large") { setWeightError(w < 25 ? "大型宠物体重小于 25kg" : ""); }
+              if (isNaN(w) || w <= 0) { triggerWeightShake("体重必须大于 0kg"); return; }
+              if (form.bodySize === "small") { if (w > 10) triggerWeightShake(`小型宠物体重不应超过 10kg（当前 ${w}kg）`); else setWeightError(""); }
+              else if (form.bodySize === "medium") { if (w < 10) triggerWeightShake(`中型宠物体重不应小于 10kg（当前 ${w}kg）`); else if (w > 25) triggerWeightShake(`中型宠物体重不应超过 25kg（当前 ${w}kg）`); else setWeightError(""); }
+              else if (form.bodySize === "large") { if (w < 25) triggerWeightShake(`大型宠物体重不应小于 25kg（当前 ${w}kg）`); else setWeightError(""); }
             }} />
             <span className="petos-form-weight-unit">kg</span>
           </div>

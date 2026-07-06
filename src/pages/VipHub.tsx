@@ -12,10 +12,9 @@ export default function VipHub() {
       {/* 标题区 */}
       <div className="vz-greet">
         <h1 className="vz-greet__title">
-          会员专区<span className="vz-greet__sparkle">✨</span>
-          <span className="vz-greet__paw">🐾</span>
+          选择适合你的 <span className="vz-greet__sparkle">VIP</span> 小窝
         </h1>
-        <p className="vz-greet__sub">✦ 解锁更多 AI 陪伴能力 ✦</p>
+        <p className="vz-greet__sub">让爱与陪伴更长久</p>
       </div>
 
       {/* VIP 开通横条 - 毛玻璃风格 */}
@@ -33,8 +32,8 @@ export default function VipHub() {
           </div>
         </div>
         <div className="vz-banner__body">
-          <span className="vz-banner__title">{petName}的 <em>VIP</em> 小窝</span>
-          <span className="vz-banner__desc">专属特权让我们更好地陪伴彼此</span>
+          <span className="vz-banner__title">选择适合你的 <em>陪伴计划</em></span>
+          <span className="vz-banner__desc">不同阶段的爱，都值得最棒的陪伴</span>
         </div>
         <div className="vz-banner__btn">
           立即开通

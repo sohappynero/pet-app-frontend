@@ -24,22 +24,22 @@ interface Plan {
 const PLANS: Plan[] = [
   {
     id: "free",
-    name: "免费版",
+    name: "基础记录 免费版",
     price: "¥0",
     unit: "",
     tag: "",
     desc: "永久免费",
-    sub: "获客 + 数据积累",
+    sub: "",
     color: "#B5A090",
     border: "rgba(180,170,155,0.25)",
     bg: "linear-gradient(145deg, #FFFAF5, #FFF5EE)",
   },
   {
     id: "pro",
-    name: "宠物会员 Pro",
+    name: "陪伴升级计划",
     price: "¥15",
     unit: "/月",
-    tag: "性价比之选",
+    tag: "推荐",
     desc: "年付 ¥128 省 ¥52",
     sub: "≈ ¥10.7/月",
     color: "#FB7185",
@@ -48,7 +48,7 @@ const PLANS: Plan[] = [
   },
   {
     id: "family",
-    name: "家庭尊享版",
+    name: "它的一生计划",
     price: "¥38",
     unit: "/月",
     tag: "",
@@ -62,15 +62,9 @@ const PLANS: Plan[] = [
 
 const FEATURES = [
   { name: "AI健康分析", free: "每月 3 次", pro: "每月 60 次", family: "无限次" },
-  { name: "健康记录", free: "基础记录", pro: "月度健康报告", family: "年度健康总结" },
   { name: "体重/症状趋势预测", free: "—", pro: "✓ 支持", family: "✓ 支持" },
-  { name: "异常推送提醒", free: "趋势提醒", pro: "✓ 支持", family: "✓ 支持" },
   { name: "照片心理识别", free: "每月 5 次", pro: "每月 60 次", family: "每月 300 次" },
-  { name: "情绪变化分析", free: "—", pro: "周趋势分析", family: "长期变化分析" },
   { name: "多宠物对比分析", free: "1只宠物", pro: "最多 3 只", family: "无限宠物" },
-  { name: "家庭共享账号", free: "—", pro: "—", family: "最多 3 账号" },
-  { name: "优先客服响应", free: "—", pro: "✓ 优先", family: "优先 + 专属" },
-  { name: "PDF 报告导出", free: "部分导出", pro: "✓ 支持", family: "✓ 支持" },
 ];
 
 const GIFTS = [
@@ -96,14 +90,6 @@ export default function VipSubscribe() {
   const petImage = selectedPet?.image_url || getLocalAvatar(selectedPet?.id ?? 0) || "";
   const currentPlan = PLANS.find((p) => p.id === selectedPlan) || PLANS[1];
 
-  const getHighlightCol = () => {
-    if (selectedPlan === "free") return 1;
-    if (selectedPlan === "family") return 3;
-    return 2;
-  };
-  const highlightCol = getHighlightCol();
-  const colNames = ["", "免费版", "Pro", "家庭版"];
-
   return (
     <main className="vip-sub-page">
       {/* Header */}
@@ -119,9 +105,9 @@ export default function VipSubscribe() {
       <section className="vip-sub-hero">
         <div className="vip-sub-hero-text">
           <h2>
-            选择适合你的<span>VIP小窝</span>
+            选择适合你的<span>陪伴计划</span>
           </h2>
-          <p>让爱与陪伴更长久</p>
+          <p>不同阶段的爱，都值得最棒的陪伴</p>
         </div>
         <div className="vip-sub-hero-img">
           {petImage ? (
@@ -160,21 +146,15 @@ export default function VipSubscribe() {
       {/* Features */}
       <section className="vip-sub-features">
         <h3 className="vip-sub-section-title">功能特权对比</h3>
-        <div className="vip-sub-table">
-          <div className="vip-sub-row vip-sub-header-row">
-            <span>特权</span>
-            {colNames.slice(1).map((name, idx) => (
-              <span key={name} className={highlightCol === idx + 1 ? "highlight" : ""}>
-                {name}
-              </span>
-            ))}
-          </div>
+        <div className="vip-sub-compare-cards">
           {FEATURES.map((f) => (
-            <div key={f.name} className="vip-sub-row">
-              <span>{f.name}</span>
-              <span className={highlightCol === 1 ? "highlight" : ""}>{f.free}</span>
-              <span className={highlightCol === 2 ? "highlight" : ""}>{f.pro}</span>
-              <span className={highlightCol === 3 ? "highlight" : ""}>{f.family}</span>
+            <div key={f.name} className="vip-compare-item">
+              <span className="vip-compare-name">{f.name}</span>
+              <div className="vip-compare-values">
+                <span className="vip-compare-val vip-compare-free">{f.free}</span>
+                <span className="vip-compare-val vip-compare-pro">{f.pro}</span>
+                <span className="vip-compare-val vip-compare-family">{f.family}</span>
+              </div>
             </div>
           ))}
         </div>

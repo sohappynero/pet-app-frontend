@@ -5781,6 +5781,54 @@
   background-clip: text;
 }
 
+/* 三列卡片式功能对比 */
+.vip-sub-compare-cards {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 14px;
+  border: 1.5px solid rgba(200, 170, 160, 0.12);
+  overflow: hidden;
+}
+
+.vip-compare-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(200, 170, 160, 0.08);
+}
+
+.vip-compare-item:last-child {
+  border-bottom: none;
+}
+
+.vip-compare-name {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #4A3728;
+  margin-bottom: 4px;
+}
+
+.vip-compare-values {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+
+.vip-compare-val {
+  font-size: 10.5px;
+  color: #8B7355;
+  text-align: center;
+  padding: 3px 4px;
+  border-radius: 6px;
+  background: rgba(245, 240, 235, 0.6);
+}
+
+.vip-compare-pro {
+  background: rgba(251, 113, 133, 0.08);
+  color: #FB7185;
+  font-weight: 600;
+}
+
+/* 保留旧表格样式用于兼容 */
 .vip-sub-table {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 14px;

@@ -23,7 +23,7 @@ export interface DrawerProps {
 
 const MENU_ITEMS = [
   { label: '我的宠物', key: 'pets', icon: 'pets', path: '/app/mine/pets', highlight: true },
-  { label: '健康记录', key: 'health', icon: 'health', path: '/app/records' },
+  { label: '时间轴', key: 'health', icon: 'health', path: '/app/records' },
   { label: 'AI 分析', key: 'ai', icon: 'analysis', path: '/app/insights/analysis' },
   { label: '提醒中心', key: 'reminders', icon: 'bell', path: '/app/mine/reminders' },
   { label: '会员中心', key: 'vip', icon: 'crown', path: '/app/mine/vip' },

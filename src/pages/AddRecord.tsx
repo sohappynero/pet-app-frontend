@@ -390,7 +390,7 @@ export default function AddRecord() {
   const defaultTitle = params.get("default_title") || "";
   const petIdParam = params.get("pet_id");
 
-  const { phone, pets, selectedPetId } = useShell();
+  const { phone, pets, selectedPetId, selectedPet } = useShell();
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -431,26 +431,44 @@ export default function AddRecord() {
     return currentPet;
   }, [currentPet, localAvatarUrl, pets]);
 
-  // URL 参数预填
+  // 始终同步最新选中宠物（用 useMemo 替代 useEffect 避免闭包/时序 bug）
+  const effectivePetId = useMemo(() => {
+    if (petIdParam) return petIdParam;
+    if (pets.length > 0) {
+      return String(selectedPet?.id ?? selectedPetId ?? pets[0].id);
+    }
+    return "";
+  }, [petIdParam, pets, selectedPet, selectedPetId]);
+
+  // 当 effectivePetId 变化时同步到 form（仅初始化 + 选中宠物切换时）
+  const prevPetIdRef = useRef(effectivePetId);
+  useEffect(() => {
+    if (effectivePetId && (form.pet_id === "" || form.pet_id !== effectivePetId)) {
+      // 仅在以下情况更新：1) 初始为空  2) 用户在首页切换了宠物
+      if (form.pet_id === "" || prevPetIdRef.current !== effectivePetId) {
+        setForm(s => ({ ...s, pet_id: effectivePetId }));
+        prevPetIdRef.current = effectivePetId;
+      }
+    }
+  }, [effectivePetId]);
+
+  // URL 参数预填：记录类型和标题
   useEffect(() => {
     const updates: Partial<typeof emptyForm> = {};
-    if (petIdParam && !form.pet_id) updates.pet_id = petIdParam;
-    else if (pets.length > 0 && !form.pet_id) updates.pet_id = String(selectedPetId ?? pets[0].id);
     if (typeParam && recordTypes.some((t) => t.value === typeParam) && form.record_type !== typeParam) {
       updates.record_type = typeParam;
-      // 切换类型时清空之前预填的标题，避免残留
       updates.title = "";
     }
     if (defaultTitle && !form.title) updates.title = defaultTitle;
     if (Object.keys(updates).length > 0) setForm((s) => ({ ...s, ...updates }));
-  }, [petIdParam, typeParam, defaultTitle, pets, selectedPetId]);
+  }, [typeParam, defaultTitle]);
 
   // 编辑模式回填 — 支持所有专用表（体重/饮食/美容/通用表）
   useEffect(() => {
     if (!editId) return;
 
     const typeFromUrl = params.get("type") as RecordType | null;
-    const petId = selectedPetId ?? (pets.length > 0 ? pets[0].id : null);
+    const petId = selectedPet?.id ?? selectedPetId ?? (pets.length > 0 ? pets[0].id : null);
 
     // 根据类型从对应表查询
     if ((typeFromUrl === "weight") && petId) {

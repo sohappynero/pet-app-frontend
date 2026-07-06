@@ -231,24 +231,51 @@ const LampSwitch: React.FC<LampSwitchProps> = ({
           />
         </div>
 
-        {/* 4. 下方编织绳连接猫爪 */}
+        {/* 4. 下方编织绳 — 直线连接猫爪（偏左） */}
         <div
           style={{
-            width: '7px',
-            height: `${140 + dragY * 0.4}px`,
-            background: `repeating-linear-gradient(
-              180deg,
-              #E8DCC8 0px,
-              #D8CCB4 3px,
-              #C8BCA0 5px,
-              #D8CCB4 7px,
-              #E8DCC8 10px
-            )`,
-            borderRadius: '4px',
-            transition: lampState === 'dragging' ? 'none' : 'height 420ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-            boxShadow: 'inset 1px 0 0 rgba(255,255,255,0.2), inset -1px 0 0 rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.08)',
+            transform: `translateY(${dragY * 0.1}px)`, // 大幅缩短
+            transition: lampState === 'dragging' ? 'none' : 'transform 420ms cubic-bezier(0.22, 0.61, 0.36, 1)',
           }}
-        />
+          aria-hidden="true"
+        >
+          <svg
+            width="28"
+            height={100 + dragY * 0.12} // 缩短基础长度和拉伸
+            viewBox={`0 0 28 ${100 + dragY * 0.12}`}
+            preserveAspectRatio="none"
+            style={{ overflow: 'visible', display: 'block' }}
+          >
+            <defs>
+              <linearGradient id="lowerRopeGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#E8DCC8" />
+                <stop offset="25%" stopColor="#D8CCB4" />
+                <stop offset="55%" stopColor="#C8BCA0" />
+                <stop offset="82%" stopColor="#BEB294" />
+                <stop offset="100%" stopColor="#B2A688" />
+              </linearGradient>
+              <filter id="lowerRopeShadow" x="-50%" y="-10%" x="200%" y2="130%">
+                <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor={lampState !== 'idle' ? "rgba(180,140,80,0.28)" : "rgba(140,110,60,0.14)"} />
+              </filter>
+            </defs>
+            {/* 纯直线，无弯曲 */}
+            <path
+              d={`M 12 0 L 12 ${100 + dragY * 0.12}`}
+              fill="none"
+              stroke="url(#lowerRopeGrad)"
+              strokeWidth="6.5"
+              strokeLinecap="round"
+              filter="url(#lowerRopeShadow)"
+            />
+            <path
+              d={`M 11.4 0 L 11.4 ${100 + dragY * 0.12}`}
+              fill="none"
+              stroke="rgba(255,255,255,0.25)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
 
         {/* 5. 猫爪吊坠 */}
         <CatPawHandle

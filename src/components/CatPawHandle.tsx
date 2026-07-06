@@ -38,8 +38,12 @@ const CatPawHandle: React.FC<CatPawHandleProps> = ({
     </svg>
   );
 
+  const tiltDeg = Math.min(dragY * 0.03, 3); // 大幅减小倾斜
+  const stretchY = 1 + Math.min(dragY * 0.0005, 0.02); // 几乎不拉伸
+
   return (
     <div style={{ zIndex: 10 }}>
+      {/* 吊坠整体 */}
       <div
         onPointerDown={onDragStart}
         onPointerMove={onDragMove}
@@ -47,29 +51,77 @@ const CatPawHandle: React.FC<CatPawHandleProps> = ({
         onPointerCancel={onDragEnd}
         className="cursor-grab active:cursor-grabbing select-none touch-none"
         style={{
-          transform: `translateY(${dragY}px) scale(${isDragging ? 1.1 : 1})`,
+          transform: `translateY(${dragY * 0.85}px) rotateZ(${tiltDeg}deg) scaleY(${stretchY})`,
           transition: isDragging
             ? 'none'
-            : 'transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            : 'transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1)',
           userSelect: 'none',
           touchAction: 'none',
+          transformOrigin: 'top center',
+          perspective: '400px',
         }}
       >
+        {/* ====== 顶部金属连接小环 ====== */}
+        <div className="flex justify-center" style={{ marginBottom: -6 }}>
+          <svg width="16" height="13" viewBox="0 0 16 13">
+            <ellipse
+              cx="8"
+              cy="7"
+              rx="5.5"
+              ry="5"
+              fill="none"
+              stroke="#C9A04E"
+              strokeWidth="2.2"
+            />
+          </svg>
+        </div>
+
+        {/* ====== 吊坠本体 — 椭圆立体球体 ====== */}
         <div
-          className="rounded-full flex items-center justify-center"
+          className="flex items-center justify-center relative overflow-hidden pendant-body-3d"
           style={{
-            width: '52px',
-            height: '52px',
-            background: 'radial-gradient(circle, #FFFCF6 35%, #FFF4E8 60%, #FFECD8 85%)',
-            border: '2.5px solid rgba(230, 210, 180, 0.6)',
+            width: '56px',
+            height: '62px',
+            borderRadius: '50% / 55%',
+            marginTop: -2, // 与小环紧密贴合
+            background: `
+              radial-gradient(ellipse at 32% 24%, rgba(255,245,225,0.95) 0%, transparent 58%),
+              linear-gradient(
+                158deg,
+                #FFE8CC 0%,
+                #FFD9A8 22%,
+                #FFC485 48%,
+                #F0A86A 72%,
+                #E08845 92%,
+                #D06828 100%
+              )
+            `,
             boxShadow: isDragging
-              ? `0 8px 30px rgba(180, 120, 60, 0.3), 0 4px 12px rgba(0,0,0,0.12), 0 0 ${16 + lightIntensity * 20}px rgba(255, 180, 100, ${0.1 + lightIntensity * 0.15})`
-              : '0 6px 20px rgba(120, 80, 40, 0.18), 0 3px 8px rgba(0,0,0,0.08), 0 0 10px rgba(255, 200, 140, 0.08)',
+              ? `0 0 ${18 + lightIntensity * 12}px rgba(255,140,100,0.42),
+                 0 0 ${40 + lightIntensity * 15}px rgba(255,184,120,0.20),
+                 0 12px 30px rgba(170,110,70,0.35),
+                 0 6px 14px rgba(150,90,60,0.20),
+                 inset 3px 3px 9px rgba(255,255,255,0.58),
+                 inset -3px -4px 12px rgba(200,130,80,0.22)`
+              : `0 0 14px rgba(255,184,130,0.30),
+                 0 0 32px rgba(255,154,110,0.12),
+                 0 10px 26px rgba(170,110,70,0.28),
+                 0 5px 12px rgba(150,90,60,0.16),
+                 inset 2.5px 2.5px 7px rgba(255,255,255,0.55),
+                 inset -2.5px -3px 10px rgba(180,120,80,0.18)`,
             transition: isDragging
               ? 'box-shadow 150ms ease-out'
               : 'box-shadow 400ms cubic-bezier(0.34, 1.56, 0.64, 1)',
           }}
         >
+          {/* 底部反光条 */}
+          <span
+            className="absolute left-[10%] right-[10%] bottom-[6px] h-[2px] rounded-full pointer-events-none"
+            style={{
+              background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 30%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0.18) 70%, transparent 100%)',
+            }}
+          />
+          {/* 猫爪图标（保持不变） */}
           <PawIcon />
         </div>
       </div>

@@ -24,6 +24,44 @@
   z-index: 0;
 }
 
+/* ======== Timeline / Records 等页面 — 暖白渐变背景（与陪伴升级计划一致）===== */
+.petos-page {
+  min-height: 100vh;
+  background: linear-gradient(165deg, #FDF6EC 0%, #FAF0E4 35%, #F5E8D8 70%, #EDDFD0 100%);
+  position: relative;
+  overflow-x: hidden;
+  font-family: var(--font-family);
+  color: #3D3428;
+}
+
+/* 右上角暖光 */
+.petos-page::before {
+  content: "";
+  position: fixed;
+  top: -80px;
+  right: -60px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,220,140,0.45) 0%, rgba(255,200,100,0.20) 40%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 左上角淡光 */
+.petos-page::after {
+  content: "";
+  position: fixed;
+  top: 120px;
+  left: -40px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,235,200,0.25) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+
 .petos-page > * {
   position: relative;
   z-index: 1;
@@ -993,7 +1031,21 @@ body.drawer-open .petros-tabbar {
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 184, 77, 0.12);
   font-size: var(--text-caption);
-  color: rgba(240, 236, 228, 0.6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* 添加宠物页面提示文字（Dashboard.tsx 使用） */
+.petos-form-tip {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 184, 77, 0.08);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 184, 77, 0.12);
+  font-size: var(--text-caption);
+  color: #fff;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1023,6 +1075,22 @@ body.drawer-open .petros-tabbar {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+/* 体重输入框晃动动画 */
+@keyframes wt-shake-anim {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-6px); }
+  30% { transform: translateX(6px); }
+  45% { transform: translateX(-4px); }
+  60% { transform: translateX(4px); }
+  75% { transform: translateX(-2px); }
+  90% { transform: translateX(2px); }
+}
+.wt-shake {
+  animation: wt-shake-anim 0.5s ease-in-out;
+  border-color: #ff8a6a !important;
+  box-shadow: 0 0 0 2px rgba(255, 138, 106, 0.3) !important;
 }
 .petos-form-date-input {
   width: 100%;
@@ -1397,8 +1465,12 @@ body.drawer-open .petros-tabbar {
   gap: var(--space-2);
   overflow-x: auto;
   scrollbar-width: none;
-  padding: var(--space-1) 0;
+  padding: var(--space-1) var(--space-4);
   -webkit-overflow-scrolling: touch;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 480px;
+  margin: 0 auto;
 }
 .petos-timeline-dates::-webkit-scrollbar { display: none; }
 .petos-timeline-date {
@@ -1759,4 +1831,203 @@ body.drawer-open .petros-tabbar {
   justify-content: center;
   color: var(--color-text-tertiary);
   flex-shrink: 0;
+}
+
+/* ==============================
+   WeightTrendHero - 体重趋势图卡片 (Timeline/成长页)
+   ============================== */
+.wt-trend-hero-section {
+  padding: 4px 0 0;
+}
+
+/* 日期选择器横条 */
+.wt-date-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 10px;
+}
+.wt-date-scroll::-webkit-scrollbar { display: none; }
+
+.wt-date-pill {
+  flex-shrink: 0;
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  background: #f5f5f5;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.wt-date-pill:hover { background: #eee; }
+.wt-date-pill.active {
+  background: linear-gradient(135deg, #FF8A9A, #FF6B81);
+  color: #fff;
+  border-color: rgba(255,106,129,0.3);
+  box-shadow: 0 3px 10px rgba(255,106,129,0.25);
+}
+
+/* 主趋势图卡片 - 灰色圆角背景，加宽 */
+.wt-trend-card {
+  background: linear-gradient(180deg, #F0F0F0 0%, #E8E8E8 100%);
+  border-radius: 18px;
+  padding: 20px 22px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+/* 卡片顶栏：标题 + 单位切换 */
+.wt-trend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.wt-trend-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+}
+
+.wt-unit-switch {
+  display: flex;
+  background: #ddd;
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.wt-unit-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #888;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.wt-unit-btn.active {
+  background: #fff;
+  color: #333;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* 体重展示区 */
+.wt-weight-showcase {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.wt-weight-big {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.wt-big-number {
+  font-size: 36px;
+  font-weight: 900;
+  color: #1a1a2e;
+  line-height: 1;
+  letter-spacing: -1.5px;
+}
+
+.wt-big-unit {
+  font-size: 16px;
+  font-weight: 700;
+  color: #888;
+}
+
+.wt-big-sub {
+  width: 100%;
+  font-size: 11px;
+  color: #aaa;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* 趋势徽章 */
+.wt-trend-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.wt-badge-up { color: #ff4757; background: rgba(255,71,87,0.08); }
+.wt-badge-down { color: #00b894; background: rgba(0,184,148,0.08); }
+.wt-badge-flat { color: #888; background: #f5f5f5; }
+
+.wt-badge-label {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+/* SVG 图表容器 */
+.wt-chart-wrap {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.wt-hero-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 底部统计三列 */
+.wt-monthly-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.wt-stat-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 0;
+}
+
+.wt-stat-num {
+  font-size: 17px;
+  font-weight: 800;
+  color: #333;
+}
+.wt-stat-num.stat-up { color: #ff4757; }
+.wt-stat-num.stat-down { color: #00b894; }
+
+.wt-stat-lbl {
+  font-size: 11px;
+  color: #999;
+  font-weight: 500;
+}
+
+.wt-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: #e0e0e0;
 }

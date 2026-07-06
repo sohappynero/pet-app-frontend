@@ -11302,6 +11302,216 @@ body::before {
 }
 
 /* ==============================
+   WeightTrendHero - 体重趋势图卡片 (Records页)
+   ============================== */
+.wt-trend-hero-section {
+  padding: 16px 16px 0;
+}
+
+/* 日期选择器横条 */
+.wt-date-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 10px;
+}
+.wt-date-scroll::-webkit-scrollbar { display: none; }
+
+.wt-date-pill {
+  flex-shrink: 0;
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  background: #f5f5f5;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.wt-date-pill:hover {
+  background: #eee;
+}
+.wt-date-pill.active {
+  background: linear-gradient(135deg, #FF8A9A, #FF6B81);
+  color: #fff;
+  border-color: rgba(255,106,129,0.3);
+  box-shadow: 0 3px 10px rgba(255,106,129,0.25);
+}
+
+/* 主趋势图卡片 - 灰色圆角背景 */
+.wt-trend-card {
+  background: linear-gradient(180deg, #F0F0F0 0%, #E8E8E8 100%);
+  border-radius: 18px;
+  padding: 18px 16px;
+  margin-top: 4px;
+}
+
+/* 卡片顶栏：标题 + 单位切换 */
+.wt-trend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.wt-trend-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+}
+
+.wt-unit-switch {
+  display: flex;
+  background: #ddd;
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.wt-unit-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #888;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.wt-unit-btn.active {
+  background: #fff;
+  color: #333;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* 体重展示区 */
+.wt-weight-showcase {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.wt-weight-big {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.wt-big-number {
+  font-size: 36px;
+  font-weight: 900;
+  color: #1a1a2e;
+  line-height: 1;
+  letter-spacing: -1.5px;
+}
+
+.wt-big-unit {
+  font-size: 16px;
+  font-weight: 700;
+  color: #888;
+}
+
+.wt-big-sub {
+  width: 100%;
+  font-size: 11px;
+  color: #aaa;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* 趋势徽章 */
+.wt-trend-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.wt-badge-up {
+  color: #ff4757;
+  background: rgba(255,71,87,0.08);
+}
+.wt-badge-down {
+  color: #00b894;
+  background: rgba(0,184,148,0.08);
+}
+.wt-badge-flat {
+  color: #888;
+  background: #f5f5f5;
+}
+
+.wt-badge-label {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+/* SVG 图表容器 */
+.wt-chart-wrap {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.wt-hero-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 底部统计三列 */
+.wt-monthly-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.wt-stat-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 0;
+}
+
+.wt-stat-num {
+  font-size: 17px;
+  font-weight: 800;
+  color: #333;
+}
+.wt-stat-num.stat-up { color: #ff4757; }
+.wt-stat-num.stat-down { color: #00b894; }
+
+.wt-stat-lbl {
+  font-size: 11px;
+  color: #999;
+  font-weight: 500;
+}
+
+.wt-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: #e0e0e0;
+}
+
+
+/* ==============================
    提醒页面 (rm3d-page)
    ============================== */
 .rm3d-page {
@@ -14558,6 +14768,295 @@ body::before {
   flex: 1;
   padding-top: 2px;
 }
+
+/* ════════════════════════════════════════════
+   Sidebar Panel — 灯绳侧边栏样式系统
+   渐变绳子 + 毛玻璃拉环 + 弹性物理动画
+   ════════════════════════════════════════════ */
+
+/* ====== 蒙层 ====== */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 20, 15, 0.35);
+  backdrop-filter: blur(6px) saturate(1.1);
+  -webkit-backdrop-filter: blur(6px) saturate(1.1);
+  z-index: 9980;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sidebar-overlay--visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ====== 主面板容器 ====== */
+.sidebar-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 380px;
+  z-index: 9990;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+.sidebar-panel:not(.sidebar-panel--open) {
+  transform: translateX(calc(-100% + 52px));
+}
+
+/* ====== 圆弧裁切容器（右侧大弧形） ====== */
+.sidebar-arc-clip {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(165deg, #FFF9F0 0%, #FFF3E4 25%, #F8ECD8 55%, #F2DFC8 85%, #E8D4BC 100%);
+  border-radius: 0 48px 48px 0;
+  box-shadow:
+    4px 0 40px rgba(60, 40, 20, 0.12),
+    2px 0 16px rgba(180, 140, 90, 0.08);
+  overflow: hidden;
+}
+
+/* 触发状态发光 */
+.sidebar-panel--ready .sidebar-arc-clip {
+  box-shadow:
+    4px 0 50px rgba(255, 140, 120, 0.20),
+    0 0 80px rgba(255, 184, 77, 0.12),
+    2px 0 24px rgba(60, 40, 20, 0.15);
+}
+
+/* ====== 关闭按钮 × ====== */
+.sidebar-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px) saturate(1.15);
+  -webkit-backdrop-filter: blur(12px) saturate(1.15);
+  color: #8a7060;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.7);
+}
+.sidebar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: rotate(90deg) scale(1.08);
+  color: #e07a5f;
+  box-shadow: 0 4px 16px rgba(224,122,95,0.18);
+}
+.sidebar-close-btn:active { transform: scale(0.92); }
+
+/* ====== 头部宠物信息 ====== */
+.sidebar-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 36px 24px 22px;
+  gap: 10px;
+}
+
+/* 头像环 */
+.sidebar-avatar-ring {
+  position: relative;
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  background:
+    linear-gradient(145deg, rgba(255,220,160,0.6), rgba(255,190,130,0.35));
+  padding: 3px;
+  box-shadow:
+    0 0 0 3px rgba(255,200,130,0.25),
+    0 6px 24px rgba(180, 130, 80, 0.15),
+    inset 0 2px 8px rgba(255, 255, 255, 0.5);
+}
+.sidebar-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,250,240,0.8);
+}
+.sidebar-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #FFE8D4, #FFD9B8);
+  display: grid;
+  place-items: center;
+  font-size: 38px;
+}
+
+/* 头像星星装饰 */
+.sidebar-avatar-star {
+  position: absolute;
+  color: #F5B942;
+  filter: drop-shadow(0 2px 4px rgba(245,180,66,0.45));
+  animation: starTwinkle 2.5s ease-in-out infinite;
+}
+.sidebar-avatar-star--1 { top: -4px; right: -2px; }
+.sidebar-avatar-star--2 { bottom: 4px; left: -4px; animation-delay: 1s; }
+
+/* 名字行 */
+.sidebar-pet-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sidebar-pet-name {
+  font-size: 21px;
+  font-weight: 900;
+  color: #3D2818;
+  letter-spacing: -0.3px;
+}
+.sidebar-gender-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  background: rgba(150, 170, 210, 0.18);
+  color: #667eea;
+}
+.sidebar-gender-badge--male { background: rgba(102,126,234,0.12); color: #5648c4; }
+.sidebar-gender-badge--female { background: rgba(240,110,150,0.12); color: #d65a88; }
+
+/* 品种标签 */
+.sidebar-breed-tag {
+  font-size: 12px;
+  color: #9a8578;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.45);
+  padding: 3px 14px;
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+}
+
+/* ====== 菜单列表 ====== */
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 16px 16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.sidebar-menu::-webkit-scrollbar { display: none; }
+
+.sidebar-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  background: transparent;
+}
+.sidebar-menu-item:hover {
+  background: rgba(255, 255, 255, 0.55);
+  transform: translateX(4px);
+  box-shadow: 0 3px 14px rgba(180, 140, 100, 0.08);
+}
+.sidebar-menu-item:active {
+  transform: translateX(2px) scale(0.98);
+  transition-duration: 0.1s;
+}
+
+.sidebar-menu-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, rgba(255,230,200,0.6), rgba(255,215,175,0.3));
+  color: #C08040;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+.sidebar-menu-item:hover .sidebar-menu-icon {
+  background: linear-gradient(145deg, #FFE8CC, #FFDAA8);
+  color: #A06830;
+  transform: scale(1.05) rotate(-3deg);
+  box-shadow: 0 4px 12px rgba(192,128,64,0.15);
+}
+
+.sidebar-menu-text {
+  flex: 1;
+  min-width: 0;
+}
+.sidebar-menu-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 750;
+  color: #3D2818;
+  line-height: 1.2;
+}
+.sidebar-menu-subtitle {
+  display: block;
+  font-size: 11.5px;
+  color: #a89082;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.sidebar-menu-badge {
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff68aa 0%, #ff82b9 100%);
+  color: #fff;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(255,104,170,0.3);
+  flex-shrink: 0;
+}
+
+.sidebar-menu-arrow {
+  color: #ccc;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateX(-8px);
+}
+.sidebar-menu-item:hover .sidebar-menu-arrow {
+  opacity: 1;
+  transform: translateX(0);
+  color: #c0a080;
+}
+
+/* ====== 底部区域 ====== */
+.sidebar-bottom-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 20px 24px;
+  gap: 12px;
+  position: relative;
+}
+
+/* 提示文字 */
+.sidebar-hint-text {
+  font-size: 11.5px;
+  color: #bfa898;
+  font-weight: 600;
+  letter-spacing: 1px;
+  opacity: 0.75;
+}
+
+
 
 
 
