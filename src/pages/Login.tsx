@@ -4,6 +4,7 @@ import { User, KeyRound, LogIn } from "lucide-react";
 import Mascot from "../components/Mascot";
 import { login, fetchUserInfo } from "../lib/api";
 import { setSessionUser, getSessionUser } from "../lib/session";
+import { flushPending } from "../lib/persistentStore";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -47,6 +48,9 @@ export default function Login() {
         // 用户信息获取失败不影响登录，使用 JWT 中的基本信息即可
         console.warn("获取用户详细信息失败，使用默认信息:", userInfoErr);
       }
+
+      // 确保 token/user 真正写入原生存储后再跳转，避免写入未完成就被杀进程导致丢失
+      await flushPending();
 
       setTimeout(() => navigate("/app"), 400);
     } catch (err: unknown) {

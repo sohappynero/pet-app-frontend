@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">宠物生活</string>
+    <string name="title_activity_main">宠物生活</string>
+    <string name="package_name">cn.petwise.app</string>
+    <string name="custom_url_scheme">cn.petwise.app</string>
+</resources>

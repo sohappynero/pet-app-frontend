@@ -1,6 +1,8 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import AppShell from "./components/AppShell";
 import { getSessionUser } from "./lib/session";
+import { refreshToken } from "./lib/api";
 import AddRecord from "./pages/AddRecord";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
@@ -29,10 +31,59 @@ import AiHub from "./pages/AiHub";
 import VipHub from "./pages/VipHub";
 import Timeline from "./pages/Timeline";
 
+// 判断登录态：有 token 直接ok；无 token 但有 refresh_token 则尝试自动续期
+function useAuthState() {
+  const [state, setState] = useState<"checking" | "ok" | "no">("checking");
+
+  useEffect(() => {
+    const user = getSessionUser();
+    if (user?.token) {
+      setState("ok");
+      return;
+    }
+
+    // 无 user/token，但有 refresh_token → 尝试启动自动续期
+    const rt = localStorage.getItem("pet_refresh_token_v1");
+    if (!rt) {
+      setState("no");
+      return;
+    }
+
+    refreshToken()
+      .then(() => setState("ok"))
+      .catch(() => setState("no"));
+  }, []);
+
+  return state;
+}
+
+function AuthLoading() {
+  return (
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      height: "100vh",
+      color: "#5C635D"
+    }}>
+      加载中…
+    </div>
+  );
+}
+
 function RequireAuth() {
-  const user = getSessionUser();
-  if (!user) return <Navigate to="/login" replace />;
+  const state = useAuthState();
+  if (state === "checking") return <AuthLoading />;
+  if (state === "no") return <Navigate to="/login" replace />;
   return <Outlet />;
+}
+
+// 根路径智能入口：已登录进主页，未登录去登录页（修复冷启动无条件跳登录页的问题）
+function RootRedirect() {
+  const state = useAuthState();
+  if (state === "checking") return <AuthLoading />;
+  if (state === "no") return <Navigate to="/login" replace />;
+  return <Navigate to="/app" replace />;
 }
 
 function RedirectRecordDetail() {
@@ -46,7 +97,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 

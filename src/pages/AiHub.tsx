@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Camera, ImagePlus, ChevronLeft, RotateCcw } from "lucide-react";
 import { useShell } from "../hooks/useShell";
 import { getLocalAvatar } from "../lib/pet-avatar";
 import { fetchPhotoMind } from "../lib/pet-mind.api";
+import { pickImage } from "../lib/pickImage";
 import type { QuotaError } from "../lib/pet-mind.api";
 import type { PhotoMindResult } from "../types";
 import { PhotoMindResultCard } from "../components/PetChat/PhotoMindResult";
@@ -24,9 +25,6 @@ export default function AiHub() {
   // 配额弹窗
   const [showQuotaModal, setShowQuotaModal] = useState(false);
   const [quotaErrorData, setQuotaErrorData] = useState<QuotaError | null>(null);
-
-  const cameraRef = useRef<HTMLInputElement>(null);
-  const galleryRef = useRef<HTMLInputElement>(null);
 
   /* ---- 照片上传 & 分析 ---- */
   const handlePhotoUpload = async (file: File) => {
@@ -56,8 +54,14 @@ export default function AiHub() {
   };
 
   /* ---- 拍照 / 相册点击 ---- */
-  const handleCameraClick = () => cameraRef.current?.click();
-  const handleGalleryClick = () => galleryRef.current?.click();
+  const handleCameraClick = async () => {
+    const file = await pickImage("camera");
+    if (file) handlePhotoUpload(file);
+  };
+  const handleGalleryClick = async () => {
+    const file = await pickImage("photos");
+    if (file) handlePhotoUpload(file);
+  };
 
   /* ---- 重新拍照 ---- */
   const handleRetake = () => {
@@ -205,22 +209,6 @@ export default function AiHub() {
             </div>
           </div>
 
-          {/* 隐藏文件输入 */}
-          <input
-            ref={cameraRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="ai-mind-hidden-input"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); e.target.value = ""; }}
-          />
-          <input
-            ref={galleryRef}
-            type="file"
-            accept="image/*"
-            className="ai-mind-hidden-input"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); e.target.value = ""; }}
-          />
         </>
       )}
 

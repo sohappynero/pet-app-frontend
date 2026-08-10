@@ -16,7 +16,7 @@ import { getSessionToken } from "./session";
 import { fetchWithAITimeout } from "./api";
 
 // 后端 API 基础地址（与 api.ts 保持一致）
-const envBaseUrl = (import.meta as any)?.env?.VITE_API_BASE_URL || "";
+const envBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
 const BACKEND_API_URL = String(envBaseUrl).replace(/\/$/, "");
 import { inferPersonality } from "./pet-prompt";
 import {

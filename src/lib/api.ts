@@ -17,6 +17,7 @@ import type {
 } from "../types";
 import { getLocalAvatar } from "./pet-avatar";
 import { getSessionToken, setSessionUser, getSessionUser } from "./session";
+import { persistSet, persistRemove } from "./persistentStore";
 
 // ═════════════════════════════════════
 // 本地时区工具函数（避免 UTC 偏移导致日期错误）
@@ -40,7 +41,8 @@ export function getLocalNow(): string {
 }
 
 
-const envBaseUrl = (import.meta as any)?.env?.VITE_API_BASE_URL || "";
+// 使用 Vite 的 define 配置在构建时替换(不用可选链,保证能被替换)
+const envBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
 const API_BASE_URL = String(envBaseUrl).replace(/\/$/, "");
 
 // ============================================================
@@ -163,7 +165,7 @@ export async function refreshToken(): Promise<string> {
     // 如果后端返回了新的 refresh_token，也更新
     const newRefreshToken = data?.refresh_token;
     if (newRefreshToken) {
-      try { localStorage.setItem("pet_refresh_token_v1", newRefreshToken); } catch {}
+      persistSet("pet_refresh_token_v1", newRefreshToken);
     }
 
     // 更新本地存储的 access_token
@@ -171,6 +173,14 @@ export async function refreshToken(): Promise<string> {
     if (currentUser) {
       setSessionUser({
         ...currentUser,
+        token: newToken,
+      });
+    } else {
+      // 启动自动续期场景：user 已丢失，从新 access_token 的 JWT 里重建会话
+      const claims = decodeJwtPayload(newToken);
+      setSessionUser({
+        phone: claims?.phone || "",
+        nickname: claims?.nickname || "",
         token: newToken,
       });
     }
@@ -233,10 +243,8 @@ async function request<T = unknown>(url: string, init?: RequestInit): Promise<T>
     } catch (refreshError) {
       // 刷新失败，清除所有认证信息并跳转到登录页
       console.error("🔑 Token 刷新失败，需要重新登录:", refreshError);
-      try {
-        localStorage.removeItem("pet_user_v1");
-        localStorage.removeItem("pet_refresh_token_v1");
-      } catch {}
+      persistRemove("pet_user_v1");
+      persistRemove("pet_refresh_token_v1");
       // 跳转到登录页（仅在浏览器环境中）
       if (typeof window !== 'undefined') {
         window.location.href = '/login';
@@ -398,7 +406,7 @@ export async function login(payload: { username: string; password: string }) {
 
   // 将 refresh_token 存入 localStorage，供后续刷新使用
   if (refreshTokenStr) {
-    try { localStorage.setItem("pet_refresh_token_v1", refreshTokenStr); } catch {}
+    persistSet("pet_refresh_token_v1", refreshTokenStr);
   }
 
   return {
@@ -1132,6 +1140,13 @@ export interface AnalysisDashboardData {
 /** 获取AI分析仪表盘数据（纯DB计算，真实数据） */
 export function fetchAnalysisDashboard(petId: number): Promise<AnalysisDashboardData> {
   return request<AnalysisDashboardData>(`/api/v1/analysis/dashboard/${petId}`);
+}
+
+/** 生成AI健康分析（调LLM+扣配额，POST）。返回生成后的完整数据 */
+export function generateAnalysisDashboard(petId: number): Promise<AnalysisDashboardData> {
+  return request<AnalysisDashboardData>(`/api/v1/analysis/dashboard/${petId}/generate`, {
+    method: "POST",
+  });
 }
 
 

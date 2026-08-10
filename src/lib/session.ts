@@ -1,3 +1,5 @@
+import { persistSet, persistRemove } from "./persistentStore";
+
 const USER_KEY = "pet_user_v1";
 const PET_KEY = "pet_selected_pet_id";
 
@@ -20,11 +22,11 @@ export function getSessionUser(): SessionUser | null {
 }
 
 export function setSessionUser(user: SessionUser) {
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
+  persistSet(USER_KEY, JSON.stringify(user));
 }
 
 export function clearSessionUser() {
-  localStorage.removeItem(USER_KEY);
+  persistRemove(USER_KEY);
   localStorage.removeItem(PET_KEY);
 }
 

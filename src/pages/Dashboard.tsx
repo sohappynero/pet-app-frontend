@@ -1,8 +1,9 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle } from "lucide-react";
 import { createPetWithAvatar, mapUiSpeciesToApi } from "../lib/api";
 import { useShell } from "../hooks/useShell";
+import { pickImage } from "../lib/pickImage";
 import type { Gender } from "../types";
 
 type Species = "dog" | "cat" | "other";
@@ -84,7 +85,6 @@ export default function Dashboard() {
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const update = <K extends keyof OnboardingForm>(key: K, value: OnboardingForm[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -104,14 +104,17 @@ export default function Dashboard() {
   };
   const prevStep = () => setStep((s) => Math.max(s - 1, 1));
 
-  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleAvatarSelect = (file: File | null) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) { setMsg("请选择图片文件"); return; }
     if (file.size > 5 * 1024 * 1024) { setMsg("图片大小不能超过 5MB"); return; }
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));
     setMsg("");
+  };
+  const handlePickAvatar = async () => {
+    const file = await pickImage("photos");
+    if (file) handleAvatarSelect(file);
   };
   const clearAvatar = () => {
     setAvatarFile(null);
@@ -331,7 +334,7 @@ export default function Dashboard() {
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
         <div className="petos-form-card">
           <div className="petos-form-preview-header">
-            <label className="petos-form-preview-avatar" onClick={() => avatarInputRef.current?.click()}>
+            <label className="petos-form-preview-avatar" onClick={handlePickAvatar}>
               {avatarPreview ? (
                 <img src={avatarPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} />
               ) : (
@@ -339,7 +342,6 @@ export default function Dashboard() {
               )}
               <span className="petos-form-avatar-overlay">📷 {avatarPreview ? "更换" : "上传"}</span>
             </label>
-            <input ref={avatarInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatarSelect} />
             <div>
               <div style={{ fontWeight: 600, fontSize: "var(--text-h2)" }}>{form.name || "未命名"}</div>
               <div style={{ color: "var(--color-text-secondary)", fontSize: "var(--text-caption)" }}>{form.breed || "未知品种"} · {mapGenderLabel(form.gender)}</div>
@@ -352,7 +354,7 @@ export default function Dashboard() {
             </div>
           )}
           {!avatarFile && (
-            <button type="button" className="petos-form-toggle petos-form-toggle--on" style={{ width: "100%", textAlign: "center", marginBottom: "var(--space-3)" }} onClick={() => avatarInputRef.current?.click()}>
+            <button type="button" className="petos-form-toggle petos-form-toggle--on" style={{ width: "100%", textAlign: "center", marginBottom: "var(--space-3)" }} onClick={handlePickAvatar}>
               📷 上传宠物照片
             </button>
           )}

@@ -11,8 +11,9 @@
  * 设计风格：温暖治愈系宠物社交风格
  */
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Upload, X, Image, Loader2, Camera, RotateCcw, ZoomIn } from "lucide-react";
+import { pickImage } from "../lib/pickImage";
 
 // ============================================================
 // 类型定义
@@ -84,9 +85,6 @@ export function PetPhotoUploader({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
 
-  // Refs
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // Loading 文案轮播效果
   useEffect(() => {
@@ -188,37 +186,18 @@ export function PetPhotoUploader({
   // ============================================================
 
   /** 点击选择文件（从相册） */
-  const handleClick = () => {
-    if (!disabled && !isProcessing) {
-      fileInputRef.current?.click();
-    }
+  const handleClick = async () => {
+    if (disabled || isProcessing) return;
+    const file = await pickImage("photos");
+    if (file) await handleFile(file);
   };
 
   /** 拍照按钮点击 */
-  const handleCameraClick = (e: React.MouseEvent) => {
+  const handleCameraClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!disabled && !isProcessing) {
-      cameraInputRef.current?.click();
-    }
-  };
-
-  /** 相册文件 input change */
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      await handleFile(file);
-    }
-    // 重置 input 以允许重复选择同一文件
-    e.target.value = "";
-  };
-
-  /** 相机文件 input change */
-  const handleCameraChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      await handleFile(file);
-    }
-    e.target.value = "";
+    if (disabled || isProcessing) return;
+    const file = await pickImage("camera");
+    if (file) await handleFile(file);
   };
 
   // ========== 拖拽事件处理 ==========
@@ -267,8 +246,6 @@ export function PetPhotoUploader({
     setPreview(null);
     setSelectedFile(null);
     setErrorMsg(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    if (cameraInputRef.current) cameraInputRef.current.value = "";
     onCancel?.();
   }, [onCancel]);
 
@@ -283,30 +260,7 @@ export function PetPhotoUploader({
 
   return (
     <div className={`photo-uploader-wrapper ${className}`}>
-      {/* ====== 隐藏的文件输入框 ====== */}
-      
-      {/* 相册输入 */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
-        onChange={handleFileChange}
-        className="pu-hidden-input"
-        disabled={disabled || isProcessing}
-      />
-
-      {/* 相机输入（capture="environment" 调用后置摄像头） */}
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={handleCameraChange}
-        className="pu-hidden-input"
-        disabled={disabled || isProcessing}
-      />
-
-      {/* ====== 状态一：未选择图片时 → 显示上传区域 ====== */}
+      {/* ====== 状态一：未选择图片时 → 显示上传区域 ====== */
       
       {!preview && !isProcessing ? (
         <div

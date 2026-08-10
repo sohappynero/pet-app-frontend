@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, MapPin, Menu, Sparkles, Plus, Camera, Loader2 } from 'lucide-react';
 import { useShell } from '../hooks/useShell';
 import { fetchAnalysisDashboard, fetchReminders, fetchWeightChart } from '../lib/api';
 import { handleAvatarFileUpload } from '../lib/pet-avatar';
+import { pickImage } from '../lib/pickImage';
 import type { AnalysisDashboardData } from '../lib/api';
 import type { Pet, Reminder } from '../types';
 
@@ -133,7 +134,6 @@ export default function HomePetOS() {
   const [isDimmed, setIsDimmed] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [petBgIndex, setPetBgIndex] = useState(0);
-  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [avatarOverride, setAvatarOverride] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
@@ -195,14 +195,13 @@ export default function HomePetOS() {
     setAvatarError(null);
   }, [selectedPetId]);
 
-  const handleAvatarClick = () => {
+  const handleAvatarClick = async () => {
     if (isUploadingAvatar) return;
-    avatarInputRef.current?.click();
+    const file = await pickImage("photos");
+    if (file) handleAvatarFile(file);
   };
 
-  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = ''; // 允许重复选择同一文件
+  const handleAvatarFile = async (file: File | null) => {
     if (!file || !selectedPet) return;
 
     setAvatarError(null);
@@ -388,13 +387,6 @@ export default function HomePetOS() {
 
             {/* 左侧：宠物头像 — 点击更换 */}
             <div className="flex-shrink-0 pt-0.5">
-              <input
-                ref={avatarInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif"
-                className="hidden"
-                onChange={handleAvatarFileChange}
-              />
               <button
                 type="button"
                 className="group relative w-[76px] h-[76px] rounded-[var(--sg-radius-sm)] cursor-pointer transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"

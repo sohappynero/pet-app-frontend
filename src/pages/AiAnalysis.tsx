@@ -14,7 +14,7 @@ import {
   AlertCircle,
   Clock,
 } from "lucide-react";
-import { fetchRecords, fetchAnalysisDashboard, getLocalToday, type AnalysisDashboardData } from "../lib/api";
+import { fetchRecords, fetchAnalysisDashboard, generateAnalysisDashboard, getLocalToday, type AnalysisDashboardData } from "../lib/api";
 import { useShell } from "../hooks/useShell";
 import type { HealthRecord, RecordType } from "../types";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
@@ -111,6 +111,8 @@ export default function AiAnalysis() {
   const [showQuotaModal, setShowQuotaModal] = useState(false);
   const [quotaErrorData, setQuotaErrorData] = useState<QuotaError | null>(null);
   const [hintDismissed, setHintDismissed] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   const currentPet = useMemo(() => selectedPet || pets[0] || null, [selectedPet, pets]);
 
@@ -163,6 +165,34 @@ export default function AiAnalysis() {
       })
       .finally(() => setAnalysisLoading(false));
   }, [effectivePetId]);
+
+  // 触发生成健康分析（POST，调LLM+扣配额）
+  const handleGenerate = async () => {
+    const petId = effectivePetId;
+    if (!petId || generating) return;
+    setGenerating(true);
+    setGenerateError(null);
+    try {
+      const data = await generateAnalysisDashboard(petId);
+      setAnalysisData(data);
+    } catch (err: any) {
+      if (err.status === 429 && err.quotaDetail) {
+        setQuotaErrorData({
+          type: "quota_exceeded",
+          feature: err.quotaDetail.feature,
+          used: err.quotaDetail.used,
+          limit: err.quotaDetail.limit,
+          plan: err.quotaDetail.plan,
+          upgradeHint: err.quotaDetail.upgradeHint,
+        });
+        setShowQuotaModal(true);
+      } else {
+        setGenerateError(err?.message || "生成失败，请稍后重试");
+      }
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   // 从后端数据派生各卡片分数（保证有值）
   const overallScore = analysisData?.overall_score ?? 0;
@@ -292,6 +322,37 @@ export default function AiAnalysis() {
 
       {/* ═══ 分析卡片 ═══ */}
       <section className="ai-cards-section">
+
+        {/* 无分析数据 或 建议重新生成 → 显示生成按钮 */}
+        {!analysisLoading && (!analysisData?.overall_score || analysisData?.status === "no_data" || analysisData?.hint === "has_new_data") && (
+          <div className="ai-generate-block glass-panel" style={{
+            margin: "12px 0", padding: "20px 16px", textAlign: "center",
+            borderRadius: 16, background: "rgba(255,255,255,0.6)",
+          }}>
+            <Sparkles size={28} color="#ff9a56" style={{ marginBottom: 8 }} />
+            <p style={{ fontSize: 14, color: "#7a4a1f", margin: "0 0 14px", lineHeight: 1.6 }}>
+              {analysisData?.hint === "has_new_data"
+                ? "有新的健康记录，点击重新生成最新分析"
+                : (analysisData?.message || "还没有健康分析报告，点击生成 AI 健康评估")}
+            </p>
+            <button
+              onClick={handleGenerate}
+              disabled={generating}
+              style={{
+                padding: "10px 28px", fontSize: 15, fontWeight: 600, color: "#fff",
+                background: generating ? "#ccc" : "linear-gradient(135deg,#ff9a56,#ff6b81)",
+                border: "none", borderRadius: 24,
+                boxShadow: "0 4px 14px rgba(255,107,129,0.35)",
+                cursor: generating ? "not-allowed" : "pointer",
+              }}
+            >
+              {generating ? "AI 分析中，请稍候…" : (analysisData?.hint === "has_new_data" ? "重新生成分析" : "生成健康分析")}
+            </button>
+            {generateError && (
+              <p style={{ fontSize: 13, color: "#e74c3c", margin: "10px 0 0" }}>⚠️ {generateError}</p>
+            )}
+          </div>
+        )}
 
         {/* 卡片1：综合健康评分 */}
         {isCardVisible("health") && isCardVisibleBySearch("health") && (
@@ -469,15 +530,20 @@ export default function AiAnalysis() {
             {!analysisLoading && (<>
               <div className="ai-divider"><span>疫苗列表</span></div>
               <div className="ai-detail-list">
-                {vacAlerts.length > 0 ? vacAlerts.map(v => (
+                {vacAlerts.length > 0 && vacAlerts.map(v => (
                   <DetailRow key={v.id} label={v.name}
                     value={v.status === "overdue" ? `已过期${Math.abs(v.days_until ?? 0)}天` : v.status === "approaching" ? `${Math.abs(v.days_until ?? 0)}天后到期` : `${Math.abs(v.days_within ?? 0)}天内正常`}
                     status={v.status === "overdue" ? "danger" : v.status === "approaching" ? "warning" : "good"} />
-                )) : (
-                  <DetailRow label="狂犬疫苗" value={vacAlerts.length > 0 ? "已记录" : "未录入"} status={vacAlerts.length > 0 ? "good" : "danger"} />
-                )}
-                <DetailRow label="驱虫状态" value={dewAlerts.length > 0 ? `${dewAlerts.filter(d=>d.status!=='overdue').length}项有效` : dewAlerts.some(d=>d.status==='overdone') ? "有已过期" : "无记录"}
-                  status={dewAlerts.some(d=>d.status==='overdone')?"danger":dewAlerts.length>0?"good":"warning"} />
+                ))}
+                <DetailRow label="驱虫状态"
+                  value={dewAlerts.length === 0 ? "无记录"
+                    : dewAlerts.some(d=>d.status==='overdue') ? "有已过期，建议补驱虫"
+                    : dewAlerts.some(d=>d.status==='approaching') ? "接近下次驱虫"
+                    : `${dewAlerts.length}项正常`}
+                  status={dewAlerts.length === 0 ? "warning"
+                    : dewAlerts.some(d=>d.status==='overdue') ? "danger"
+                    : dewAlerts.some(d=>d.status==='approaching') ? "warning"
+                    : "good"} />
                 <DetailRow label="体检记录" value={`${dataSummary?.checkups||0}次`} status={(dataSummary?.checkups||0)>0?"good":"warning"} />
               </div>
               <div className="ai-divider"><span>优化建议</span></div>

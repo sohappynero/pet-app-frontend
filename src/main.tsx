@@ -5,9 +5,12 @@ import "./styles/tokens.css";
 import "./styles/petos.css";
 import "./index.css";
 import "./pet-chat.css";
+import { hydrateFromPreferences } from "./lib/persistentStore";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+hydrateFromPreferences().finally(() => {
+  ReactDOM.createRoot(document.getElementById("root")!).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+});

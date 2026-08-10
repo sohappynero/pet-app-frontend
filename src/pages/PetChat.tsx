@@ -2,7 +2,7 @@
  * 会员中心页面
  */
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronLeft, Heart, Smile, Sparkles,
@@ -16,6 +16,7 @@ import { getLocalAvatar } from "../lib/pet-avatar";
 import { fetchPhotoMind } from "../lib/pet-mind.api";
 import type { QuotaError } from "../lib/pet-mind.api";
 import QuotaHintModal from "../components/PetChat/QuotaHintModal";
+import { pickImage } from "../lib/pickImage";
 
 // VIP 特权配置
 interface PrivilegeItem {
@@ -43,8 +44,6 @@ export default function PetChat() {
   const [openFaq, setOpenFaq] = useState<string[]>(["q1"]);
   const [showQuotaModal, setShowQuotaModal] = useState(false);
   const [quotaErrorData, setQuotaErrorData] = useState<QuotaError | null>(null);
-  const cameraRef = useRef<HTMLInputElement>(null);
-  const galleryRef = useRef<HTMLInputElement>(null);
 
   // ====== 前端本地配额计数（从后端获取实际限额）======
   const QUOTA_STORAGE_KEY = "photo_mind_quota";
@@ -68,7 +67,7 @@ export default function PetChat() {
     const fetchQuotaLimit = async () => {
       try {
         const token = (await import("../lib/session")).getSessionToken();
-        const envBaseUrl = (import.meta as any)?.env?.VITE_API_BASE_URL || "";
+        const envBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
         const baseUrl = String(envBaseUrl).replace(/\/$/, "");
         const resp = await fetch(`${baseUrl}/api/v1/payment/membership`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -242,38 +241,21 @@ export default function PetChat() {
             </span>
           </div>
           <div className="vip-photo-actions">
-            <button type="button" className="vip-photo-btn" onClick={() => cameraRef.current?.click()}>
+            <button type="button" className="vip-photo-btn" onClick={async () => {
+              const file = await pickImage("camera");
+              if (file) handleFileUpload(file);
+            }}>
               <Camera size={18} />
               <span>拍照解读</span>
             </button>
-            <button type="button" className="vip-photo-btn" onClick={() => galleryRef.current?.click()}>
+            <button type="button" className="vip-photo-btn" onClick={async () => {
+              const file = await pickImage("photos");
+              if (file) handleFileUpload(file);
+            }}>
               <Images size={18} />
               <span>选图解读</span>
             </button>
           </div>
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            ref={cameraRef}
-            style={{ display: "none" }}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleFileUpload(file);
-              e.target.value = "";
-            }}
-          />
-          <input
-            type="file"
-            accept="image/*"
-            ref={galleryRef}
-            style={{ display: "none" }}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleFileUpload(file);
-              e.target.value = "";
-            }}
-          />
           {isAnalyzing && (
             <div className="vip-analyzing">
               <Loader2 size={18} className="spin" />

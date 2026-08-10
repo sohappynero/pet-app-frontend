@@ -26,6 +26,7 @@ import {
   fetchRecords, fetchWeights, fetchFeedings, fetchGroomings, getLocalToday,
 } from "../lib/api";
 import { useShell } from "../hooks/useShell";
+import { pickImages } from "../lib/pickImage";
 import type { RecordType } from "../types";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
 import { getLocalAvatar } from "../lib/pet-avatar";
@@ -760,10 +761,9 @@ export default function AddRecord() {
   };
 
   // ── 图片上传处理 ──
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    Array.from(files).forEach((file) => {
+  // 核心：把选中的图片文件加入预览列表
+  const addImageFiles = (files: File[]) => {
+    files.forEach((file) => {
       if (!file.type.startsWith("image/")) return;
       const id = `img_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       const reader = new FileReader();
@@ -772,7 +772,19 @@ export default function AddRecord() {
       };
       reader.readAsDataURL(file);
     });
+  };
+
+  // 相机降级 input 的 onChange（getUserMedia 失败时走系统文件选择器）
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) addImageFiles(Array.from(files));
     e.target.value = "";
+  };
+
+  // “上传图片”按钮：Capacitor 走原生多选相册，Web 走 input multiple
+  const handlePickImages = async () => {
+    const files = await pickImages();
+    if (files.length) addImageFiles(files);
   };
 
   // ── 真正的摄像头拍摄（getUserMedia + Canvas 截帧）──
@@ -817,7 +829,6 @@ export default function AddRecord() {
     setUploadedImages((prev) => prev.filter((img) => img.id !== id));
   };
 
-  const imageInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // ═══ 渲染 ════════════════════════════════
@@ -1166,7 +1177,7 @@ export default function AddRecord() {
 
                 {/* 上传按钮区 */}
                 <div className="ar-upload-actions">
-                  <button type="button" className="ar-upload-btn" onClick={() => imageInputRef.current?.click()}>
+                  <button type="button" className="ar-upload-btn" onClick={handlePickImages}>
                     <ImagePlus size={18} />
                     <span>上传图片</span>
                   </button>
@@ -1174,14 +1185,6 @@ export default function AddRecord() {
                     <Camera size={18} />
                     <span>拍照</span>
                   </button>
-                  <input
-                    ref={imageInputRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageSelect}
-                    className="sr-only"
-                  />
                   <input
                     ref={cameraInputRef}
                     type="file"

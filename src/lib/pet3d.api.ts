@@ -5,6 +5,10 @@
 
 import { getSessionToken } from "./session";
 
+// 后端 API 基础地址（与 api.ts / pet-mind.api.ts 保持一致，打包成 App 后无 Vite 代理，必须走完整地址）
+const envBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+const API_BASE = String(envBaseUrl).replace(/\/$/, "");
+
 export interface Generate3DAvatarOptions {
   petName?: string;
   species?: "dog" | "cat" | "other";
@@ -92,7 +96,7 @@ async function callImageGenAPI(
   onProgress?.("正在调用 AI 服务...");
 
   const token = getSessionToken();
-  const response = await fetch("/api/v1/ai/generate-image", {
+  const response = await fetch(`${API_BASE}/api/v1/ai/generate-image`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

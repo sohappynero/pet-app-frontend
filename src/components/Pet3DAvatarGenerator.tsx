@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { generate3DAvatar, saveGeneratedAvatar, getLocal3DAvatar } from "../lib/pet3d.api";
 import { saveLocalAvatar } from "../lib/pet-avatar";
+import { pickImage } from "../lib/pickImage";
 
 interface Pet3DAvatarGeneratorProps {
   /** 宠物信息 */
@@ -49,8 +50,8 @@ export default function Pet3DAvatarGenerator({
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // 加载已保存的 3D 头像
@@ -62,11 +63,11 @@ export default function Pet3DAvatarGenerator({
     }
   }, [pet.id]);
 
-  // 处理文件选择
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  // 选择图片（Capacitor 走原生相册，Web 走 input）
+  const handlePickImage = async () => {
+    const file = await pickImage("photos");
     if (!file) return;
-
+    setSelectedFile(file);
     // 预览原图
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -78,12 +79,12 @@ export default function Pet3DAvatarGenerator({
 
   // 开始生成
   const handleGenerate = async () => {
-    if (!originalImage || !fileInputRef.current?.files?.[0]) return;
+    if (!originalImage || !selectedFile) return;
 
     setStatus("generating");
     setError(null);
 
-    const file = fileInputRef.current.files[0];
+    const file = selectedFile;
 
     const result = await generate3DAvatar(
       file,
@@ -113,9 +114,7 @@ export default function Pet3DAvatarGenerator({
     setGeneratedImage(null);
     setError(null);
     setProgress("");
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    setSelectedFile(null);
   };
 
   // 下载图片
@@ -209,7 +208,7 @@ export default function Pet3DAvatarGenerator({
             {!originalImage && !generatedImage && (
               <button
                 className="pet3d-upload-area"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={handlePickImage}
               >
                 <Upload size={sizeConfig.icon} />
                 <span>点击上传宠物照片</span>
@@ -217,14 +216,6 @@ export default function Pet3DAvatarGenerator({
               </button>
             )}
 
-            {/* 隐藏的文件输入 */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              style={{ display: "none" }}
-            />
           </div>
 
           {/* 进度提示 */}

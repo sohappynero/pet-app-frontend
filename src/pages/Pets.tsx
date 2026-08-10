@@ -26,6 +26,7 @@ import { fetchReminders, fetchRecords, fetchWeights, getLocalToday, fetchAnalysi
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
 import { Generate3DButton } from "../components/Pet3DAvatarGenerator";
 import { handleAvatarUpload as unifiedHandleUpload, getLocalAvatar, handleAvatarFileUpload, clearLocalAvatar } from "../lib/pet-avatar";
+import { pickImage } from "../lib/pickImage";
 
 function petEmoji(species?: string) {
   if (species === "cat") return "🐱";
@@ -159,6 +160,23 @@ export default function Pets() {
     setTimeout(() => setToast(""), 2000);
   };
 
+  // 选择并上传宠物头像（Capacitor 走原生相册，Web 走 input）
+  const handlePickAvatar = async () => {
+    if (!currentPet) return;
+    const file = await pickImage("photos");
+    if (!file) return;
+    const result = await handleAvatarFileUpload(file, currentPet.id, (url) => {
+      // 乐观更新：立即显示压缩后的预览图（毫秒级响应）
+      setLocalAvatarUrl(url);
+    });
+    // 上传完成后：用后端返回的最终URL同步state（确保与localStorage一致）
+    if (result.serverSynced && result.finalUrl && result.finalUrl !== localAvatarUrl) {
+      setLocalAvatarUrl(result.finalUrl);
+      refreshPets();
+    }
+    if (result.error) showToast(result.error);
+  };
+
   if (!currentPet) {
     return (
       <main className="pet-home-page">
@@ -204,7 +222,7 @@ export default function Pets() {
             
             {/* 当前宠物信息 */}
             <div className="ph3d-pet-card">
-              <label htmlFor="pets-page-avatar-input" className="ph3d-pet-avatar-wrap" style={{ cursor: "pointer", position: "relative" }}>
+              <label className="ph3d-pet-avatar-wrap" style={{ cursor: "pointer", position: "relative" }} onClick={handlePickAvatar}>
                 {displayPet?.image_url ? (
                   isNameCircleMarker(displayPet.image_url) ? (
                     <PetNameCircle name={currentPet?.name || '宠物'} size={44} />
@@ -237,32 +255,6 @@ export default function Pets() {
                 )}
                 <span className="ph3d-pet-online" />
               </label>
-              <input
-                type="file"
-                accept="image/*"
-                id="pets-page-avatar-input"
-                style={{ display: "none" }}
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file || !currentPet) return;
-                  // 使用新的文件上传方式（multipart → 后端新 API）
-                  const result = await handleAvatarFileUpload(file, currentPet.id, (url) => {
-                    // 乐观更新：立即显示压缩后的预览图（毫秒级响应）
-                    setLocalAvatarUrl(url);
-                    // 注意：不在此处调用 refreshPets()！
-                    // 原因：此时 API 请求还在飞行中，DB 还是旧值
-                    // refreshPets 移到下面的 upload 完成后统一调用
-                  });
-                  // 上传完成后：用后端返回的最终URL同步state（确保与localStorage一致）
-                  if (result.serverSynced && result.finalUrl && result.finalUrl !== localAvatarUrl) {
-                    setLocalAvatarUrl(result.finalUrl);
-                    refreshPets();
-                  }
-                  if (result.error) showToast(result.error);
-                  // 重置 file input，允许重复选择同一文件
-                  e.target.value = '';
-                }}
-              />
               <div className="ph3d-pet-detail">
                 <strong className="ph3d-pet-name">{currentPet?.name || '我的宠物'}</strong>
                 <span className="ph3d-pet-meta">{currentPet?.breed || '健康档案'}</span>
