@@ -25,7 +25,7 @@ import { useShell } from "../hooks/useShell";
 import { fetchReminders, fetchRecords, fetchWeights, getLocalToday, fetchAnalysisDashboard } from "../lib/api";
 import PetPhotoAvatar from "../components/PetPhotoAvatar";
 import { Generate3DButton } from "../components/Pet3DAvatarGenerator";
-import { handleAvatarUpload as unifiedHandleUpload, getLocalAvatar, handleAvatarFileUpload, clearLocalAvatar } from "../lib/pet-avatar";
+import { getLocalAvatar, handleAvatarFileUpload, clearLocalAvatar } from "../lib/pet-avatar";
 import { pickImage } from "../lib/pickImage";
 
 function petEmoji(species?: string) {

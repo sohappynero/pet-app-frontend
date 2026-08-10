@@ -255,8 +255,8 @@ export default function WeightTrendAnalysis() {
           .map((r: any) => ({
             date: r.record_date || r.created_at || "",
             weight: Number(r.weight_kg),
-            idealMin: currentPet?.ideal_weight_min ? Number(currentPet.ideal_weight_min) : undefined,
-            idealMax: currentPet?.ideal_weight_max ? Number(currentPet.ideal_weight_max) : undefined,
+            idealMin: r.ideal_weight_min != null ? Number(r.ideal_weight_min) : undefined,
+            idealMax: r.ideal_weight_max != null ? Number(r.ideal_weight_max) : undefined,
           }))
           .filter((r: any) => r.date && !isNaN(r.weight));
         withWeight.sort((a: any, b: any) => a.date.localeCompare(b.date));
@@ -271,11 +271,11 @@ export default function WeightTrendAnalysis() {
           const all = fallback.data || [];
           const fromObs = all
             .filter((r: HealthRecord) => r.weight_kg != null && Number(r.weight_kg) > 0)
-            .map((r: HealthRecord) => ({
+            .map((r: any) => ({
               date: r.record_date || r.created_at || "",
               weight: Number(r.weight_kg),
-              idealMin: currentPet?.ideal_weight_min ? Number(currentPet.ideal_weight_min) : undefined,
-              idealMax: currentPet?.ideal_weight_max ? Number(currentPet.ideal_weight_max) : undefined,
+              idealMin: r.ideal_weight_min != null ? Number(r.ideal_weight_min) : undefined,
+              idealMax: r.ideal_weight_max != null ? Number(r.ideal_weight_max) : undefined,
             }))
             .filter((r) => r.date && !isNaN(r.weight));
           fromObs.sort((a, b) => a.date.localeCompare(b.date));
@@ -286,9 +286,10 @@ export default function WeightTrendAnalysis() {
       .finally(() => setWtLoading(false));
   }, [phone, selectedPetId, currentPet]);
 
-  // 理想范围（从宠物信息或默认值）
-  const idealMin = currentPet?.ideal_weight_min ? Number(currentPet.ideal_weight_min) : (weightRecords.length > 2 ? Math.min(...weightRecords.map(r => r.weight)) * 0.9 : 20);
-  const idealMax = currentPet?.ideal_weight_max ? Number(currentPet.ideal_weight_max) : (weightRecords.length > 2 ? Math.max(...weightRecords.map(r => r.weight)) * 1.1 : 30);
+  // 理想范围（优先取体重记录中携带的理想体重值，否则按记录估算/默认值兜底）
+  const recWithIdeal = weightRecords.find(r => r.idealMin != null && r.idealMax != null);
+  const idealMin = recWithIdeal?.idealMin != null ? Number(recWithIdeal.idealMin) : (weightRecords.length > 2 ? Math.min(...weightRecords.map(r => r.weight)) * 0.9 : 20);
+  const idealMax = recWithIdeal?.idealMax != null ? Number(recWithIdeal.idealMax) : (weightRecords.length > 2 ? Math.max(...weightRecords.map(r => r.weight)) * 1.1 : 30);
 
   // 为每条记录补充理想范围（用于图表显示）
   const chartRecords = weightRecords.map(r => ({ ...r, idealMin, idealMax }));

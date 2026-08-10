@@ -273,10 +273,10 @@ function buildCheckItems(checkupRecords: HealthRecord[]) {
   }
   const items: { name: string; result: string; date: string; status: "normal" | "abnormal" | "pending" }[] = [];
   for (const rec of checkupRecords.slice(0, 6)) {
-    const result = (rec as Record<string, unknown>).result || rec.notes || "";
+    const result = (rec as Record<string, unknown>).result || rec.note || "";
     const hasAbnormal = String(result).includes("异常") || String(result).includes("偏高");
     items.push({
-      name: rec.title || (rec.type === "medical" ? "就诊记录" : "体检"),
+      name: rec.title || (rec.record_type === "visit" ? "就诊记录" : "体检"),
       result: String(result).slice(0, 50) || "有记录",
       date: rec.record_date ? String(rec.record_date).slice(0, 10) : "--",
       status: hasAbnormal ? "abnormal" : "normal",
@@ -311,7 +311,7 @@ export default function HealthReportAnalysis() {
         // 筛选体检类型记录
         const all = res.data || [];
         setCheckupRecords(all.filter((r: HealthRecord) =>
-          r.type === "checkup" || r.type === "medical" || r.type === "check_up"
+          r.record_type === "checkup" || r.record_type === "visit"
         ));
       })
       .catch(console.error);

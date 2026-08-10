@@ -213,9 +213,15 @@ export default function AiHub() {
       )}
 
       {/* 配额提示弹窗 */}
-      {showQuotaModal && quotaErrorData && (
-        <QuotaHintModal quota={quotaErrorData} onClose={() => setShowQuotaModal(false)} />
-      )}
+      <QuotaHintModal
+        isOpen={showQuotaModal && !!quotaErrorData}
+        quotaData={quotaErrorData}
+        onClose={() => setShowQuotaModal(false)}
+        onUpgrade={() => {
+          setShowQuotaModal(false);
+          navigate("/app/mine/vip");
+        }}
+      />
     </div>
   );
 }

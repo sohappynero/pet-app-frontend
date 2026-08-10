@@ -532,7 +532,7 @@ export default function AiAnalysis() {
               <div className="ai-detail-list">
                 {vacAlerts.length > 0 && vacAlerts.map(v => (
                   <DetailRow key={v.id} label={v.name}
-                    value={v.status === "overdue" ? `已过期${Math.abs(v.days_until ?? 0)}天` : v.status === "approaching" ? `${Math.abs(v.days_until ?? 0)}天后到期` : `${Math.abs(v.days_within ?? 0)}天内正常`}
+                    value={v.status === "overdue" ? `已过期${Math.abs(v.days_until ?? 0)}天` : v.status === "approaching" ? `${Math.abs(v.days_until ?? 0)}天后到期` : `正常（${Math.abs(v.days_until ?? 0)}天后到期）`}
                     status={v.status === "overdue" ? "danger" : v.status === "approaching" ? "warning" : "good"} />
                 ))}
                 <DetailRow label="驱虫状态"

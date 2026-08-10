@@ -211,9 +211,9 @@ async function request<T = unknown>(url: string, init?: RequestInit): Promise<T>
             headers: createHeaders(init?.headers, init?.headers?.['Content-Type'] === 'application/json'),
             ...init,
           })
-          .then(newRes => {
+          .then(async newRes => {
             const contentType = newRes.headers.get("content-type") || "";
-            const data = contentType.includes("application/json") ? newRes.json() : null;
+            const data = contentType.includes("application/json") ? await newRes.json() : null;
             if (!newRes.ok || data?.ok === false) {
               const fallbackMessage = !newRes.ok ? `请求失败（HTTP ${newRes.status}）` : "请求失败";
               reject(new Error(data?.message || data?.detail || fallbackMessage));

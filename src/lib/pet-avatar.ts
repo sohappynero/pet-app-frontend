@@ -7,10 +7,10 @@
  * 3. 上传逻辑在 3 个页面中重复实现
  *
  * 使用方式：
- * import { handleAvatarUpload, getLocalAvatar, syncAvatarToServer } from '@/lib/pet-avatar';
+ * import { handleAvatarFileUpload, getLocalAvatar } from '@/lib/pet-avatar';
  */
 
-import { updatePet, updatePetAvatar } from "./api";
+import { updatePetAvatar } from "./api";
 
 // ═══════════════════════════════════════════════════════════
 // 常量配置
@@ -224,40 +224,6 @@ export function clearAllLocalAvatars(): number {
   return count;
 }
 
-// ═══════════════════════════════════════════════════════════
-// 后端同步
-// ═══════════════════════════════════════════════════════════
-
-/**
- * 同步头像到后端服务器
- *
- * @param base64OrDataUrl - 可以是纯 base64 或完整的 Data URL
- * @param petId - 宠物 ID
- * @param phone - 用户手机号
- * @returns 是否同步成功
- */
-export async function syncAvatarToServer(
-  base64OrDataUrl: string,
-  petId: number,
-  phone: string,
-): Promise<boolean> {
-  const image_url = base64OrDataUrl.startsWith("data:")
-    ? base64OrDataUrl
-    : `data:image/jpeg;base64,${base64OrDataUrl}`;
-
-  try {
-    const result = await updatePet(petId, { image_url }, phone);
-    if (result.ok) {
-      console.info(`[pet-avatar] 后端同步成功 (petId=${petId}, size=${image_url.length})`);
-      return true;
-    }
-    console.warn(`[pet-avatar] 后端返回非成功状态 (petId=${petId})`, result);
-    return false;
-  } catch (e) {
-    console.error(`[pet-avatar] 后端同步失败 (petId=${petId})`, e);
-    return false;
-  }
-}
 
 // ═══════════════════════════════════════════════════════════
 // 文件上传方法（新 API，multipart/form-data）
@@ -384,79 +350,3 @@ export async function handleAvatarFileUpload(
   };
 }
 
-// ═══════════════════════════════════════════════════════════
-// 完整上传流程编排
-// ═══════════════════════════════════════════════════════════
-
-/**
- * 处理宠物头像上传的完整流程：
- *
- * 1. 校验文件类型
- * 2. Canvas 压缩（大幅减少体积）
- * 3. 乐观更新 UI（立即显示新头像）
- * 4. 持久化到 localStorage（含容量校验 + 自动清理重试）
- * 5. 异步同步到后端（带结果反馈）
- *
- * @param file - 用户选择的图片文件
- * @param petId - 当前宠物 ID
- * @param phone - 用户手机号
- * @param onImmediateUpdate - 压缩完成后的回调（用于立即更新 UI），传入压缩后的 Data URL
- * @returns 上传结果详情（包含是否需要提示用户同步失败）
- */
-export async function handleAvatarUpload(
-  file: File,
-  petId: number,
-  phone: string,
-  onImmediateUpdate: (dataUrl: string) => void,
-): Promise<UploadResult> {
-  // 1. 文件校验
-  if (!file.type.startsWith("image/")) {
-    return {
-      compress: {} as any,
-      localSaved: false,
-      serverSynced: false,
-      finalUrl: "",
-      error: "请选择图片文件",
-    };
-  }
-
-  // 2. 压缩图片
-  let compress: CompressResult;
-  try {
-    compress = await compressImage(file);
-  } catch (e) {
-    console.error("[pet-avatar] 图片压缩失败", e);
-    return {
-      compress: {} as any,
-      localSaved: false,
-      serverSynced: false,
-      finalUrl: "",
-      error: "图片处理失败，请重试",
-    };
-  }
-
-  console.info(
-    `[pet-avatar] 压缩完成: ${(compress.originalSize / 1024).toFixed(1)}KB → ${(compress.compressedSize / 1024).toFixed(1)}KB (压缩比 ${Math.round(compress.ratio * 100)}%)`,
-  );
-
-  // 3. 乐观更新 UI
-  const finalUrl = compress.dataUrl;
-  onImmediateUpdate(finalUrl);
-
-  // 4. 持久化到 localStorage
-  const localSaved = saveLocalAvatar(petId, finalUrl);
-  if (!localSaved) {
-    console.error("[pet-avatar] localStorage 写入最终失败，刷新后可能丢失");
-  }
-
-  // 5. 异步同步到后端（不阻塞 UI，但记录结果）
-  const serverSynced = await syncAvatarToServer(finalUrl, petId, phone);
-
-  return {
-    compress,
-    localSaved,
-    serverSynced,
-    finalUrl,
-    error: !serverSynced ? "已保存到本机，但云端同步失败" : undefined,
-  };
-}
