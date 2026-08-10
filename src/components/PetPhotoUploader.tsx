@@ -260,8 +260,8 @@ export function PetPhotoUploader({
 
   return (
     <div className={`photo-uploader-wrapper ${className}`}>
-      {/* ====== 状态一：未选择图片时 → 显示上传区域 ====== */
-      
+      {/* ====== 状态一：未选择图片时 → 显示上传区域 ====== */}
+
       {!preview && !isProcessing ? (
         <div
           onClick={handleClick}
