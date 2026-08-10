@@ -132,7 +132,7 @@ export default function Pet3DAvatarGenerator({
     if (!generatedImage) return;
 
     // 通过统一模块保存（含容量校验和自动清理）
-    saved = saveLocalAvatar(pet.id, generatedImage);
+    saveLocalAvatar(pet.id, generatedImage);
     onSuccess?.(generatedImage);
     onClose?.();
   };

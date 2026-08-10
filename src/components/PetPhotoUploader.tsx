@@ -384,7 +384,7 @@ export function PetPhotoUploader({
               <ZoomIn size={12} />
               <span>{selectedFile?.name || "pet_photo"}</span>
               <span className="pu-file-size">
-                {selectedFile ? formatFileSize(selectedFile.fileSize) : ""}
+                {selectedFile ? formatFileSize(selectedFile.size) : ""}
               </span>
             </div>
 
