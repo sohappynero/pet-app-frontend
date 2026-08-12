@@ -245,9 +245,9 @@ async function request<T = unknown>(url: string, init?: RequestInit): Promise<T>
       console.error("🔑 Token 刷新失败，需要重新登录:", refreshError);
       persistRemove("pet_user_v1");
       persistRemove("pet_refresh_token_v1");
-      // 跳转到登录页（仅在浏览器环境中）
+      // 跳转到登录页（HashRouter 用 hash 路径，兼容本地文件加载环境）
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        window.location.hash = '#/login';
       }
       throw new Error("会话已过期，请重新登录");
     } finally {

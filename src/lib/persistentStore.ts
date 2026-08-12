@@ -8,6 +8,7 @@
  *  - 写入时同时写两边，保证下次启动能从 Preferences 恢复
  */
 import { Preferences } from "@capacitor/preferences";
+import { getHarmonyBridge } from "./platform";
 
 // 需要持久化的 key（登录态相关）
 const PERSIST_KEYS = ["pet_user_v1", "pet_refresh_token_v1"];
@@ -17,9 +18,21 @@ const PERSIST_KEYS = ["pet_user_v1", "pet_refresh_token_v1"];
  * 之后所有同步的 localStorage 读取就能拿到数据。
  */
 export async function hydrateFromPreferences(): Promise<void> {
+  const harmony = getHarmonyBridge();
+
   for (const key of PERSIST_KEYS) {
     try {
-      const { value } = await Preferences.get({ key });
+      let value: string | null = null;
+
+      // 鸿蒙环境走桥接
+      if (harmony) {
+        value = await harmony.storageGet(key);
+      } else {
+        // Capacitor 环境走 Preferences
+        const result = await Preferences.get({ key });
+        value = result.value;
+      }
+
       if (value !== null && value !== undefined) {
         localStorage.setItem(key, value);
       }
@@ -40,13 +53,25 @@ function track(p: Promise<unknown>): void {
 /** 写入：同时写 localStorage（同步，即时生效）和 Preferences（异步，持久化） */
 export function persistSet(key: string, value: string): void {
   try { localStorage.setItem(key, value); } catch {}
-  track(Preferences.set({ key, value }).catch(() => {}));
+
+  const harmony = getHarmonyBridge();
+  if (harmony) {
+    track(harmony.storageSet(key, value).catch(() => {}));
+  } else {
+    track(Preferences.set({ key, value }).catch(() => {}));
+  }
 }
 
 /** 删除：同时清 localStorage 和 Preferences */
 export function persistRemove(key: string): void {
   try { localStorage.removeItem(key); } catch {}
-  track(Preferences.remove({ key }).catch(() => {}));
+
+  const harmony = getHarmonyBridge();
+  if (harmony) {
+    track(harmony.storageRemove(key).catch(() => {}));
+  } else {
+    track(Preferences.remove({ key }).catch(() => {}));
+  }
 }
 
 /**

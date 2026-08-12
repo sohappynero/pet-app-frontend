@@ -7,6 +7,7 @@
  */
 import { Capacitor } from "@capacitor/core";
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { getHarmonyBridge } from "./platform";
 
 /** 将 dataURL 转成 File，复用现有 base64/File 处理链路 */
 function dataUrlToFile(dataUrl: string, filename: string): File {
@@ -24,6 +25,20 @@ function dataUrlToFile(dataUrl: string, filename: string): File {
  * @returns File；用户取消返回 null
  */
 export async function pickImage(source: "camera" | "photos"): Promise<File | null> {
+  // 鸿蒙 App：走壳工程注入的原生桥接，返回 dataURL
+  const harmony = getHarmonyBridge();
+  if (harmony) {
+    try {
+      const dataUrl = await harmony.pickImage(source);
+      if (!dataUrl) return null; // 用户取消返回空串
+      return dataUrlToFile(dataUrl, `pet_${Date.now()}.jpg`);
+    } catch (e: any) {
+      const msg = String(e?.message || e).toLowerCase();
+      if (msg.includes("cancel") || msg.includes("denied")) return null;
+      throw e;
+    }
+  }
+
   // 原生 App(Capacitor)：用 Camera 插件
   if (Capacitor.isNativePlatform()) {
     try {
@@ -60,6 +75,22 @@ export async function pickImage(source: "camera" | "photos"): Promise<File | nul
  * @returns File 数组；用户取消返回空数组
  */
 export async function pickImages(): Promise<File[]> {
+  // 鸿蒙 App：走壳工程注入的原生桥接，返回 dataURL 数组的 JSON 字符串
+  const harmony = getHarmonyBridge();
+  if (harmony) {
+    try {
+      const json = await harmony.pickImages();
+      const dataUrls: string[] = JSON.parse(json || "[]");
+      return dataUrls.map((dataUrl, i) =>
+        dataUrlToFile(dataUrl, `pet_${Date.now()}_${i}.jpg`)
+      );
+    } catch (e: any) {
+      const msg = String(e?.message || e).toLowerCase();
+      if (msg.includes("cancel") || msg.includes("denied")) return [];
+      throw e;
+    }
+  }
+
   // 原生 App(Capacitor)：用 pickImages 多选
   if (Capacitor.isNativePlatform()) {
     try {

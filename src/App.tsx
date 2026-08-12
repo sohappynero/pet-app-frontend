@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams, useSearchParams } from "react-router-dom";
+import { HashRouter, Navigate, Outlet, Route, Routes, useParams, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import AppShell from "./components/AppShell";
 import { getSessionUser } from "./lib/session";
@@ -95,7 +95,7 @@ function RedirectRecordDetail() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<Login />} />
@@ -170,6 +170,6 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
