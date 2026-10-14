@@ -56,9 +56,11 @@ captures/
 .idea/navEditor.xml
 
 # Keystore files
-# Uncomment the following lines if you do not want to check your keystore files in.
-#*.jks
-#*.keystore
+# 签名密钥与密码绝不进 Git：泄露后他人可冒名签发同包名应用，且国内商店无
+# Google Play 那样的密钥托管，丢失只能换包名重新上架。
+*.jks
+*.keystore
+keystore.properties
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
