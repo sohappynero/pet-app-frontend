@@ -5683,6 +5683,55 @@
   background: linear-gradient(135deg, #FFD1DC, #FFE4E1);
 }
 
+/* 付费时长切换（交互与 petos-form-toggle 一致，配色适配本页浅色暖卡风格） */
+.vip-sub-duration {
+  padding: 0 16px 14px;
+}
+
+.vip-sub-duration-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.vip-sub-duration-btn {
+  position: relative;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(180, 170, 155, 0.28);
+  background: #FFFAF5;
+  font-size: 13px;
+  font-weight: 600;
+  color: #B5A090;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.vip-sub-duration-btn:hover {
+  border-color: rgba(251, 113, 133, 0.35);
+  color: #8B7355;
+}
+
+.vip-sub-duration-btn.active {
+  background: linear-gradient(135deg, #FFF0F3, #FFE8ED);
+  border-color: rgba(251, 113, 133, 0.55);
+  color: #FB7185;
+  box-shadow: 0 2px 12px rgba(251, 113, 133, 0.18);
+}
+
+.vip-sub-duration-badge {
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #FFB84D, #FF9EB5);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
 /* Plans */
 .vip-sub-plans {
   display: flex;
@@ -5895,9 +5944,16 @@
   margin-bottom: 12px;
 }
 
-.vip-sub-pay-btn:hover {
+.vip-sub-pay-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 22px rgba(255, 158, 181, 0.45);
+}
+
+/* 支付处理中：防重复点击 */
+.vip-sub-pay-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .vip-sub-agree {

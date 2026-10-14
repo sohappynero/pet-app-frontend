@@ -6,6 +6,9 @@
 *.ap_
 *.aab
 
+# 例外：支付宝 SDK 不发布到 Maven，aar 只能手动下载并随仓库提交（见 app/libs/README.md）
+!app/libs/*.aar
+
 # Files for the ART/Dalvik VM
 *.dex
 

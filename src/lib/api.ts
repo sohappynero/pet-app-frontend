@@ -1183,3 +1183,82 @@ export function unregisterDevice(token: string): Promise<{ message: string }> {
 export function listDevices(): Promise<DeviceInfo[]> {
   return request<DeviceInfo[]>("/api/v1/devices");
 }
+
+
+// ═══ 会员支付 ═══
+
+export type PayPlan = "pro" | "family";
+export type PayDuration = "monthly" | "yearly";
+
+export interface CreateOrderResp {
+  order_no: string;
+  /** 金额（分） */
+  amount: number;
+  /** 支付宝 APP 支付已签名参数串，交给 SDK 直接调起 */
+  order_string?: string | null;
+  /** 微信 APP 支付调起参数（当前版本未接微信） */
+  wechat_app_params?: Record<string, string> | null;
+}
+
+export interface OrderStatusResp {
+  order_no: string;
+  /** pending / paid / failed / closed */
+  status: string;
+  plan: string;
+  duration: string;
+  amount: number;
+  pay_channel: string;
+  created_at: string;
+  paid_at?: string | null;
+}
+
+/**
+ * 创建支付订单。
+ * 后端限流每分钟 10 次（超限 429），支付配置缺失返回 503「支付服务暂不可用」，
+ * 两种情况都由 request() 抛成带后端文案的 Error。
+ */
+export function createOrder(payload: {
+  plan: PayPlan;
+  duration: PayDuration;
+  pay_channel: "alipay" | "wechat";
+}): Promise<CreateOrderResp> {
+  return request<CreateOrderResp>("/api/v1/payment/create-order", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** 查询订单状态，是判断会员是否开通的唯一依据 */
+export function getOrderStatus(orderNo: string): Promise<OrderStatusResp> {
+  return request<OrderStatusResp>(`/api/v1/payment/order/${encodeURIComponent(orderNo)}`);
+}
+
+/**
+ * 轮询订单直到支付完成。
+ * 客户端 SDK 的成功回调不代表会员已开通——服务端要等支付宝异步 notify 才会改状态，
+ * 所以这里以 2 秒间隔最多查 15 次（约 30 秒）。
+ *
+ * 单次查询失败（网络抖动）不中断轮询；轮询结束仍未 paid 时返回最后一次状态，
+ * 由调用方提示用户稍后在会员页查看，不抛错。
+ */
+export async function pollOrderPaid(
+  orderNo: string,
+  { intervalMs = 2000, maxAttempts = 15 } = {},
+): Promise<OrderStatusResp | null> {
+  let last: OrderStatusResp | null = null;
+
+  for (let i = 0; i < maxAttempts; i++) {
+    // 首次也等一拍，给异步 notify 留出到达时间
+    await new Promise((r) => setTimeout(r, intervalMs));
+    try {
+      last = await getOrderStatus(orderNo);
+      if (last.status === "paid") return last;
+      // 终态失败无需继续等
+      if (last.status === "failed" || last.status === "closed") return last;
+    } catch (e) {
+      console.warn(`[payment] 第 ${i + 1} 次查询订单失败，继续重试`, e);
+    }
+  }
+
+  return last;
+}

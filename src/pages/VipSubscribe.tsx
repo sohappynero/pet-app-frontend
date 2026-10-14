@@ -7,57 +7,75 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Heart, Gem, Crown, Smile, Activity, Sparkles } from "lucide-react";
 import { useShell } from "../hooks/useShell";
 import { getLocalAvatar } from "../lib/pet-avatar";
+import { createOrder, pollOrderPaid, type PayDuration, type PayPlan } from "../lib/api";
+import { ALIPAY_STATUS, canPayWithAlipay, payWithAlipay } from "../lib/alipay";
+
+/** 单个时长档的价格展示文案 */
+interface PlanPrice {
+  /** 主价格，如 "¥15" */
+  price: string;
+  /** 价格后缀，如 "/月" */
+  unit: string;
+  /** 卡片主描述 */
+  desc: string;
+  /** 卡片副描述，折算或省钱提示 */
+  sub: string;
+}
 
 interface Plan {
   id: string;
   name: string;
-  price: string;
-  unit: string;
   tag: string;
-  desc: string;
-  sub: string;
   color: string;
   border: string;
   bg: string;
+  /** 按时长分档的价格文案；免费版两档相同 */
+  pricing: Record<PayDuration, PlanPrice>;
 }
 
+// 价格与后端 app/core/payment_config.py 的 PRICING 保持一致（后端以“分”为单位）
 const PLANS: Plan[] = [
   {
     id: "free",
     name: "基础记录 免费版",
-    price: "¥0",
-    unit: "",
     tag: "",
-    desc: "永久免费",
-    sub: "",
     color: "#B5A090",
     border: "rgba(180,170,155,0.25)",
     bg: "linear-gradient(145deg, #FFFAF5, #FFF5EE)",
+    pricing: {
+      monthly: { price: "¥0", unit: "", desc: "永久免费", sub: "" },
+      yearly: { price: "¥0", unit: "", desc: "永久免费", sub: "" },
+    },
   },
   {
     id: "pro",
     name: "陪伴升级计划",
-    price: "¥15",
-    unit: "/月",
     tag: "推荐",
-    desc: "年付 ¥128 省 ¥52",
-    sub: "≈ ¥10.7/月",
     color: "#FB7185",
     border: "rgba(251,113,133,0.45)",
     bg: "linear-gradient(145deg, #FFF0F3, #FFE8ED)",
+    pricing: {
+      monthly: { price: "¥15", unit: "/月", desc: "年付 ¥128 省 ¥52", sub: "按月付费，可随时取消" },
+      yearly: { price: "¥128", unit: "/年", desc: "比月付省 ¥52", sub: "≈ ¥10.7/月" },
+    },
   },
   {
     id: "family",
     name: "它的一生计划",
-    price: "¥38",
-    unit: "/月",
     tag: "",
-    desc: "年付 ¥328 省 ¥128",
-    sub: "≈ ¥27.3/月",
     color: "#D4A574",
     border: "rgba(212,165,116,0.45)",
     bg: "linear-gradient(145deg, #FDF2EC, #F9E3D4)",
+    pricing: {
+      monthly: { price: "¥38", unit: "/月", desc: "年付 ¥328 省 ¥128", sub: "按月付费，可随时取消" },
+      yearly: { price: "¥328", unit: "/年", desc: "比月付省 ¥128", sub: "≈ ¥27.3/月" },
+    },
   },
+];
+
+const DURATIONS: Array<{ id: PayDuration; label: string }> = [
+  { id: "monthly", label: "按月付费" },
+  { id: "yearly", label: "按年付费" },
 ];
 
 const FEATURES = [
@@ -85,10 +103,72 @@ export default function VipSubscribe() {
   const navigate = useNavigate();
   const { selectedPet } = useShell();
   const [selectedPlan, setSelectedPlan] = useState("pro");
+  const [duration, setDuration] = useState<PayDuration>("monthly");
+  const [paying, setPaying] = useState(false);
+  const [toast, setToast] = useState("");
 
   const petName = selectedPet?.name || "宝贝";
   const petImage = selectedPet?.image_url || getLocalAvatar(selectedPet?.id ?? 0) || "";
   const currentPlan = PLANS.find((p) => p.id === selectedPlan) || PLANS[1];
+  const currentPrice = currentPlan.pricing[duration];
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 2000);
+  };
+
+  const handlePay = async () => {
+    if (paying) return;
+    if (selectedPlan === "free") {
+      showToast("免费版无需支付，直接使用即可");
+      return;
+    }
+    if (!canPayWithAlipay()) {
+      showToast("请在 App 内完成支付");
+      return;
+    }
+
+    setPaying(true);
+    try {
+      const order = await createOrder({
+        plan: selectedPlan as PayPlan,
+        duration,
+        pay_channel: "alipay",
+      });
+      if (!order.order_string) {
+        showToast("下单失败，请稍后重试");
+        return;
+      }
+
+      const result = await payWithAlipay(order.order_string);
+
+      // 用户主动取消：静默返回，不打扰
+      if (result.resultStatus === ALIPAY_STATUS.CANCELED) return;
+
+      // 成功和处理中都要问服务端，SDK 的成功不等于会员已开通
+      if (
+        result.resultStatus === ALIPAY_STATUS.SUCCESS ||
+        result.resultStatus === ALIPAY_STATUS.PROCESSING
+      ) {
+        showToast("支付完成，正在确认开通…");
+        const finalOrder = await pollOrderPaid(order.order_no);
+        if (finalOrder?.status === "paid") {
+          showToast("开通成功，感谢你的支持");
+          setTimeout(() => navigate(-1), 1200);
+        } else {
+          showToast("支付结果确认中，请稍后在会员页查看");
+        }
+        return;
+      }
+
+      showToast(result.memo || "支付未完成，请重试");
+    } catch (e: any) {
+      // 后端 503「支付服务暂不可用」/ 429「操作过于频繁」文案已由 api 层透出
+      showToast(e?.message || "支付失败，请稍后重试");
+    } finally {
+      setPaying(false);
+    }
+  };
 
   return (
     <main className="vip-sub-page">
@@ -98,7 +178,6 @@ export default function VipSubscribe() {
           <ChevronLeft size={22} strokeWidth={2} />
         </button>
         <h1 className="vip-sub-title">开通会员</h1>
-        <button className="vip-sub-restore">恢复购买</button>
       </header>
 
       {/* Hero */}
@@ -118,29 +197,49 @@ export default function VipSubscribe() {
         </div>
       </section>
 
+      {/* 付费时长切换 */}
+      <section className="vip-sub-duration">
+        <div className="vip-sub-duration-group">
+          {DURATIONS.map((d) => (
+            <button
+              type="button"
+              key={d.id}
+              className={`vip-sub-duration-btn ${duration === d.id ? "active" : ""}`}
+              onClick={() => setDuration(d.id)}
+            >
+              {d.label}
+              {d.id === "yearly" && <span className="vip-sub-duration-badge">更划算</span>}
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* Plans */}
       <section className="vip-sub-plans">
-        {PLANS.map((plan) => (
-          <button
-            type="button"
-            key={plan.id}
-            className={`vip-sub-plan ${selectedPlan === plan.id ? "active" : ""}`}
-            style={{
-              background: plan.bg,
-              borderColor: plan.border,
-            }}
-            onClick={() => setSelectedPlan(plan.id)}
-          >
-            {plan.tag && <span className="vip-sub-plan-tag">{plan.tag}</span>}
-            <h4>{plan.name}</h4>
-            <div className="vip-sub-plan-price" style={{ color: plan.color }}>
-              {plan.price}
-              <small>{plan.unit}</small>
-            </div>
-            <p className="vip-sub-plan-desc">{plan.desc}</p>
-            <p className="vip-sub-plan-sub">{plan.sub}</p>
-          </button>
-        ))}
+        {PLANS.map((plan) => {
+          const p = plan.pricing[duration];
+          return (
+            <button
+              type="button"
+              key={plan.id}
+              className={`vip-sub-plan ${selectedPlan === plan.id ? "active" : ""}`}
+              style={{
+                background: plan.bg,
+                borderColor: plan.border,
+              }}
+              onClick={() => setSelectedPlan(plan.id)}
+            >
+              {plan.tag && <span className="vip-sub-plan-tag">{plan.tag}</span>}
+              <h4>{plan.name}</h4>
+              <div className="vip-sub-plan-price" style={{ color: plan.color }}>
+                {p.price}
+                <small>{p.unit}</small>
+              </div>
+              <p className="vip-sub-plan-desc">{p.desc}</p>
+              <p className="vip-sub-plan-sub">{p.sub}</p>
+            </button>
+          );
+        })}
       </section>
 
       {/* Features */}
@@ -182,11 +281,17 @@ export default function VipSubscribe() {
       {/* Pay */}
       <section className="vip-sub-pay">
         <p className="vip-sub-pay-tip">年付比月付更划算，可随时取消自动续费</p>
-        <button className="vip-sub-pay-btn">
+        <button
+          className="vip-sub-pay-btn"
+          onClick={handlePay}
+          disabled={paying}
+        >
           <Gem size={16} />
-          {selectedPlan === "free"
-            ? "免费版无需支付"
-            : `立即支付 ${currentPlan.price}${currentPlan.unit}`}
+          {paying
+            ? "支付处理中…"
+            : selectedPlan === "free"
+              ? "免费版无需支付"
+              : `立即支付 ${currentPrice.price}${currentPrice.unit}`}
         </button>
         <label className="vip-sub-agree">
           <input type="checkbox" defaultChecked />
@@ -209,6 +314,8 @@ export default function VipSubscribe() {
           ))}
         </div>
       </section>
+
+      {toast && <div className="qm-toast">{toast}</div>}
     </main>
   );
 }
